@@ -91,6 +91,22 @@
 
 ---
 
+### [2026-06-30] - Back-end B-07 · Contrôle Accès QR Code / Scan Réfectoire
+- **Auteur** : Yacouba SYLLA / Claude Code
+- **Statut** : Livré / Opérationnel
+- **Fichiers Créés** :
+  - `scan/entity/` — `PassageRefectoire.java`, `ResultatScan.java`, `MotifRefus.java`
+  - `scan/dto/` — `ScanResultDTO.java`, `PassageResponseDTO.java`, `CacheEntreeDTO.java`
+  - `scan/repository/PassageRefectoireRepository.java` — doublon check, filtre par date/établissement
+  - `scan/service/ScanService.java` — scanner(), getCacheOffline(), listerPassages()
+  - `scan/controller/ScanController.java` — POST /scan/{token}, GET /scan/cache, GET /passages
+- **Fichiers Modifiés** :
+  - `eleve/repository/EleveRepository.java` — `findByQrCodeTokenAndActifTrue()` + `findAllActiveWithDetails()`
+- **Description** : Module de contrôle d'accès au réfectoire par QR Code. Validation en 240ms (< 1s requis). Logique : AUTORISE/GRACE → vérifier doublon du jour → ACCORDÉ ou DOUBLON_PASSAGE ; SUSPENDU/EN_ATTENTE_PAIEMENT → REFUSÉ. Cache offline téléchargeable (tous élèves actifs + statuts) pour fonctionnement sans internet 24h. Historique des passages filtrable par date et établissement. Chaque scan enregistré dans `passages_refectoire` avec motif de refus si applicable.
+- **Tests validés** : 240ms ✅, ACCORDÉ ✅, REFUSÉ SUSPENDU ✅, 404 inconnu ✅, doublon ✅, cache ✅, historique ✅
+
+---
+
 ### [2026-06-30] - Back-end B-06 · Moteur de Paiements & Webhooks (CinetPay / PayDunya)
 - **Auteur** : Yacouba SYLLA / Claude Code
 - **Statut** : Livré / Opérationnel
@@ -161,4 +177,6 @@
 
 | B-06 Back-end Paiements & Webhooks | ✅ |
 
-**Prochaine étape** : Back-end B-07 QR Code / Scan Réfectoire.
+| B-07 Back-end QR Code / Scan | ✅ |
+
+**Prochaine étape** : Back-end B-08 Gestion Utilisateurs ou Front-end (F-05 à F-08).

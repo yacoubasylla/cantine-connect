@@ -108,19 +108,19 @@
 
 ---
 
-### 🔲 B-07 · Contrôle d'Accès QR Code / Scan Réfectoire
+### ✅ B-07 · Contrôle d'Accès QR Code / Scan Réfectoire
 **Périmètre :** PassageRefectoire, validation < 1s, cache offline 24h  
-**Fichiers clés :** `scan/entity/PassageRefectoire.java`, `scan/controller/ScanController.java`
+**Fichiers clés :** `scan/` (entity, dto, repository, service, controller)
 
-| # | Test de validation | Attendu |
-|---|-------------------|---------|
-| 1 | `POST /api/v1/scan/{qrCodeToken}` → réponse en < 1 000ms | 🔲 |
-| 2 | Token valide + statut `AUTORISE` → 200 `{"accès":"ACCORDÉ"}` | 🔲 |
-| 3 | Token valide + statut `SUSPENDU` → 200 `{"accès":"REFUSÉ"}` | 🔲 |
-| 4 | Token inexistant → 404 | 🔲 |
-| 5 | Double passage dans la même session repas → refus doublon | 🔲 |
-| 6 | `GET /api/v1/scan/cache` → export cache pour mode offline | 🔲 |
-| 7 | `GET /api/v1/passages?date=today` → liste des passages du jour | 🔲 |
+| # | Test de validation | Résultat |
+|---|-------------------|----------|
+| 1 | `POST /api/v1/scan/{qrCodeToken}` → réponse en **240ms** (< 1 000ms) | ✅ |
+| 2 | Token valide + statut `AUTORISE` → 200 `{"acces":"ACCORDÉ"}` + passageId | ✅ |
+| 3 | Token valide + statut `SUSPENDU` → 200 `{"acces":"REFUSÉ"}` motif=STATUT_SUSPENDU | ✅ |
+| 4 | Token inexistant → 404 | ✅ |
+| 5 | Double passage même jour → `{"acces":"REFUSÉ"}` motif=DOUBLON_PASSAGE | ✅ |
+| 6 | `GET /api/v1/scan/cache` → cache avec tous les élèves actifs + statuts | ✅ |
+| 7 | `GET /api/v1/passages?date=2026-06-30` → liste 3 passages (ACCORDE + REFUSE) | ✅ |
 
 ---
 
@@ -264,8 +264,8 @@
 | F-01 Layout | — | ✅ | — |
 | B-05 ActionLog AOP | ✅ | — | — |
 | B-06 / F-06 Paiements | ✅ | 🔲 | 🟡 F-06 restant |
-| B-07 / F-07 QR Scan | 🔲 | 🔲 | 🔴 Haute |
+| B-07 / F-07 QR Scan | ✅ | 🔲 | 🟡 F-07 restant |
 | F-05 Dashboard | — | 🔄 | 🟡 Moyenne |
 | B-08 / F-08 Utilisateurs | 🔲 | 🔲 | 🟡 Moyenne |
 
-**Avancement global : 10/16 modules livrés (62%)**
+**Avancement global : 11/16 modules livrés (69%)**

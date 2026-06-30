@@ -7,6 +7,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -51,6 +52,15 @@ public interface EleveRepository extends JpaRepository<Eleve, Long> {
     Optional<Eleve> findByIdActive(Long id);
 
     Optional<Eleve> findByQrCodeToken(UUID qrCodeToken);
+
+    // Utilisé par le scan réfectoire — filtre actif=true pour éviter les élèves supprimés
+    @Query("SELECT e FROM Eleve e WHERE e.qrCodeToken = :token AND e.actif = true")
+    Optional<Eleve> findByQrCodeTokenAndActifTrue(@Param("token") UUID token);
+
+    // Cache offline : tous les élèves actifs avec leurs associations (évite N+1)
+    @Query("SELECT e FROM Eleve e JOIN FETCH e.etablissement JOIN FETCH e.classe " +
+           "WHERE e.actif = true ORDER BY e.etablissement.id, e.classe.id, e.nom")
+    List<Eleve> findAllActiveWithDetails();
 
     boolean existsByMatricule(String matricule);
 }
