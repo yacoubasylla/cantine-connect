@@ -2,33 +2,68 @@ import { Outlet, useNavigate, useLocation } from 'react-router-dom'
 import {
   Box, Drawer, AppBar, Toolbar, Typography,
   List, ListItemButton, ListItemIcon, ListItemText, Divider,
+  Avatar, Stack, Tooltip, IconButton, Chip,
 } from '@mui/material'
 import DashboardIcon from '@mui/icons-material/Dashboard'
 import SchoolIcon from '@mui/icons-material/School'
 import PeopleIcon from '@mui/icons-material/People'
 import RestaurantIcon from '@mui/icons-material/Restaurant'
+import LogoutIcon from '@mui/icons-material/Logout'
+import { useAuth } from '../hooks/useAuth'
 
 const DRAWER_WIDTH = 240
 
 const NAV_ITEMS = [
   { label: 'Tableau de bord', icon: <DashboardIcon />, path: '/dashboard' },
-  { label: 'Établissements', icon: <SchoolIcon />, path: '/etablissements' },
-  { label: 'Élèves', icon: <PeopleIcon />, path: '/eleves' },
+  { label: 'Établissements',  icon: <SchoolIcon />,    path: '/etablissements' },
+  { label: 'Élèves',          icon: <PeopleIcon />,    path: '/eleves' },
 ]
 
+const ROLE_LABELS = { ADMIN: 'Administrateur', GESTIONNAIRE: 'Gestionnaire', CAISSIER: 'Caissier' }
+
 export default function MainLayout() {
-  const navigate = useNavigate()
-  const location = useLocation()
+  const navigate    = useNavigate()
+  const location    = useLocation()
+  const { user, logout } = useAuth()
+
+  const handleLogout = () => { logout(); navigate('/login', { replace: true }) }
+
+  const initials = user ? `${user.prenom?.[0] ?? ''}${user.nom?.[0] ?? ''}`.toUpperCase() : '?'
 
   return (
     <Box sx={{ display: 'flex', height: '100vh' }}>
+      {/* ── AppBar ──────────────────────────────────────── */}
       <AppBar position="fixed" sx={{ zIndex: (t) => t.zIndex.drawer + 1 }}>
-        <Toolbar sx={{ gap: 1 }}>
-          <RestaurantIcon />
-          <Typography variant="h6">Cantine Connect</Typography>
+        <Toolbar sx={{ justifyContent: 'space-between' }}>
+          <Stack direction="row" alignItems="center" spacing={1}>
+            <RestaurantIcon />
+            <Typography variant="h6">Cantine Connect</Typography>
+          </Stack>
+
+          {user && (
+            <Stack direction="row" alignItems="center" spacing={1.5}>
+              <Box textAlign="right" sx={{ display: { xs: 'none', sm: 'block' } }}>
+                <Typography variant="body2" fontWeight={600} lineHeight={1.2}>
+                  {user.prenom} {user.nom}
+                </Typography>
+                <Typography variant="caption" sx={{ opacity: 0.8 }}>
+                  {ROLE_LABELS[user.role] ?? user.role}
+                </Typography>
+              </Box>
+              <Avatar sx={{ width: 34, height: 34, bgcolor: 'primary.dark', fontSize: 14 }}>
+                {initials}
+              </Avatar>
+              <Tooltip title="Déconnexion">
+                <IconButton color="inherit" onClick={handleLogout} size="small">
+                  <LogoutIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
+            </Stack>
+          )}
         </Toolbar>
       </AppBar>
 
+      {/* ── Drawer ──────────────────────────────────────── */}
       <Drawer
         variant="permanent"
         sx={{
@@ -52,8 +87,19 @@ export default function MainLayout() {
             </ListItemButton>
           ))}
         </List>
+
+        {user && (
+          <Box sx={{ mt: 'auto', p: 2, borderTop: '1px solid', borderColor: 'divider' }}>
+            <Chip
+              label={ROLE_LABELS[user.role] ?? user.role}
+              size="small" color="primary" variant="outlined"
+              sx={{ width: '100%' }}
+            />
+          </Box>
+        )}
       </Drawer>
 
+      {/* ── Contenu principal ───────────────────────────── */}
       <Box
         component="main"
         sx={{ flexGrow: 1, p: 3, overflow: 'auto', bgcolor: 'background.default' }}
