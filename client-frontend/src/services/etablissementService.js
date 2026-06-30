@@ -20,4 +20,10 @@ export const etablissementService = {
 
   creerClasse: (niveauId, data) =>
     apiClient.post(`/etablissements/niveaux/${niveauId}/classes`, data).then((r) => r.data.data),
+
+  supprimerNiveau: (niveauId) =>
+    apiClient.delete(`/etablissements/niveaux/${niveauId}`).then((r) => r.data),
+
+  supprimerClasse: (classeId) =>
+    apiClient.delete(`/etablissements/classes/${classeId}`).then((r) => r.data),
 };

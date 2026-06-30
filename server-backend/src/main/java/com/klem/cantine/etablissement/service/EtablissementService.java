@@ -80,6 +80,22 @@ public class EtablissementService {
     }
 
     @Transactional
+    public void supprimerNiveau(Long niveauId) {
+        if (!niveauRepository.existsById(niveauId)) {
+            throw new EntityNotFoundException("Niveau introuvable : " + niveauId);
+        }
+        niveauRepository.deleteById(niveauId);
+    }
+
+    @Transactional
+    public void supprimerClasse(Long classeId) {
+        if (!classeRepository.existsById(classeId)) {
+            throw new EntityNotFoundException("Classe introuvable : " + classeId);
+        }
+        classeRepository.deleteById(classeId);
+    }
+
+    @Transactional
     public ClasseResponseDTO creerClasse(Long niveauId, ClasseRequestDTO dto) {
         Niveau niveau = niveauRepository.findById(niveauId)
                 .orElseThrow(() -> new EntityNotFoundException("Niveau introuvable : " + niveauId));

@@ -60,4 +60,16 @@ public class EtablissementController {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.created(etablissementService.creerClasse(niveauId, dto)));
     }
+
+    @DeleteMapping("/niveaux/{niveauId}")
+    public ResponseEntity<ApiResponse<?>> supprimerNiveau(@PathVariable Long niveauId) {
+        etablissementService.supprimerNiveau(niveauId);
+        return ResponseEntity.ok(ApiResponse.ok("Niveau supprimé"));
+    }
+
+    @DeleteMapping("/classes/{classeId}")
+    public ResponseEntity<ApiResponse<?>> supprimerClasse(@PathVariable Long classeId) {
+        etablissementService.supprimerClasse(classeId);
+        return ResponseEntity.ok(ApiResponse.ok("Classe supprimée"));
+    }
 }
