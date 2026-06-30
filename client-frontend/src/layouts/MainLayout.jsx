@@ -9,6 +9,7 @@ import SchoolIcon from '@mui/icons-material/School'
 import PeopleIcon from '@mui/icons-material/People'
 import RestaurantIcon from '@mui/icons-material/Restaurant'
 import PaymentsIcon from '@mui/icons-material/Payments'
+import QrCodeScannerIcon from '@mui/icons-material/QrCodeScanner'
 import LogoutIcon from '@mui/icons-material/Logout'
 import { useAuth } from '../hooks/useAuth'
 
@@ -18,7 +19,8 @@ const NAV_ITEMS = [
   { label: 'Tableau de bord', icon: <DashboardIcon />,  path: '/dashboard' },
   { label: 'Établissements',  icon: <SchoolIcon />,     path: '/etablissements' },
   { label: 'Élèves',          icon: <PeopleIcon />,     path: '/eleves' },
-  { label: 'Paiements',       icon: <PaymentsIcon />,   path: '/paiements' },
+  { label: 'Paiements',       icon: <PaymentsIcon />,        path: '/paiements' },
+  { label: 'Scan Réfectoire', icon: <QrCodeScannerIcon />,   path: '/scan' },
 ]
 
 const ROLE_LABELS = { ADMIN: 'Administrateur', GESTIONNAIRE: 'Gestionnaire', CAISSIER: 'Caissier' }

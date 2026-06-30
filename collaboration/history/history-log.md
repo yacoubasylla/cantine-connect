@@ -91,6 +91,24 @@
 
 ---
 
+### [2026-06-30] - Front-end F-07 · Interface QR Code / Scan Réfectoire
+- **Auteur** : Yacouba SYLLA / Claude Code
+- **Statut** : Livré / Opérationnel
+- **Packages installés** : `qrcode.react` (génération QR Code SVG)
+- **Fichiers Créés** :
+  - `services/scanService.js` — scanner(), getCache(), getPassages()
+  - `services/cacheOfflineService.js` — sauvegarder/charger/scanner/ageTexte (TTL 24h localStorage)
+  - `hooks/useScan.js` — scan online + fallback offline automatique + rafraîchirCache
+  - `pages/scan/ScanPage.jsx` — layout 2 colonnes (scan+résultat / passages du jour)
+- **Fichiers Modifiés** :
+  - `pages/eleves/ElevesPage.jsx` — QrCodeDialog avec QRCodeSVG 220px + copier + imprimer
+  - `App.jsx` — route `/scan` ajoutée
+  - `layouts/MainLayout.jsx` — nav item "Scan Réfectoire" (QrCodeScannerIcon) ajouté
+- **Description** : Interface de contrôle accès réfectoire. Input QR token + bouton Scanner (compatible scanner USB/BT). Carte résultat : ACCORDÉ (fond vert) ou REFUSÉ (fond rouge) avec élève, classe, heure, motif. Panel droit : liste passages du jour rechargée après chaque scan. Mode offline : cache téléchargeable via GET /scan/cache → localStorage 24h, validation locale en cas de perte réseau. Chip statut en-ligne/hors-ligne (navigator.onLine + événements browser). QR codes affichables sur la fiche de chaque élève.
+- **Tests validés** : scan online ✅, résultat carte ✅, passages ✅, cache download ✅, offline fallback ✅, 404 inconnu ✅, QrCodeDialog ✅
+
+---
+
 ### [2026-06-30] - Front-end F-06 · Interface Paiements Mobile Money
 - **Auteur** : Yacouba SYLLA / Claude Code
 - **Statut** : Livré / Opérationnel

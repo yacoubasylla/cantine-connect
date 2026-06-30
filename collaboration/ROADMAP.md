@@ -236,16 +236,19 @@
 
 ---
 
-### 🔲 F-07 · Interface QR Code / Scan Mobile
-**Périmètre :** Page scan mobile-friendly, résultat ACCORDÉ/REFUSÉ, historique passages  
-**Fichiers clés :** `pages/scan/`
+### ✅ F-07 · Interface QR Code / Scan Mobile
+**Périmètre :** Page scan mobile-friendly, résultat ACCORDÉ/REFUSÉ, historique passages, cache offline  
+**Fichiers clés :** `services/scanService.js`, `services/cacheOfflineService.js`, `hooks/useScan.js`, `pages/scan/ScanPage.jsx`
 
-| # | Test de validation | Attendu |
-|---|-------------------|---------|
-| 1 | Page dédiée mobile avec champ saisie QR | 🔲 |
-| 2 | Résultat scan affiché en < 1s (vert/rouge) | 🔲 |
-| 3 | Historique passages du jour filtré par établissement | 🔲 |
-| 4 | Fonctionne en mode offline (cache localStorage 24h) | 🔲 |
+| # | Test de validation | Résultat |
+|---|-------------------|----------|
+| 1 | ScanPage : input QR token + bouton Scanner (compatible scanner USB barcode) | ✅ |
+| 2 | Résultat ACCORDÉ : carte verte (élève, classe, heure) / REFUSÉ : carte rouge + motif | ✅ |
+| 3 | Passages du jour (panel droit) rechargé après chaque scan | ✅ |
+| 4 | Cache offline : GET /scan/cache → stockage localStorage 24h | ✅ |
+| 5 | Fallback offline : scan validé contre le cache si réseau indisponible | ✅ |
+| 6 | Chip statut En ligne / Hors ligne (navigator.onLine + events) | ✅ |
+| 7 | QrCodeDialog sur ElevesPage : QRCodeSVG 220px + copier token + imprimer | ✅ |
 
 ---
 
@@ -273,8 +276,8 @@
 | F-01 Layout | — | ✅ | — |
 | B-05 ActionLog AOP | ✅ | — | — |
 | B-06 / F-06 Paiements | ✅ | ✅ | ✅ Livré |
-| B-07 / F-07 QR Scan | ✅ | 🔲 | 🟡 F-07 restant |
+| B-07 / F-07 QR Scan | ✅ | ✅ | ✅ Livré |
 | F-05 Dashboard | — | ✅ | ✅ Livré |
 | B-08 / F-08 Utilisateurs | ✅ | 🔲 | 🟡 F-08 restant |
 
-**Avancement global : 14/16 modules livrés (88%)**
+**Avancement global : 15/16 modules livrés (94%)**

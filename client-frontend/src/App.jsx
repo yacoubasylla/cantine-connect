@@ -5,6 +5,7 @@ import DashboardPage from './pages/DashboardPage'
 import EtablissementsPage from './pages/etablissements/EtablissementsPage'
 import ElevesPage from './pages/eleves/ElevesPage'
 import PaiementsPage from './pages/paiements/PaiementsPage'
+import ScanPage from './pages/scan/ScanPage'
 import ProtectedRoute from './components/ProtectedRoute'
 
 export default function App() {
@@ -24,6 +25,7 @@ export default function App() {
         <Route path="etablissements" element={<EtablissementsPage />} />
         <Route path="eleves"         element={<ElevesPage />} />
         <Route path="paiements"      element={<PaiementsPage />} />
+        <Route path="scan"           element={<ScanPage />} />
       </Route>
     </Routes>
   )

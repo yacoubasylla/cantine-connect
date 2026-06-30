@@ -4,15 +4,57 @@ import {
   Table, TableHead, TableBody, TableRow, TableCell,
   TablePagination, TableContainer, Paper,
   IconButton, CircularProgress, Alert, Tooltip,
+  Dialog, DialogTitle, DialogContent, DialogActions,
 } from '@mui/material'
-import AddIcon from '@mui/icons-material/Add'
-import EditIcon from '@mui/icons-material/Edit'
+import AddIcon    from '@mui/icons-material/Add'
+import EditIcon   from '@mui/icons-material/Edit'
 import DeleteIcon from '@mui/icons-material/Delete'
 import QrCode2Icon from '@mui/icons-material/QrCode2'
+import PrintIcon  from '@mui/icons-material/Print'
+import ContentCopyIcon from '@mui/icons-material/ContentCopy'
+import { QRCodeSVG } from 'qrcode.react'
 import { useEleves } from '../../hooks/useEleves'
 import { useEtablissements } from '../../hooks/useEtablissements'
 import StatutBadge from '../../components/StatutBadge'
 import EleveFormDialog from './EleveFormDialog'
+
+function QrCodeDialog({ eleve, onClose }) {
+  if (!eleve) return null
+  return (
+    <Dialog open={!!eleve} onClose={onClose} maxWidth="xs" fullWidth>
+      <DialogTitle>QR Code — {eleve.prenom} {eleve.nom}</DialogTitle>
+      <DialogContent>
+        <Stack alignItems="center" spacing={2} py={1}>
+          <QRCodeSVG
+            value={eleve.qrCodeToken}
+            size={220}
+            level="M"
+            includeMargin
+          />
+          <Typography variant="body2" color="text.secondary">
+            {eleve.classeLibelle} · {eleve.etablissementNom}
+          </Typography>
+          <Typography variant="caption" fontFamily="monospace" sx={{ wordBreak: 'break-all', textAlign: 'center', color: 'text.disabled' }}>
+            {eleve.qrCodeToken}
+          </Typography>
+        </Stack>
+      </DialogContent>
+      <DialogActions>
+        <Tooltip title="Copier le token">
+          <IconButton onClick={() => navigator.clipboard.writeText(eleve.qrCodeToken)}>
+            <ContentCopyIcon fontSize="small" />
+          </IconButton>
+        </Tooltip>
+        <Tooltip title="Imprimer">
+          <IconButton onClick={() => window.print()}>
+            <PrintIcon fontSize="small" />
+          </IconButton>
+        </Tooltip>
+        <Button onClick={onClose}>Fermer</Button>
+      </DialogActions>
+    </Dialog>
+  )
+}
 
 const STATUTS_FILTRE = [
   { value: '', label: 'Tous les statuts' },
@@ -24,8 +66,9 @@ const STATUTS_FILTRE = [
 
 export default function ElevesPage() {
   const [filtres, setFiltres] = useState({ etablissementId: '', statut: '', search: '' })
-  const [formOpen, setFormOpen] = useState(false)
+  const [formOpen, setFormOpen]     = useState(false)
   const [eleveToEdit, setEleveToEdit] = useState(null)
+  const [qrEleve,    setQrEleve]    = useState(null)
 
   const { etablissements } = useEtablissements()
   const {
@@ -137,8 +180,10 @@ export default function ElevesPage() {
                   </TableCell>
                   <TableCell><StatutBadge statut={eleve.statutAcces} /></TableCell>
                   <TableCell align="center">
-                    <Tooltip title={eleve.qrCodeToken}>
-                      <QrCode2Icon sx={{ fontSize: 20, color: 'text.secondary' }} />
+                    <Tooltip title="Afficher le QR Code">
+                      <IconButton size="small" onClick={() => setQrEleve(eleve)}>
+                        <QrCode2Icon fontSize="small" color="action" />
+                      </IconButton>
                     </Tooltip>
                   </TableCell>
                   <TableCell align="center">
@@ -179,6 +224,8 @@ export default function ElevesPage() {
         eleveToEdit={eleveToEdit}
         etablissements={etablissements}
       />
+
+      <QrCodeDialog eleve={qrEleve} onClose={() => setQrEleve(null)} />
     </Box>
   )
 }
