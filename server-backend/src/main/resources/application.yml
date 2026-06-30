@@ -32,8 +32,9 @@ spring:
         max-page-size: 50
 
 # ── Serveur ───────────────────────────────────────────────
+# Railway injecte $PORT dynamiquement — fallback 8081 en local
 server:
-  port: 8081
+  port: ${PORT:8081}
 
 # ── Actuator (Health Check) ───────────────────────────────
 management:
