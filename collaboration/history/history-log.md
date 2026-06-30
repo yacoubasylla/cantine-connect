@@ -91,6 +91,22 @@
 
 ---
 
+### [2026-06-30] - Back-end B-08 · Gestion des Utilisateurs (Admin)
+- **Auteur** : Yacouba SYLLA / Claude Code
+- **Statut** : Livré / Opérationnel
+- **Fichiers Créés** :
+  - `auth/dto/UtilisateurResponseDTO.java`, `CreerUtilisateurRequestDTO.java`, `ChangerRoleRequestDTO.java`
+  - `auth/service/UtilisateurService.java`
+  - `auth/controller/UtilisateurController.java`
+- **Fichiers Modifiés** :
+  - `auth/repository/UtilisateurRepository.java` — `countByRoleAndActifTrue(Role)`
+  - `common/SecurityConfig.java` — `@EnableMethodSecurity` activé
+  - `common/GlobalExceptionHandler.java` — handlers 403/401/409 ajoutés
+- **Description** : CRUD complet des comptes utilisateurs (`ADMIN` uniquement via `@PreAuthorize`). Soft delete protégé contre la suppression du dernier ADMIN (409 CONFLICT). Correction transversale : `GlobalExceptionHandler` intercepte maintenant `AccessDeniedException` → 403 propre.
+- **Tests validés** : liste ✅, création 201 ✅, changement rôle ✅, soft delete ✅, protection dernier ADMIN 409 ✅, GESTIONNAIRE 403 ✅, réactivation ✅
+
+---
+
 ### [2026-06-30] - Back-end B-07 · Contrôle Accès QR Code / Scan Réfectoire
 - **Auteur** : Yacouba SYLLA / Claude Code
 - **Statut** : Livré / Opérationnel

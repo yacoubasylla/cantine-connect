@@ -3,6 +3,8 @@ package com.klem.cantine.common;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -28,6 +30,27 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleBadRequest(IllegalArgumentException ex, HttpServletRequest req) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
             new ErrorResponse(LocalDateTime.now(), 400, "BAD_REQUEST", ex.getMessage(), req.getRequestURI())
+        );
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ErrorResponse> handleForbidden(AccessDeniedException ex, HttpServletRequest req) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(
+            new ErrorResponse(LocalDateTime.now(), 403, "FORBIDDEN", "Accès refusé : droits insuffisants.", req.getRequestURI())
+        );
+    }
+
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<ErrorResponse> handleUnauthorized(AuthenticationException ex, HttpServletRequest req) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
+            new ErrorResponse(LocalDateTime.now(), 401, "UNAUTHORIZED", ex.getMessage(), req.getRequestURI())
+        );
+    }
+
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<ErrorResponse> handleConflict(IllegalStateException ex, HttpServletRequest req) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(
+            new ErrorResponse(LocalDateTime.now(), 409, "CONFLICT", ex.getMessage(), req.getRequestURI())
         );
     }
 

@@ -124,17 +124,20 @@
 
 ---
 
-### 🔲 B-08 · Gestion des Utilisateurs (Admin)
+### ✅ B-08 · Gestion des Utilisateurs (Admin)
 **Périmètre :** CRUD utilisateurs, changement de rôle, désactivation  
-**Fichiers clés :** `auth/controller/UtilisateurController.java`
+**Fichiers clés :** `auth/dto/`, `auth/service/UtilisateurService.java`, `auth/controller/UtilisateurController.java`
 
-| # | Test de validation | Attendu |
-|---|-------------------|---------|
-| 1 | `POST /api/v1/utilisateurs` (ADMIN) → création d'un gestionnaire | 🔲 |
-| 2 | `GET /api/v1/utilisateurs` (ADMIN) → liste complète | 🔲 |
-| 3 | `PATCH /api/v1/utilisateurs/{id}/role` → changement de rôle | 🔲 |
-| 4 | `DELETE /api/v1/utilisateurs/{id}` → désactivation (soft delete) | 🔲 |
-| 5 | Accès refusé si rôle ≠ ADMIN → 403 | 🔲 |
+| # | Test de validation | Résultat |
+|---|-------------------|----------|
+| 1 | `GET /api/v1/utilisateurs` (ADMIN) → liste paginée | ✅ |
+| 2 | `POST /api/v1/utilisateurs` (ADMIN) → création gestionnaire 201 | ✅ |
+| 3 | `PATCH /api/v1/utilisateurs/{id}/role` → GESTIONNAIRE → CAISSIER | ✅ |
+| 4 | `DELETE /api/v1/utilisateurs/{id}` → désactivation soft (actif=false) | ✅ |
+| 5 | Désactiver dernier ADMIN → 409 CONFLICT avec message explicite | ✅ |
+| 6 | `GET /api/v1/utilisateurs/{id}` → actif=false après désactivation | ✅ |
+| 7 | Accès GESTIONNAIRE → 403 FORBIDDEN (ADMIN seulement) | ✅ |
+| 8 | `PATCH /{id}/reactiver` → actif=true restauré | ✅ |
 
 ---
 
@@ -266,6 +269,6 @@
 | B-06 / F-06 Paiements | ✅ | 🔲 | 🟡 F-06 restant |
 | B-07 / F-07 QR Scan | ✅ | 🔲 | 🟡 F-07 restant |
 | F-05 Dashboard | — | 🔄 | 🟡 Moyenne |
-| B-08 / F-08 Utilisateurs | 🔲 | 🔲 | 🟡 Moyenne |
+| B-08 / F-08 Utilisateurs | ✅ | 🔲 | 🟡 F-08 restant |
 
-**Avancement global : 11/16 modules livrés (69%)**
+**Avancement global : 12/16 modules livrés (75%)**
