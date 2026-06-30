@@ -91,6 +91,20 @@
 
 ---
 
+### [2026-06-30] - Front-end F-05 · Dashboard avec Stats Réelles
+- **Auteur** : Yacouba SYLLA / Claude Code
+- **Statut** : Livré / Opérationnel
+- **Fichiers Créés** :
+  - `services/dashboardService.js` — 7 appels API parallèles (`Promise.all`)
+  - `hooks/useDashboard.js` — custom hook loading/error/data
+- **Fichiers Modifiés** :
+  - `pages/DashboardPage.jsx` — KPI cards + répartition statuts + table passages
+  - `services/apiClient.js` — correction bug : `jwt_token` → `cc_token` (clé localStorage)
+- **Description** : Dashboard entièrement dynamique. 4 cartes KPI (établissements, élèves actifs, passages du jour, en attente paiement). Répartition des 4 statuts d'accès en chips colorés. Table des 5 derniers passages avec heure, résultat (CheckCircle/Cancel) et motif de refus. Skeletons MUI pendant chargement. Bouton rafraîchir. Correction silencieuse du bug `apiClient.js` (clé mal nommée).
+- **Tests validés** : établissements ✅, élèves/statuts ✅, passages ✅, skeletons ✅, rafraîchir ✅, table passages ✅
+
+---
+
 ### [2026-06-30] - Back-end B-08 · Gestion des Utilisateurs (Admin)
 - **Auteur** : Yacouba SYLLA / Claude Code
 - **Statut** : Livré / Opérationnel

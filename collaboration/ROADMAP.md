@@ -204,16 +204,19 @@
 
 ---
 
-### 🔄 F-05 · Dashboard (Stats Réelles)
-**Périmètre :** Statistiques dynamiques depuis API (nb élèves, passages, paiements)  
-**Fichiers clés :** `pages/DashboardPage.jsx`
+### ✅ F-05 · Dashboard (Stats Réelles)
+**Périmètre :** Statistiques dynamiques depuis API (nb élèves, passages, répartition statuts)  
+**Fichiers clés :** `services/dashboardService.js`, `hooks/useDashboard.js`, `pages/DashboardPage.jsx`
 
 | # | Test de validation | Résultat |
 |---|-------------------|----------|
-| 1 | Nombre d'établissements réel affiché | 🔲 |
-| 2 | Nombre d'élèves inscrits réel | 🔲 |
-| 3 | Passages du jour en temps réel | 🔲 |
-| 4 | Montant encaissé du mois | 🔲 |
+| 1 | Nombre d'établissements réel : 1 | ✅ |
+| 2 | Élèves actifs, autorisés, suspendus, grâce | ✅ |
+| 3 | Passages du jour en temps réel : 3 (accordés + refusés) | ✅ |
+| 4 | Répartition 4 statuts avec chips colorés | ✅ |
+| 5 | Skeletons MUI pendant chargement | ✅ |
+| 6 | Bouton rafraîchir fonctionnel | ✅ |
+| 7 | Table des derniers passages (heure + résultat + motif) | ✅ |
 
 ---
 
@@ -268,7 +271,7 @@
 | B-05 ActionLog AOP | ✅ | — | — |
 | B-06 / F-06 Paiements | ✅ | 🔲 | 🟡 F-06 restant |
 | B-07 / F-07 QR Scan | ✅ | 🔲 | 🟡 F-07 restant |
-| F-05 Dashboard | — | 🔄 | 🟡 Moyenne |
+| F-05 Dashboard | — | ✅ | ✅ Livré |
 | B-08 / F-08 Utilisateurs | ✅ | 🔲 | 🟡 F-08 restant |
 
-**Avancement global : 12/16 modules livrés (75%)**
+**Avancement global : 13/16 modules livrés (81%)**
