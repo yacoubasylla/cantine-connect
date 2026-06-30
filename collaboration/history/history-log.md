@@ -91,6 +91,22 @@
 
 ---
 
+### [2026-06-30] - Front-end F-08 · Gestion des Utilisateurs UI (ADMIN)
+- **Auteur** : Yacouba SYLLA / Claude Code
+- **Statut** : Livré / Opérationnel — **DERNIER MODULE — PROJET COMPLET 16/16**
+- **Fichiers Créés** :
+  - `services/utilisateurService.js` — lister, creer, changerRole, desactiver, reactiver
+  - `hooks/useUtilisateurs.js` — pagination + CRUD complet
+  - `pages/utilisateurs/UtilisateursPage.jsx` — table + dialog + select rôle inline
+  - `components/AdminRoute.jsx` — garde de route ADMIN (redirect → /dashboard si non-ADMIN)
+- **Fichiers Modifiés** :
+  - `App.jsx` — route `/utilisateurs` wrappée dans `<AdminRoute>`
+  - `layouts/MainLayout.jsx` — item "Utilisateurs" filtré par `roles: ['ADMIN']`, ManageAccountsIcon
+- **Description** : Interface de gestion des comptes utilisateurs réservée ADMIN. Table avec Select rôle inline (ADMIN/GESTIONNAIRE/CAISSIER avec chips colorés). Boutons Désactiver (PersonOffIcon, rouge) / Réactiver (PersonAddIcon, vert). Row "(vous)" + désactivation de soi-même impossible. Dialog "Créer un compte" avec validation. Menu sidebar filtré par rôle. AdminRoute redirige automatiquement les non-ADMIN vers le dashboard.
+- **Tests validés** : liste ✅, créer ✅, changer rôle ✅, désactiver→401 ✅, 403 GESTIONNAIRE ✅
+
+---
+
 ### [2026-06-30] - Front-end F-07 · Interface QR Code / Scan Réfectoire
 - **Auteur** : Yacouba SYLLA / Claude Code
 - **Statut** : Livré / Opérationnel

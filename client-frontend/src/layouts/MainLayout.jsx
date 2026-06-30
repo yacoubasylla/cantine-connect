@@ -8,19 +8,21 @@ import DashboardIcon from '@mui/icons-material/Dashboard'
 import SchoolIcon from '@mui/icons-material/School'
 import PeopleIcon from '@mui/icons-material/People'
 import RestaurantIcon from '@mui/icons-material/Restaurant'
-import PaymentsIcon from '@mui/icons-material/Payments'
-import QrCodeScannerIcon from '@mui/icons-material/QrCodeScanner'
-import LogoutIcon from '@mui/icons-material/Logout'
+import PaymentsIcon       from '@mui/icons-material/Payments'
+import QrCodeScannerIcon  from '@mui/icons-material/QrCodeScanner'
+import ManageAccountsIcon from '@mui/icons-material/ManageAccounts'
+import LogoutIcon         from '@mui/icons-material/Logout'
 import { useAuth } from '../hooks/useAuth'
 
 const DRAWER_WIDTH = 240
 
 const NAV_ITEMS = [
-  { label: 'Tableau de bord', icon: <DashboardIcon />,  path: '/dashboard' },
-  { label: 'Établissements',  icon: <SchoolIcon />,     path: '/etablissements' },
-  { label: 'Élèves',          icon: <PeopleIcon />,     path: '/eleves' },
-  { label: 'Paiements',       icon: <PaymentsIcon />,        path: '/paiements' },
-  { label: 'Scan Réfectoire', icon: <QrCodeScannerIcon />,   path: '/scan' },
+  { label: 'Tableau de bord', icon: <DashboardIcon />,      path: '/dashboard',      roles: null },
+  { label: 'Établissements',  icon: <SchoolIcon />,         path: '/etablissements', roles: null },
+  { label: 'Élèves',          icon: <PeopleIcon />,         path: '/eleves',         roles: null },
+  { label: 'Paiements',       icon: <PaymentsIcon />,       path: '/paiements',      roles: null },
+  { label: 'Scan Réfectoire', icon: <QrCodeScannerIcon />,  path: '/scan',           roles: null },
+  { label: 'Utilisateurs',    icon: <ManageAccountsIcon />, path: '/utilisateurs',   roles: ['ADMIN'] },
 ]
 
 const ROLE_LABELS = { ADMIN: 'Administrateur', GESTIONNAIRE: 'Gestionnaire', CAISSIER: 'Caissier' }
@@ -79,17 +81,19 @@ export default function MainLayout() {
         <Toolbar />
         <Divider />
         <List disablePadding>
-          {NAV_ITEMS.map((item) => (
-            <ListItemButton
-              key={item.path}
-              selected={location.pathname.startsWith(item.path)}
-              onClick={() => navigate(item.path)}
-              sx={{ py: 1.5 }}
-            >
-              <ListItemIcon sx={{ minWidth: 40 }}>{item.icon}</ListItemIcon>
-              <ListItemText primary={item.label} />
-            </ListItemButton>
-          ))}
+          {NAV_ITEMS
+            .filter((item) => !item.roles || item.roles.includes(user?.role))
+            .map((item) => (
+              <ListItemButton
+                key={item.path}
+                selected={location.pathname.startsWith(item.path)}
+                onClick={() => navigate(item.path)}
+                sx={{ py: 1.5 }}
+              >
+                <ListItemIcon sx={{ minWidth: 40 }}>{item.icon}</ListItemIcon>
+                <ListItemText primary={item.label} />
+              </ListItemButton>
+            ))}
         </List>
 
         {user && (

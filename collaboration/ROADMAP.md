@@ -252,16 +252,19 @@
 
 ---
 
-### 🔲 F-08 · Gestion des Utilisateurs UI (Admin)
+### ✅ F-08 · Gestion des Utilisateurs UI (Admin)
 **Périmètre :** Liste utilisateurs, création, changement rôle (ADMIN seulement)  
-**Fichiers clés :** `pages/utilisateurs/`
+**Fichiers clés :** `services/utilisateurService.js`, `hooks/useUtilisateurs.js`, `pages/utilisateurs/UtilisateursPage.jsx`, `components/AdminRoute.jsx`
 
-| # | Test de validation | Attendu |
-|---|-------------------|---------|
-| 1 | Menu "Utilisateurs" visible seulement pour ADMIN | 🔲 |
-| 2 | Créer un gestionnaire → apparaît dans la liste | 🔲 |
-| 3 | Changer le rôle → mis à jour immédiatement | 🔲 |
-| 4 | Désactiver un utilisateur → ne peut plus se connecter | 🔲 |
+| # | Test de validation | Résultat |
+|---|-------------------|----------|
+| 1 | Menu "Utilisateurs" filtré par rôle ADMIN dans la sidebar | ✅ |
+| 2 | `AdminRoute` redirige vers /dashboard si non-ADMIN | ✅ |
+| 3 | Créer un gestionnaire → apparaît dans la liste (3 → 4) | ✅ |
+| 4 | Changer le rôle via Select inline → GESTIONNAIRE → CAISSIER | ✅ |
+| 5 | Désactiver → HTTP 204 → login → 401 UNAUTHORIZED | ✅ |
+| 6 | GESTIONNAIRE accède /utilisateurs → 403 FORBIDDEN | ✅ |
+| 7 | Row "(vous)" + bouton Désactiver désactivé pour l'utilisateur connecté | ✅ |
 
 ---
 
@@ -278,6 +281,6 @@
 | B-06 / F-06 Paiements | ✅ | ✅ | ✅ Livré |
 | B-07 / F-07 QR Scan | ✅ | ✅ | ✅ Livré |
 | F-05 Dashboard | — | ✅ | ✅ Livré |
-| B-08 / F-08 Utilisateurs | ✅ | 🔲 | 🟡 F-08 restant |
+| B-08 / F-08 Utilisateurs | ✅ | ✅ | ✅ Livré |
 
-**Avancement global : 15/16 modules livrés (94%)**
+**Avancement global : 16/16 modules livrés (100%) 🎉**

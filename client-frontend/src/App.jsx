@@ -4,9 +4,11 @@ import LoginPage from './pages/auth/LoginPage'
 import DashboardPage from './pages/DashboardPage'
 import EtablissementsPage from './pages/etablissements/EtablissementsPage'
 import ElevesPage from './pages/eleves/ElevesPage'
-import PaiementsPage from './pages/paiements/PaiementsPage'
-import ScanPage from './pages/scan/ScanPage'
-import ProtectedRoute from './components/ProtectedRoute'
+import PaiementsPage      from './pages/paiements/PaiementsPage'
+import ScanPage           from './pages/scan/ScanPage'
+import UtilisateursPage   from './pages/utilisateurs/UtilisateursPage'
+import ProtectedRoute     from './components/ProtectedRoute'
+import AdminRoute         from './components/AdminRoute'
 
 export default function App() {
   return (
@@ -26,6 +28,7 @@ export default function App() {
         <Route path="eleves"         element={<ElevesPage />} />
         <Route path="paiements"      element={<PaiementsPage />} />
         <Route path="scan"           element={<ScanPage />} />
+        <Route path="utilisateurs"   element={<AdminRoute><UtilisateursPage /></AdminRoute>} />
       </Route>
     </Routes>
   )
