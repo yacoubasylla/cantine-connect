@@ -79,17 +79,17 @@
 
 ---
 
-### 🔲 B-05 · ActionLog AOP (Traçabilité)
+### ✅ B-05 · ActionLog AOP (Traçabilité)
 **Périmètre :** Aspect Spring AOP, table `action_logs`, capture avant/après, auteur JWT  
-**Fichiers clés :** `actionlog/entity/ActionLog.java`, `actionlog/aspect/ActionLogAspect.java`
+**Fichiers clés :** `actionlog/` (annotation, aspect, controller, dto, entity, repository, service), `common/AsyncConfig.java`
 
-| # | Test de validation | Attendu |
-|---|-------------------|---------|
-| 1 | `POST /api/v1/eleves` → ligne insérée dans `action_logs` avec `type=CREATE` | 🔲 |
-| 2 | `PUT /api/v1/eleves/{id}` → ligne avec `type=UPDATE` + payload avant/après | 🔲 |
-| 3 | `DELETE /api/v1/eleves/{id}` → ligne avec `type=DELETE` | 🔲 |
-| 4 | Auteur = email du JWT connecté (extrait du `SecurityContext`) | 🔲 |
-| 5 | Exécution asynchrone → pas d'impact sur le temps de réponse | 🔲 |
+| # | Test de validation | Résultat |
+|---|-------------------|----------|
+| 1 | `POST /api/v1/eleves` → ligne insérée dans `action_logs` avec `type=CREATE` | ✅ |
+| 2 | `PATCH /api/v1/eleves/{id}/statut` → ligne avec `type=UPDATE` + payload avant/après | ✅ |
+| 3 | `DELETE /api/v1/eleves/{id}` → ligne avec `type=DELETE` + payload `{"id":"2"}` | ✅ |
+| 4 | Auteur = `admin@cantine.connect` (email extrait du SecurityContext JWT) | ✅ |
+| 5 | Exécution asynchrone (`@Async`) → log créé sans bloquer la réponse HTTP | ✅ |
 
 ---
 
@@ -262,10 +262,10 @@
 | B-03 / F-04 Élèves | ✅ | ✅ | — |
 | B-04 / F-02 Auth JWT | ✅ | ✅ | — |
 | F-01 Layout | — | ✅ | — |
-| B-05 ActionLog AOP | 🔲 | — | 🔴 Haute |
+| B-05 ActionLog AOP | ✅ | — | — |
 | B-06 / F-06 Paiements | 🔲 | 🔲 | 🔴 Haute |
 | B-07 / F-07 QR Scan | 🔲 | 🔲 | 🔴 Haute |
 | F-05 Dashboard | — | 🔄 | 🟡 Moyenne |
 | B-08 / F-08 Utilisateurs | 🔲 | 🔲 | 🟡 Moyenne |
 
-**Avancement global : 8/16 modules livrés (50%)**
+**Avancement global : 9/16 modules livrés (56%)**

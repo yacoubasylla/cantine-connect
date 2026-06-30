@@ -1,5 +1,7 @@
 package com.klem.cantine.eleve.service;
 
+import com.klem.cantine.actionlog.annotation.Traceable;
+import com.klem.cantine.actionlog.entity.TypeAction;
 import com.klem.cantine.eleve.dto.EleveRequestDTO;
 import com.klem.cantine.eleve.dto.EleveResponseDTO;
 import com.klem.cantine.eleve.entity.Eleve;
@@ -36,6 +38,7 @@ public class EleveService {
                 .orElseThrow(() -> new EntityNotFoundException("Élève introuvable : " + id));
     }
 
+    @Traceable(action = TypeAction.CREATE, entite = "Eleve")
     @Transactional
     public EleveResponseDTO creer(EleveRequestDTO dto) {
         if (eleveRepository.existsByMatricule(dto.matricule())) {
@@ -68,6 +71,7 @@ public class EleveService {
         return EleveResponseDTO.from(eleveRepository.save(eleve));
     }
 
+    @Traceable(action = TypeAction.UPDATE, entite = "Eleve")
     @Transactional
     public EleveResponseDTO modifier(Long id, EleveRequestDTO dto) {
         Eleve eleve = eleveRepository.findByIdActive(id)
@@ -98,6 +102,7 @@ public class EleveService {
         return EleveResponseDTO.from(eleveRepository.save(eleve));
     }
 
+    @Traceable(action = TypeAction.UPDATE, entite = "Eleve")
     @Transactional
     public EleveResponseDTO changerStatut(Long id, StatutAcces nouveauStatut) {
         Eleve eleve = eleveRepository.findByIdActive(id)
@@ -106,6 +111,7 @@ public class EleveService {
         return EleveResponseDTO.from(eleveRepository.save(eleve));
     }
 
+    @Traceable(action = TypeAction.DELETE, entite = "Eleve")
     @Transactional
     public void supprimer(Long id) {
         Eleve eleve = eleveRepository.findByIdActive(id)

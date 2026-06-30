@@ -91,6 +91,28 @@
 
 ---
 
+### [2026-06-30] - Back-end B-05 · ActionLog AOP (Traçabilité Automatique)
+- **Auteur** : Yacouba SYLLA / Claude Code
+- **Statut** : Livré / Opérationnel
+- **Commit GitHub** : à venir
+- **Fichiers Créés** :
+  - `server-backend/.../actionlog/annotation/Traceable.java` — annotation custom `@Traceable(action, entite)`
+  - `server-backend/.../actionlog/entity/ActionLog.java` — entité JPA table `action_logs`
+  - `server-backend/.../actionlog/entity/TypeAction.java` — enum CREATE / UPDATE / DELETE
+  - `server-backend/.../actionlog/repository/ActionLogRepository.java`
+  - `server-backend/.../actionlog/service/ActionLogService.java` — méthode `@Async sauvegarder()`
+  - `server-backend/.../actionlog/aspect/ActionLogAspect.java` — aspect `@Around`
+  - `server-backend/.../actionlog/dto/ActionLogResponseDTO.java`
+  - `server-backend/.../actionlog/controller/ActionLogController.java` — `GET /api/v1/logs`
+  - `server-backend/.../common/AsyncConfig.java` — `@EnableAsync`
+- **Fichiers Modifiés** :
+  - `EleveService.java` — `@Traceable` sur `creer`, `modifier`, `changerStatut`, `supprimer`
+  - `EtablissementService.java` — `@Traceable` sur `creer`, `creerNiveau`, `creerClasse`, `supprimerNiveau`, `supprimerClasse`
+- **Description** : Traçabilité automatique et transparente de toutes les opérations d'écriture via Spring AOP. L'aspect `@Around` intercepte chaque méthode annotée `@Traceable`, extrait l'auteur du SecurityContext JWT, capture le payload avant/après et sauvegarde en base de façon asynchrone (`@Async`) sans bloquer la réponse HTTP. Endpoint `GET /api/v1/logs` avec filtres optionnels (entite, entiteId, auteur). Indexation stratégique sur `entite+entite_id`, `auteur` et `date_action`.
+- **Tests validés** : CREATE log ✅, UPDATE log ✅, DELETE log ✅, auteur extrait JWT ✅, async ✅
+
+---
+
 ## Statut Actuel — 2026-06-30
 
 **Avancement : 8/16 modules livrés (50%)**
@@ -105,7 +127,7 @@
 | F-02 Auth UI | ✅ |
 | F-03 Gestion Structurelle (front) | ✅ |
 | F-04 Gestion Élèves (front) | ✅ |
-| B-05 ActionLog AOP | 🔲 |
+| B-05 ActionLog AOP | ✅ |
 | B-06 Paiements + Webhooks | 🔲 |
 | B-07 QR Code / Scan | 🔲 |
 | B-08 Gestion Utilisateurs (back) | 🔲 |
@@ -114,4 +136,6 @@
 | F-07 Interface QR Scan | 🔲 |
 | F-08 Gestion Utilisateurs (front) | 🔲 |
 
-**Prochaine étape** : B-05 ActionLog AOP — traçabilité automatique de toutes les opérations d'écriture.
+| B-05 ActionLog AOP | ✅ |
+
+**Prochaine étape** : Back-end B-06 Paiements & Webhooks (CinetPay/PayDunya).

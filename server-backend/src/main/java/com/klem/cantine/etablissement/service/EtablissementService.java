@@ -1,5 +1,7 @@
 package com.klem.cantine.etablissement.service;
 
+import com.klem.cantine.actionlog.annotation.Traceable;
+import com.klem.cantine.actionlog.entity.TypeAction;
 import com.klem.cantine.etablissement.dto.*;
 import com.klem.cantine.etablissement.entity.Classe;
 import com.klem.cantine.etablissement.entity.Etablissement;
@@ -22,6 +24,7 @@ public class EtablissementService {
     private final NiveauRepository niveauRepository;
     private final ClasseRepository classeRepository;
 
+    @Traceable(action = TypeAction.CREATE, entite = "Etablissement")
     @Transactional
     public EtablissementResponseDTO creer(EtablissementRequestDTO dto) {
         Etablissement e = Etablissement.builder()
@@ -67,6 +70,7 @@ public class EtablissementService {
                 .toList();
     }
 
+    @Traceable(action = TypeAction.CREATE, entite = "Niveau")
     @Transactional
     public NiveauResponseDTO creerNiveau(Long etablissementId, NiveauRequestDTO dto) {
         Etablissement etab = etablissementRepository.findById(etablissementId)
@@ -79,6 +83,7 @@ public class EtablissementService {
         return NiveauResponseDTO.from(niveauRepository.save(niveau));
     }
 
+    @Traceable(action = TypeAction.DELETE, entite = "Niveau")
     @Transactional
     public void supprimerNiveau(Long niveauId) {
         if (!niveauRepository.existsById(niveauId)) {
@@ -87,6 +92,7 @@ public class EtablissementService {
         niveauRepository.deleteById(niveauId);
     }
 
+    @Traceable(action = TypeAction.DELETE, entite = "Classe")
     @Transactional
     public void supprimerClasse(Long classeId) {
         if (!classeRepository.existsById(classeId)) {
@@ -95,6 +101,7 @@ public class EtablissementService {
         classeRepository.deleteById(classeId);
     }
 
+    @Traceable(action = TypeAction.CREATE, entite = "Classe")
     @Transactional
     public ClasseResponseDTO creerClasse(Long niveauId, ClasseRequestDTO dto) {
         Niveau niveau = niveauRepository.findById(niveauId)
