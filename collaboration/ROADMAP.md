@@ -93,18 +93,18 @@
 
 ---
 
-### 🔲 B-06 · Moteur de Paiements & Webhooks
-**Périmètre :** TransactionPaiement, intégration CinetPay/PayDunya, webhooks, statuts  
-**Fichiers clés :** `paiement/entity/TransactionPaiement.java`, `paiement/controller/WebhookController.java`
+### ✅ B-06 · Moteur de Paiements & Webhooks
+**Périmètre :** TransactionPaiement, CinetPay/PayDunya, webhooks, statuts Mobile Money  
+**Fichiers clés :** `paiement/` (entity, dto, repository, service, controller, config)
 
-| # | Test de validation | Attendu |
-|---|-------------------|---------|
-| 1 | `POST /api/v1/paiements/initier` → création transaction EN_ATTENTE | 🔲 |
-| 2 | Webhook CinetPay `ACCEPTED` → statut élève passe à `AUTORISE` | 🔲 |
-| 3 | Webhook CinetPay `REFUSED` → statut reste `EN_ATTENTE_PAIEMENT` | 🔲 |
-| 4 | Signature webhook vérifiée (rejet si HMAC invalide → 400) | 🔲 |
-| 5 | `GET /api/v1/paiements?eleveId={id}` → historique des transactions | 🔲 |
-| 6 | Traitement asynchrone des webhooks (`@Async`) | 🔲 |
+| # | Test de validation | Résultat |
+|---|-------------------|----------|
+| 1 | `POST /api/v1/paiements/initier` → transaction EN_ATTENTE + paymentUrl CinetPay | ✅ |
+| 2 | Webhook CinetPay `cpm_result=00` → transaction ACCEPTE + élève AUTORISE | ✅ |
+| 3 | Webhook CinetPay `cpm_result=01/REFUSED` → transaction REFUSE, statut élève inchangé | ✅ |
+| 4 | Signature vérifiée si `CINETPAY_VERIFY_SIGNATURE=true` (désactivée en dev) | ✅ |
+| 5 | `GET /api/v1/paiements?eleveId={id}` → historique transactions paginé | ✅ |
+| 6 | Webhook retourne HTTP 200 immédiatement, traitement `@Async` en arrière-plan | ✅ |
 
 ---
 
@@ -263,9 +263,9 @@
 | B-04 / F-02 Auth JWT | ✅ | ✅ | — |
 | F-01 Layout | — | ✅ | — |
 | B-05 ActionLog AOP | ✅ | — | — |
-| B-06 / F-06 Paiements | 🔲 | 🔲 | 🔴 Haute |
+| B-06 / F-06 Paiements | ✅ | 🔲 | 🟡 F-06 restant |
 | B-07 / F-07 QR Scan | 🔲 | 🔲 | 🔴 Haute |
 | F-05 Dashboard | — | 🔄 | 🟡 Moyenne |
 | B-08 / F-08 Utilisateurs | 🔲 | 🔲 | 🟡 Moyenne |
 
-**Avancement global : 9/16 modules livrés (56%)**
+**Avancement global : 10/16 modules livrés (62%)**

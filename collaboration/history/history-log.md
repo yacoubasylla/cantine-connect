@@ -91,6 +91,27 @@
 
 ---
 
+### [2026-06-30] - Back-end B-06 · Moteur de Paiements & Webhooks (CinetPay / PayDunya)
+- **Auteur** : Yacouba SYLLA / Claude Code
+- **Statut** : Livré / Opérationnel
+- **Commit GitHub** : à venir
+- **Fichiers Créés** :
+  - `paiement/entity/` — `TransactionPaiement.java`, `StatutPaiement.java`, `OperateurMobileMoney.java`
+  - `paiement/dto/` — `InitierPaiementRequestDTO.java`, `PaiementResponseDTO.java`, `WebhookCinetPayDTO.java`, `WebhookPayDunyaDTO.java`
+  - `paiement/repository/TransactionPaiementRepository.java`
+  - `paiement/service/PaiementService.java` — initier, lister, getById
+  - `paiement/service/WebhookService.java` — traiterCinetPay + traiterPayDunya @Async
+  - `paiement/controller/PaiementController.java` — POST /initier, GET /paiements, GET /{id}
+  - `paiement/controller/WebhookController.java` — POST /webhooks/cinetpay + /paydunya (public)
+  - `paiement/config/PaiementProperties.java` — @ConfigurationProperties
+- **Fichiers Modifiés** :
+  - `common/SecurityConfig.java` — `/api/v1/webhooks/**` ajouté aux routes publiques
+  - `application.yml` — bloc `paiement.cinetpay` + `paiement.paydunya`
+- **Description** : Moteur de paiements Mobile Money (Orange, MTN, Moov, Wave). Initiation de transaction avec URL de paiement CinetPay. Webhooks IPN asynchrones (`@Async`) : `cpm_result=00` → ACCEPTE + élève AUTORISE, autre → REFUSE. Signature SHA-256 configurable par variable d'environnement (`CINETPAY_VERIFY_SIGNATURE=true`). Support PayDunya avec même architecture. `@Traceable` sur initierPaiement pour la traçabilité AOP.
+- **Tests validés** : Initier EN_ATTENTE ✅, Webhook ACCEPTED → AUTORISE ✅, Webhook REFUSED ✅, HTTP 200 immédiat ✅, Filtre eleveId ✅
+
+---
+
 ### [2026-06-30] - Back-end B-05 · ActionLog AOP (Traçabilité Automatique)
 - **Auteur** : Yacouba SYLLA / Claude Code
 - **Statut** : Livré / Opérationnel
@@ -138,4 +159,6 @@
 
 | B-05 ActionLog AOP | ✅ |
 
-**Prochaine étape** : Back-end B-06 Paiements & Webhooks (CinetPay/PayDunya).
+| B-06 Back-end Paiements & Webhooks | ✅ |
+
+**Prochaine étape** : Back-end B-07 QR Code / Scan Réfectoire.

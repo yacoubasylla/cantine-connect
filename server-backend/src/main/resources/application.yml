@@ -37,6 +37,19 @@ management:
     health:
       show-details: when-authorized
 
+# ── Paiements Mobile Money ───────────────────────────────
+paiement:
+  cinetpay:
+    api-key: ${CINETPAY_API_KEY:cle_test}
+    site-id: ${CINETPAY_SITE_ID:site_test}
+    api-secret: ${CINETPAY_API_SECRET:secret_test}
+    verify-signature: ${CINETPAY_VERIFY_SIGNATURE:false}
+  paydunya:
+    master-key: ${PAYDUNYA_MASTER_KEY:cle_test}
+    private-key: ${PAYDUNYA_PRIVATE_KEY:cle_privee_test}
+    token: ${PAYDUNYA_TOKEN:token_test}
+    verify-signature: ${PAYDUNYA_VERIFY_SIGNATURE:false}
+
 # ── JWT ───────────────────────────────────────────────────
 jwt:
   secret: ${JWT_SECRET:cantine-connect-secret-key-dev-only-256bits-change-in-production!!}
