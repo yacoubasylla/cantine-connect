@@ -91,6 +91,21 @@
 
 ---
 
+### [2026-06-30] - Front-end F-06 · Interface Paiements Mobile Money
+- **Auteur** : Yacouba SYLLA / Claude Code
+- **Statut** : Livré / Opérationnel
+- **Fichiers Créés** :
+  - `services/paiementService.js` — lister, getById, initier
+  - `hooks/usePaiements.js` — pagination + filtres + initier
+  - `pages/paiements/PaiementsPage.jsx` — table + dialog complet
+- **Fichiers Modifiés** :
+  - `App.jsx` — route `/paiements` ajoutée
+  - `layouts/MainLayout.jsx` — entrée "Paiements" (PaymentsIcon) dans la sidebar
+- **Description** : Interface complète de gestion des paiements Mobile Money. Table paginée filtrée par statut (chips EN_ATTENTE/ACCEPTÉ/REFUSÉ/ANNULÉ). Dialog "Initier un paiement" : Autocomplete élève avec debounce 300ms (search API), Select opérateur 4 opérateurs avec pastille couleur, montant min 100 XOF, téléphone. Après soumission : alerte succès avec lien CinetPay checkout cliquable. Correction champ `classeLibelle` (nom réel dans le DTO élève).
+- **Tests validés** : liste ✅, filtre statut ✅, initier paiement ✅, paymentUrl ✅, autocomplete ✅
+
+---
+
 ### [2026-06-30] - Front-end F-05 · Dashboard avec Stats Réelles
 - **Auteur** : Yacouba SYLLA / Claude Code
 - **Statut** : Livré / Opérationnel

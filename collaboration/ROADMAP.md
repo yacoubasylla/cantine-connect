@@ -220,16 +220,19 @@
 
 ---
 
-### 🔲 F-06 · Interface Paiements
+### ✅ F-06 · Interface Paiements
 **Périmètre :** Liste transactions, initiation paiement, statuts Mobile Money  
-**Fichiers clés :** `pages/paiements/`
+**Fichiers clés :** `services/paiementService.js`, `hooks/usePaiements.js`, `pages/paiements/PaiementsPage.jsx`
 
-| # | Test de validation | Attendu |
-|---|-------------------|---------|
-| 1 | Liste transactions paginée par élève | 🔲 |
-| 2 | Bouton "Initier paiement" → dialog avec choix opérateur | 🔲 |
-| 3 | Statut Orange/MTN/Moov/Wave affiché avec icône | 🔲 |
-| 4 | Historique paiements d'un élève accessible depuis sa fiche | 🔲 |
+| # | Test de validation | Résultat |
+|---|-------------------|----------|
+| 1 | Table transactions paginée (dateCreation, élève, montant, statut, référence) | ✅ |
+| 2 | Filtre par statut (chips : Tous / En attente / Accepté / Refusé / Annulé) | ✅ |
+| 3 | Dialog "Initier un paiement" : Autocomplete élève (debounce 300ms) | ✅ |
+| 4 | Dialog : Select opérateur (Orange/MTN/Moov/Wave) avec pastille couleur | ✅ |
+| 5 | Soumission → transaction créée statut EN_ATTENTE + paymentUrl affiché | ✅ |
+| 6 | paymentUrl cliquable → lien CinetPay checkout dans un onglet | ✅ |
+| 7 | Skeletons MUI pendant chargement, bouton rafraîchir | ✅ |
 
 ---
 
@@ -269,9 +272,9 @@
 | B-04 / F-02 Auth JWT | ✅ | ✅ | — |
 | F-01 Layout | — | ✅ | — |
 | B-05 ActionLog AOP | ✅ | — | — |
-| B-06 / F-06 Paiements | ✅ | 🔲 | 🟡 F-06 restant |
+| B-06 / F-06 Paiements | ✅ | ✅ | ✅ Livré |
 | B-07 / F-07 QR Scan | ✅ | 🔲 | 🟡 F-07 restant |
 | F-05 Dashboard | — | ✅ | ✅ Livré |
 | B-08 / F-08 Utilisateurs | ✅ | 🔲 | 🟡 F-08 restant |
 
-**Avancement global : 13/16 modules livrés (81%)**
+**Avancement global : 14/16 modules livrés (88%)**

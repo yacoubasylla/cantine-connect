@@ -4,6 +4,7 @@ import LoginPage from './pages/auth/LoginPage'
 import DashboardPage from './pages/DashboardPage'
 import EtablissementsPage from './pages/etablissements/EtablissementsPage'
 import ElevesPage from './pages/eleves/ElevesPage'
+import PaiementsPage from './pages/paiements/PaiementsPage'
 import ProtectedRoute from './components/ProtectedRoute'
 
 export default function App() {
@@ -19,9 +20,10 @@ export default function App() {
         }
       >
         <Route index element={<Navigate to="/dashboard" replace />} />
-        <Route path="dashboard" element={<DashboardPage />} />
+        <Route path="dashboard"      element={<DashboardPage />} />
         <Route path="etablissements" element={<EtablissementsPage />} />
-        <Route path="eleves" element={<ElevesPage />} />
+        <Route path="eleves"         element={<ElevesPage />} />
+        <Route path="paiements"      element={<PaiementsPage />} />
       </Route>
     </Routes>
   )
