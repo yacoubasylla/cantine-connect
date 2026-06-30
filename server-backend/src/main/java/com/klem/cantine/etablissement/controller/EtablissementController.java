@@ -1,7 +1,9 @@
 package com.klem.cantine.etablissement.controller;
 
 import com.klem.cantine.common.ApiResponse;
+import com.klem.cantine.etablissement.dto.ClasseRequestDTO;
 import com.klem.cantine.etablissement.dto.EtablissementRequestDTO;
+import com.klem.cantine.etablissement.dto.NiveauRequestDTO;
 import com.klem.cantine.etablissement.service.EtablissementService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -36,5 +38,26 @@ public class EtablissementController {
             @PathVariable Long id,
             @RequestParam(defaultValue = "2025-2026") String anneeScolaire) {
         return ResponseEntity.ok(ApiResponse.ok(etablissementService.getClassesByEtablissement(id, anneeScolaire)));
+    }
+
+    @GetMapping("/{id}/niveaux")
+    public ResponseEntity<ApiResponse<?>> getNiveaux(@PathVariable Long id) {
+        return ResponseEntity.ok(ApiResponse.ok(etablissementService.getNiveauxAvecClasses(id)));
+    }
+
+    @PostMapping("/{id}/niveaux")
+    public ResponseEntity<ApiResponse<?>> creerNiveau(
+            @PathVariable Long id,
+            @Valid @RequestBody NiveauRequestDTO dto) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.created(etablissementService.creerNiveau(id, dto)));
+    }
+
+    @PostMapping("/niveaux/{niveauId}/classes")
+    public ResponseEntity<ApiResponse<?>> creerClasse(
+            @PathVariable Long niveauId,
+            @Valid @RequestBody ClasseRequestDTO dto) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.created(etablissementService.creerClasse(niveauId, dto)));
     }
 }
