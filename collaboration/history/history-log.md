@@ -259,3 +259,26 @@
 | B-07 Back-end QR Code / Scan | ✅ |
 
 **Prochaine étape** : Back-end B-08 Gestion Utilisateurs ou Front-end (F-05 à F-08).
+
+---
+
+### [2026-06-30] - Amélioration P2 : Migrations Flyway versionnées
+- **Statut :** Livré / Opérationnel
+- **Fichiers Modifiés :**
+  - `server-backend/pom.xml` — ajout `flyway-core` + `flyway-database-postgresql`
+  - `server-backend/src/main/resources/application.yml` — `ddl-auto: update` → `validate`, bloc Flyway (`baseline-on-migrate: true`)
+  - `server-backend/src/main/resources/db/migration/V1__init_schema.sql` — schéma complet (8 tables, index stratégiques, `CREATE IF NOT EXISTS`)
+- **Description :** Remplacement du mécanisme fragile `ddl-auto: update` par des migrations SQL versionnées via Flyway. Le script `V1__init_schema.sql` crée les 8 tables dans l'ordre des FK (`utilisateurs` → `etablissements` → `niveaux` → `classes` → `eleves` → `transactions_paiement` / `passages_refectoire` / `action_logs`). Toutes les instructions utilisent `IF NOT EXISTS` pour rester idempotentes sur une base déjà existante. Le profil prod est maintenant fonctionnel : Flyway applique les migrations, Hibernate valide le schéma.
+- **Tests validés :** `./mvnw compile` ✅ (exit 0)
+
+---
+
+### [2026-06-30] - Amélioration P1 : Tests unitaires JUnit 5 (23 tests)
+- **Statut :** Livré / Opérationnel
+- **Fichiers Créés :**
+  - `server-backend/src/test/.../scan/service/ScanServiceTest.java` — 7 tests
+  - `server-backend/src/test/.../auth/service/UtilisateurServiceTest.java` — 8 tests
+  - `server-backend/src/test/.../eleve/service/EleveServiceTest.java` — 5 tests
+  - `server-backend/src/test/.../paiement/service/WebhookServiceTest.java` — 3 tests
+- **Description :** Première suite de tests automatisés du projet. Stratégie `@ExtendWith(MockitoExtension.class)` sans contexte Spring ni base de données, exécution en 1,4s. Cas critiques couverts : scan ACCORDÉ/REFUSÉ (statut + doublon du jour), protection dernier ADMIN (→ 409), webhook CinetPay accepté → élève AUTORISE, webhook refusé → élève inchangé, soft-delete, matricule dupliqué.
+- **Tests validés :** `./mvnw test` → **23/23 ✅ BUILD SUCCESS**

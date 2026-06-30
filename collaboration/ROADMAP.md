@@ -284,3 +284,15 @@
 | B-08 / F-08 Utilisateurs | ✅ | ✅ | ✅ Livré |
 
 **Avancement global : 16/16 modules livrés (100%) 🎉**
+
+---
+
+## Améliorations Post-Livraison
+
+| # | Amélioration | Statut |
+|---|-------------|--------|
+| P1 | Tests unitaires JUnit 5 (23 tests — ScanService, UtilisateurService, EleveService, WebhookService) | ✅ Livré |
+| P2 | Flyway migrations versionnées — V1__init_schema.sql + ddl-auto validate | ✅ Livré |
+| P3 | Dockerfiles multi-stage (backend + frontend) + docker-compose prod | 🔲 À faire |
+| P4 | CI/CD GitHub Actions (build + test + lint) | 🔲 À faire |
+| P5 | Documentation API Swagger/OpenAPI | 🔲 À faire |
