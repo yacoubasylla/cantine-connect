@@ -135,7 +135,7 @@
 
 ### ADR-015 · Latence Production (Suite ADR-014) — Dépassement Mémoire du Conteneur Railway
 - **Statut** : Accepté — 2026-07-01
-- **Décision** : Bornes mémoire explicites — `Dockerfile` : `-XX:MaxRAMPercentage=60.0 -XX:MaxMetaspaceSize=192m -Xss512k` ; `application.yml` (profil `prod`) : `hikari.maximum-pool-size` 20→10, `spring.jpa.open-in-view: false`, `server.tomcat.threads.max: 50` (au lieu de 200 par défaut).
+- **Décision** : Bornes mémoire explicites — `Dockerfile` : `-Xmx400m -Xms256m -XX:MaxMetaspaceSize=160m -Xss512k` (valeurs absolues — une première tentative avec `-XX:MaxRAMPercentage=60.0` mesurée après déploiement montrait toujours la mémoire max au-dessus de la limite, la détection cgroup s'étant révélée peu fiable sur ce conteneur) ; `application.yml` (profil `prod`) : `hikari.maximum-pool-size` 20→10, `spring.jpa.open-in-view: false`, `server.tomcat.threads.max: 50` (au lieu de 200 par défaut).
 - **Contexte** : Après le correctif ADR-014, la latence restait sévère (12-42s). `railway metrics --json` a montré un CPU quasiment inutilisé (0%) mais une mémoire maximale (1099 Mo) dépassant la limite du conteneur (1024 Mo), avec des P50/P90/P95/P99 HTTP uniformément à ~13,9s — signature d'une pression mémoire extrême, pas d'un problème CPU ou de requêtes. Aucune borne explicite n'existait pour le tas JVM, le Metaspace (croissance non bornée par défaut) ou les piles de threads Tomcat (200 threads × ~1 Mo par défaut).
 - **Alternative envisagée** : Augmenter le plan Railway — décision budgétaire de l'utilisateur, pas un correctif de code ; recommandée comme prochaine étape si la latence persiste après ce tuning.
 - **Fichier ADR** : `adr/2026-07-01-fix-memoire-conteneur-railway.md`

@@ -26,7 +26,7 @@ Le CPU n'est quasiment jamais sollicité (0 % d'utilisation) — ce n'est donc p
 
 Bornes mémoire explicites, dimensionnées pour un conteneur ~1 Go :
 
-1. **`Dockerfile`** — `ENTRYPOINT ["java", "-XX:MaxRAMPercentage=60.0", "-XX:MaxMetaspaceSize=192m", "-Xss512k", "-jar", "app.jar"]` (conserve la forme tableau JSON, indispensable à la propagation des signaux d'arrêt — cf. ADR-008).
+1. **`Dockerfile`** — `ENTRYPOINT ["java", "-Xmx400m", "-Xms256m", "-XX:MaxMetaspaceSize=160m", "-Xss512k", "-jar", "app.jar"]` (conserve la forme tableau JSON, indispensable à la propagation des signaux d'arrêt — cf. ADR-008). **Mise à jour (voir Suivi)** : la première tentative utilisait `-XX:MaxRAMPercentage=60.0` ; mesurée après déploiement, la mémoire maximale dépassait toujours la limite du conteneur (1168 Mo observés). Remplacé par des valeurs absolues (`-Xmx`/`-Xms`), qui ne dépendent pas de la détection correcte de la limite cgroup par le JVM — cette détection s'est révélée peu fiable sur ce conteneur Railway.
 2. **`application.yml` (profil `prod`)** :
    - `spring.datasource.hikari.maximum-pool-size` : `20` → `10`.
    - `spring.jpa.open-in-view` : `false` (corrige aussi l'avertissement `JpaBaseConfiguration$JpaWebConfiguration` présent depuis l'origine, qui laissait les connexions DB ouvertes plus longtemps que nécessaire pendant le rendu de vue).
@@ -55,5 +55,7 @@ Bornes mémoire explicites, dimensionnées pour un conteneur ~1 Go :
 ## Suivi et Validation
 - [x] Configuration corrigée et testée localement (démarrage réussi avec les nouveaux flags JVM).
 - [x] `./mvnw test` (24/24) toujours vert.
-- [ ] **À confirmer après déploiement** : `railway metrics --since 30m` doit montrer `memory.max_mb` repassant durablement sous `memory.limit_mb`, et les P50/P90/P95 HTTP redescendant sous la seconde.
+- [x] Première itération (`-XX:MaxRAMPercentage=60.0`) déployée et mesurée : latence P50 excellente (17ms) mais mémoire max toujours au-dessus de la limite (1168 Mo / 1024 Mo) — détection cgroup non fiable sur ce conteneur.
+- [x] Corrigé avec des valeurs absolues (`-Xmx400m -Xms256m -XX:MaxMetaspaceSize=160m`), redéployé.
+- [ ] **À confirmer après ce second déploiement** : `railway metrics --since <heure du déploiement>` doit montrer `memory.max_mb` durablement sous `memory.limit_mb`, et les P90/P95 HTTP sous la seconde.
 - Complète l'ADR-014 : le logging `TRACE` était un vrai problème (corrigé), mais pas la cause dominante de la latence observée après son correctif — la cause dominante est documentée ici.

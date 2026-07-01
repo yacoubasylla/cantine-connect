@@ -700,3 +700,14 @@
   - `collaboration/history/decision-log.md` — entrée ADR-015, complète l'ADR-014
 - **Description :** Le vrai goulot d'étranglement n'était ni une requête non optimisée ni le logging seul, mais un dimensionnement mémoire du conteneur jamais borné explicitement, faisant dépasser au processus sa limite Railway (~1 Go). Correctif de configuration/infrastructure, sans impact sur la logique métier.
 - **Tests validés :** `./mvnw test` (24/24) ✅ ; démarrage local réussi avec les nouveaux flags JVM. **Mesure `railway metrics` post-déploiement à confirmer** (mémoire max sous la limite, latences P50/P90/P95 sous la seconde).
+
+---
+
+### [2026-07-01] - Latence Production (Suite) : `-XX:MaxRAMPercentage` Insuffisant, Passage en Valeurs Absolues
+- **Statut :** Livré / Opérationnel
+- **Mesure post-déploiement (ADR-015, 1ère itération) :** `railway metrics --since <déploiement>` montre une nette amélioration de la latence (P50 = 17ms) mais la mémoire maximale (1168 Mo) dépasse toujours la limite du conteneur (1024 Mo) — `-XX:MaxRAMPercentage=60.0` dépend d'une détection correcte de la limite cgroup par le JVM, qui s'avère peu fiable sur ce conteneur Railway.
+- **Fichiers Modifiés :**
+  - `server-backend/Dockerfile` — remplacement de `-XX:MaxRAMPercentage=60.0` par des valeurs absolues : `-Xmx400m -Xms256m -XX:MaxMetaspaceSize=160m -Xss512k`
+  - `collaboration/history/adr/2026-07-01-fix-memoire-conteneur-railway.md` (ADR-015) — mis à jour en place plutôt qu'une nouvelle ADR, la précédente n'ayant pas encore franchi sa case « à confirmer après déploiement »
+- **Description :** Les valeurs absolues éliminent toute dépendance à la détection cgroup, plus prévisible que la variante en pourcentage sur ce conteneur.
+- **Tests validés :** Démarrage local réussi avec les nouveaux flags. **Nouvelle mesure `railway metrics` après ce second déploiement à confirmer.**
