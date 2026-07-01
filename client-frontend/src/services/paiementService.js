@@ -9,4 +9,10 @@ export const paiementService = {
 
   initier: (data) =>
     apiClient.post('/paiements/initier', data).then((r) => r.data.data),
+
+  modifier: (id, data) =>
+    apiClient.put(`/paiements/${id}`, data).then((r) => r.data.data),
+
+  supprimer: (id) =>
+    apiClient.delete(`/paiements/${id}`).then((r) => r.data),
 }

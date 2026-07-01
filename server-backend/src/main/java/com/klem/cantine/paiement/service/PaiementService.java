@@ -5,6 +5,7 @@ import com.klem.cantine.actionlog.entity.TypeAction;
 import com.klem.cantine.eleve.repository.EleveRepository;
 import com.klem.cantine.paiement.config.PaiementProperties;
 import com.klem.cantine.paiement.dto.InitierPaiementRequestDTO;
+import com.klem.cantine.paiement.dto.ModifierPaiementRequestDTO;
 import com.klem.cantine.paiement.dto.PaiementResponseDTO;
 import com.klem.cantine.paiement.entity.StatutPaiement;
 import com.klem.cantine.paiement.entity.TransactionPaiement;
@@ -64,6 +65,27 @@ public class PaiementService {
         return transactionRepository.findById(id)
                 .map(PaiementResponseDTO::from)
                 .orElseThrow(() -> new EntityNotFoundException("Transaction introuvable : " + id));
+    }
+
+    @Traceable(action = TypeAction.UPDATE, entite = "TransactionPaiement")
+    @Transactional
+    public PaiementResponseDTO modifier(Long id, ModifierPaiementRequestDTO dto) {
+        TransactionPaiement t = transactionRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Transaction introuvable : " + id));
+        if (dto.statut() != null) t.setStatut(dto.statut());
+        if (dto.montant() != null) t.setMontant(dto.montant());
+        if (dto.operateur() != null) t.setOperateur(dto.operateur());
+        if (dto.telephonePayeur() != null) t.setTelephonePayeur(dto.telephonePayeur());
+        return PaiementResponseDTO.from(transactionRepository.save(t));
+    }
+
+    @Traceable(action = TypeAction.DELETE, entite = "TransactionPaiement")
+    @Transactional
+    public void supprimer(Long id) {
+        if (!transactionRepository.existsById(id)) {
+            throw new EntityNotFoundException("Transaction introuvable : " + id);
+        }
+        transactionRepository.deleteById(id);
     }
 
     // ── Construction URL paiement ─────────────────────────────────────────────

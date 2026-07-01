@@ -10,8 +10,11 @@ import {
 import AddIcon       from '@mui/icons-material/Add'
 import RefreshIcon   from '@mui/icons-material/Refresh'
 import OpenInNewIcon from '@mui/icons-material/OpenInNew'
+import EditIcon      from '@mui/icons-material/Edit'
+import DeleteIcon    from '@mui/icons-material/Delete'
 import { usePaiements } from '../../hooks/usePaiements'
 import { eleveService }  from '../../services/eleveService'
+import { useAuth }       from '../../hooks/useAuth'
 
 // ── Constantes ────────────────────────────────────────────────────────────────
 
@@ -218,16 +221,104 @@ function InitierDialog({ open, onClose, onSubmit }) {
   )
 }
 
+// ── Dialog : Modifier un paiement ────────────────────────────────────────────
+
+function ModifierDialog({ paiement, onClose, onSubmit }) {
+  const [form, setForm] = useState({})
+  const [saving, setSaving] = useState(false)
+  const [err, setErr] = useState(null)
+
+  useEffect(() => {
+    if (paiement) setForm({
+      statut:          paiement.statut,
+      montant:         paiement.montant,
+      operateur:       paiement.operateur,
+      telephonePayeur: paiement.telephonePayeur ?? '',
+    })
+  }, [paiement])
+
+  const handleSave = async () => {
+    setSaving(true); setErr(null)
+    try {
+      await onSubmit(paiement.id, form)
+      onClose()
+    } catch (e) {
+      setErr(e.message)
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  if (!paiement) return null
+  return (
+    <Dialog open={!!paiement} onClose={onClose} maxWidth="xs" fullWidth>
+      <DialogTitle>Modifier le paiement</DialogTitle>
+      <DialogContent>
+        <Stack spacing={2} mt={1}>
+          {err && <Alert severity="error">{err}</Alert>}
+          <FormControl size="small" fullWidth>
+            <InputLabel>Statut</InputLabel>
+            <Select value={form.statut ?? ''} label="Statut"
+              onChange={(e) => setForm((f) => ({ ...f, statut: e.target.value }))}>
+              {['EN_ATTENTE','ACCEPTE','REFUSE','ANNULE'].map((s) => (
+                <MenuItem key={s} value={s}>{STATUTS.find((x) => x.value === s)?.label ?? s}</MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          <FormControl size="small" fullWidth>
+            <InputLabel>Opérateur</InputLabel>
+            <Select value={form.operateur ?? ''} label="Opérateur"
+              onChange={(e) => setForm((f) => ({ ...f, operateur: e.target.value }))}>
+              {OPERATEURS.map((op) => (
+                <MenuItem key={op.value} value={op.value}>
+                  <Stack direction="row" alignItems="center" spacing={1}>
+                    <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: op.color }} />
+                    <span>{op.label}</span>
+                  </Stack>
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          <TextField size="small" fullWidth label="Montant (XOF)" type="number"
+            value={form.montant ?? ''}
+            onChange={(e) => setForm((f) => ({ ...f, montant: e.target.value }))} />
+          <TextField size="small" fullWidth label="Téléphone payeur"
+            value={form.telephonePayeur ?? ''}
+            onChange={(e) => setForm((f) => ({ ...f, telephonePayeur: e.target.value }))} />
+        </Stack>
+      </DialogContent>
+      <DialogActions sx={{ px: 3, pb: 2 }}>
+        <Button onClick={onClose}>Annuler</Button>
+        <Button variant="contained" onClick={handleSave} disabled={saving}>
+          {saving ? <CircularProgress size={20} /> : 'Enregistrer'}
+        </Button>
+      </DialogActions>
+    </Dialog>
+  )
+}
+
 // ── Page principale ───────────────────────────────────────────────────────────
 
 export default function PaiementsPage() {
   const [statutFiltre, setStatutFiltre] = useState('')
   const [dialogOpen,   setDialogOpen]   = useState(false)
+  const [editTarget,   setEditTarget]   = useState(null)
+  const [deleteTarget, setDeleteTarget] = useState(null)
+  const [deleting,     setDeleting]     = useState(false)
+
+  const { user } = useAuth()
+  const isAdmin = user?.role === 'ADMIN'
 
   const {
     paiements, total, page, setPage, rowsPerPage, setRowsPerPage,
-    loading, error, initier, recharger,
+    loading, error, initier, modifier, supprimer, recharger,
   } = usePaiements(statutFiltre ? { statut: statutFiltre } : {})
+
+  const handleDelete = async () => {
+    setDeleting(true)
+    try { await supprimer(deleteTarget.id) } catch (e) { /* swallow */ }
+    finally { setDeleting(false); setDeleteTarget(null) }
+  }
 
   return (
     <Box>
@@ -275,6 +366,7 @@ export default function PaiementsPage() {
                 <TableCell>Téléphone</TableCell>
                 <TableCell>Statut</TableCell>
                 <TableCell>Référence</TableCell>
+                {isAdmin && <TableCell align="center">Actions</TableCell>}
               </TableRow>
             </TableHead>
             <TableBody>
@@ -326,6 +418,20 @@ export default function PaiementsPage() {
                           {p.referenceInterne?.slice(0, 8)}…
                         </Typography>
                       </TableCell>
+                      {isAdmin && (
+                        <TableCell align="center">
+                          <Tooltip title="Modifier">
+                            <IconButton size="small" onClick={() => setEditTarget(p)}>
+                              <EditIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                          <Tooltip title="Supprimer">
+                            <IconButton size="small" color="error" onClick={() => setDeleteTarget(p)}>
+                              <DeleteIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                        </TableCell>
+                      )}
                     </TableRow>
                   ))
               }
@@ -352,6 +458,31 @@ export default function PaiementsPage() {
         onClose={() => setDialogOpen(false)}
         onSubmit={initier}
       />
+
+      {/* ── Dialogue modifier ───────────────────────────── */}
+      <ModifierDialog
+        paiement={editTarget}
+        onClose={() => setEditTarget(null)}
+        onSubmit={modifier}
+      />
+
+      {/* ── Dialogue supprimer ──────────────────────────── */}
+      <Dialog open={Boolean(deleteTarget)} onClose={() => setDeleteTarget(null)} maxWidth="xs" fullWidth>
+        <DialogTitle>Supprimer ce paiement ?</DialogTitle>
+        <DialogContent>
+          <Typography>
+            Voulez-vous supprimer définitivement le paiement de&nbsp;
+            <strong>{deleteTarget ? formatMontant(deleteTarget.montant) : ''}</strong> pour&nbsp;
+            <strong>{deleteTarget?.eleveNomComplet}</strong> ?
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button onClick={() => setDeleteTarget(null)}>Annuler</Button>
+          <Button variant="contained" color="error" onClick={handleDelete} disabled={deleting}>
+            {deleting ? <CircularProgress size={20} /> : 'Supprimer'}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   )
 }

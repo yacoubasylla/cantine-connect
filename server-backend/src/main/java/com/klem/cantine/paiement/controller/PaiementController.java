@@ -2,6 +2,7 @@ package com.klem.cantine.paiement.controller;
 
 import com.klem.cantine.common.ApiResponse;
 import com.klem.cantine.paiement.dto.InitierPaiementRequestDTO;
+import com.klem.cantine.paiement.dto.ModifierPaiementRequestDTO;
 import com.klem.cantine.paiement.dto.PaiementResponseDTO;
 import com.klem.cantine.paiement.entity.StatutPaiement;
 import com.klem.cantine.paiement.service.PaiementService;
@@ -12,6 +13,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -40,5 +42,20 @@ public class PaiementController {
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<PaiementResponseDTO>> getById(@PathVariable Long id) {
         return ResponseEntity.ok(ApiResponse.ok(paiementService.getById(id)));
+    }
+
+    @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<PaiementResponseDTO>> modifier(
+            @PathVariable Long id,
+            @RequestBody ModifierPaiementRequestDTO dto) {
+        return ResponseEntity.ok(ApiResponse.ok(paiementService.modifier(id, dto)));
+    }
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<?>> supprimer(@PathVariable Long id) {
+        paiementService.supprimer(id);
+        return ResponseEntity.ok(ApiResponse.ok("Transaction supprimée"));
     }
 }

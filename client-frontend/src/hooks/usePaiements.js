@@ -38,13 +38,31 @@ export function usePaiements(filtres = {}) {
     return result
   }
 
+  const modifier = async (id, dto) => {
+    const updated = await paiementService.modifier(id, dto)
+    setData((prev) => ({
+      ...prev,
+      content: prev.content.map((p) => (p.id === id ? updated : p)),
+    }))
+    return updated
+  }
+
+  const supprimer = async (id) => {
+    await paiementService.supprimer(id)
+    setData((prev) => ({
+      ...prev,
+      content: prev.content.filter((p) => p.id !== id),
+      totalElements: prev.totalElements - 1,
+    }))
+  }
+
   return {
     paiements: data.content,
     total: data.totalElements,
     page, setPage,
     rowsPerPage, setRowsPerPage,
     loading, error,
-    initier,
+    initier, modifier, supprimer,
     recharger: charger,
   }
 }
