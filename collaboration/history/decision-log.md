@@ -93,3 +93,21 @@
 - **Décision** : Construire `SPRING_DATASOURCE_URL` manuellement via les variables atomiques du plugin PostgreSQL Railway : `jdbc:postgresql://${{Postgres.PGHOST}}:${{Postgres.PGPORT}}/${{Postgres.PGDATABASE}}`
 - **Contexte** : Railway fournit `${{Postgres.DATABASE_URL}}` au format `postgresql://...` (standard PostgreSQL). Spring Boot / HikariCP exige le format JDBC : `jdbc:postgresql://...`. L'erreur `IllegalArgumentException: URL must start with 'jdbc'` se produit au démarrage si on utilise `DATABASE_URL` directement. Railway ne fournit pas de variable `JDBC_URL` prête à l'emploi.
 - **Conséquence** : `SPRING_DATASOURCE_USERNAME` = `${{Postgres.PGUSER}}` et `SPRING_DATASOURCE_PASSWORD` = `${{Postgres.PGPASSWORD}}` doivent être définis séparément.
+
+---
+
+### ADR-011 · RBAC Serveur pour le Rôle PARENT (Périmètre Restreint aux Enfants)
+- **Statut** : Accepté — 2026-07-01
+- **Décision** : Restriction appliquée côté serveur (pas seulement UI) — `EleveController`, `EtablissementController` et `ScanController.scanner()`/`.cache()` bloqués pour PARENT (`@PreAuthorize("!hasRole('PARENT')")`) ; `PaiementService` et `ScanService.listerPassages` filtrent/rejettent selon les enfants réels du parent (`ParentRepository.findEnfantIdsByUtilisateurId()`).
+- **Contexte** : Sans restriction serveur, un compte PARENT authentifié pouvait interroger les données de tous les élèves, pas seulement les siens — fuite de données personnelles entre familles.
+- **Alternative rejetée** : Filtrage uniquement côté frontend (masquage de menus) — aucune garantie de sécurité réelle face à un appel API direct.
+- **Fichier ADR** : `adr/2026-07-01-rbac-parent-restriction-serveur.md`
+
+---
+
+### ADR-012 · Migrations Flyway comme Source Unique des Comptes de Seed
+- **Statut** : Accepté — 2026-07-01
+- **Décision** : Suppression de `DataInitializer.java` (ApplicationRunner). Les comptes de seed (un par rôle) sont désormais définis exclusivement par la migration `V6__reset_comptes_un_par_role.sql`.
+- **Contexte** : Le champ `telephone` obligatoire/unique (V5) et la demande de réinitialisation des comptes (un par rôle) rendaient `DataInitializer` incompatible (pas de téléphone renseigné) et son garde-fou `count()==0` définitivement mort une fois V6 appliquée.
+- **Alternative rejetée** : Mettre à jour `DataInitializer` en parallèle de la migration — risque de divergence silencieuse entre deux mécanismes de seed pour un code qui ne s'exécuterait de toute façon plus jamais.
+- **Fichier ADR** : `adr/2026-07-01-migrations-source-unique-comptes-seed.md`

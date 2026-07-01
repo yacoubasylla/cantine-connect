@@ -55,12 +55,12 @@ com.klem.cantine
 │   ├── JwtService              génération + validation HMAC-SHA512
 │   ├── GlobalExceptionHandler  @ControllerAdvice (400/401/403/404/409/500)
 │   ├── ApiResponse<T>          enveloppe standard { success, data, message }
-│   ├── AsyncConfig             ThreadPoolTaskExecutor (10 threads)
-│   └── DataInitializer         compte admin par défaut au démarrage
+│   └── AsyncConfig             ThreadPoolTaskExecutor (10 threads)
+│   (comptes de seed : voir migration V6, DataInitializer retiré — cf. ADR-012)
 │
 ├── auth/
-│   ├── Utilisateur             UserDetails + rôle + soft-delete actif
-│   ├── Role                    ADMIN | GESTIONNAIRE | CAISSIER
+│   ├── Utilisateur             UserDetails + rôle + soft-delete actif + téléphone unique (V5)
+│   ├── Role                    ADMIN | GESTIONNAIRE | CAISSIER | PARENT
 │   ├── PasswordEncoderConfig   bean BCrypt indépendant (évite la dépendance circulaire)
 │   ├── UtilisateurRepository   countByRoleAndActifTrue()
 │   ├── AuthService             login → JWT, UserDetailsService
@@ -215,11 +215,16 @@ client-frontend/src/
 
 ---
 
-## Compte Administrateur par Défaut
+## Comptes de Référence (un par rôle, cf. ADR-012)
 
 | Email | Mot de passe | Rôle |
 |-------|-------------|------|
-| `admin@cantine.connect` | `Admin123!` | ADMIN |
+| `admin@cantine.connect` | `admin@123` | ADMIN |
+| `gestionnaire@cantine.connect` | `gestionnaire@123` | GESTIONNAIRE |
+| `caissier@cantine.connect` | `caissier@123` | CAISSIER |
+| `parent@cantine.connect` | `parent@123` | PARENT |
+
+> Ces identifiants ne sont plus affichés sur l'écran de connexion (retiré pour raisons de sécurité). Voir `collaboration/doc/manuel-utilisateur.md`.
 
 ---
 
@@ -265,11 +270,27 @@ npm run dev
 
 ---
 
+## Évolutions Post-Clôture (depuis le 2026-06-30)
+
+Ce document capture l'état du MVP à sa clôture initiale (16/16 modules). Le développement s'est poursuivi au-delà ; voir `collaboration/ROADMAP.md` et `collaboration/history/history-log.md` pour le détail chronologique complet. Principales évolutions :
+
+- **Module Parents** : rattachement d'un compte utilisateur PARENT à un ou plusieurs élèves (`/parents`), CRUD complet réservé à l'ADMIN.
+- **RBAC PARENT restreint côté serveur** (ADR-011) : masquage d'Établissements/Élèves/Scan Réfectoire ; Paiements et Historique des Passages limités aux enfants du parent connecté.
+- **Numéro de cellulaire obligatoire et unique** sur chaque compte utilisateur (préparation des notifications SMS).
+- **Recherche et export CSV** ajoutés sur Élèves et Paiements (déjà présents sur l'Historique des Passages).
+- **Réinitialisation des comptes** : un compte de référence par rôle, seedé via migration Flyway plutôt qu'un `DataInitializer` applicatif (ADR-012).
+- **Module Configuration** : notifications email/SMS, mode de paiement (abonnement/crédits), image de fond de connexion.
+- **Déploiement production** : Vercel (frontend) + Railway (backend + PostgreSQL) — voir ADR-008/009.
+
+---
+
 ## Gouvernance
 
-- **ROADMAP** : `collaboration/ROADMAP.md` — 16/16
-- **Historique** : `collaboration/history/history-log.md` — 16 entrées
-- **ADRs** : `collaboration/history/adr/` — jwt-stateless, dépendance-circulaire, stack-frontend
+- **ROADMAP** : `collaboration/ROADMAP.md`
+- **Historique** : `collaboration/history/history-log.md`
+- **Manuel utilisateur** : `collaboration/doc/manuel-utilisateur.md`
+- **Cahier de recette** : `collaboration/doc/cahier-de-recette.md`
+- **ADRs** : `collaboration/history/adr/` — jwt-stateless, dépendance-circulaire, stack-frontend, déploiement production, RBAC PARENT, source unique des comptes de seed
 - **Repository** : `yacoubasylla/cantine-connect` — branche `main`
 - **Lead Architecte** : Yacouba SYLLA — ciyasyl@gmail.com
 - **Date de clôture** : 2026-06-30

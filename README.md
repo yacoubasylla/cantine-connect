@@ -120,29 +120,35 @@ npm run dev
 
 ---
 
-## 👤 Compte par Défaut (Développement)
+## 👤 Comptes de Référence (Développement — un par rôle)
 
-| Champ | Valeur |
-|-------|--------|
-| Email | `admin@cantine.connect` |
-| Mot de passe | `Admin123!` |
-| Rôle | `ADMIN` |
+| Email | Mot de passe | Rôle |
+|-------|-------------|------|
+| `admin@cantine.connect` | `admin@123` | ADMIN |
+| `gestionnaire@cantine.connect` | `gestionnaire@123` | GESTIONNAIRE |
+| `caissier@cantine.connect` | `caissier@123` | CAISSIER |
+| `parent@cantine.connect` | `parent@123` | PARENT |
+
+Chaque compte requiert un numéro de cellulaire unique (colonne `telephone`, obligatoire depuis la migration V5). Ces comptes sont recréés par la migration `V6__reset_comptes_un_par_role.sql` — voir `collaboration/history/adr/2026-07-01-migrations-source-unique-comptes-seed.md`. Ils ne sont plus affichés sur l'écran de connexion.
 
 ---
 
-## 📦 Modules Fonctionnels (MVP v1.0.0-beta)
+## 📦 Modules Fonctionnels
 
 | Module | Statut | Description |
 |--------|--------|-------------|
-| 🏫 Établissements | ✅ Livré | CRUD établissements, niveaux, classes |
-| 👨‍🎓 Élèves | ✅ Livré | CRUD + formulaire 3 onglets + QR Code + pagination |
-| 💳 Paiements | ✅ Livré | Transactions Mobile Money + webhooks CinetPay |
-| 📷 Scan Réfectoire | ✅ Livré | Validation QR Code temps réel + cache offline 24h |
-| 📋 Historique | ✅ Livré | Passages filtrés (date, établissement, résultat) + export CSV |
+| 🏫 Établissements | ✅ Livré | CRUD établissements, niveaux, classes (masqué au rôle PARENT) |
+| 👨‍🎓 Élèves | ✅ Livré | CRUD + formulaire 3 onglets + QR Code + pagination + recherche + export CSV (masqué au rôle PARENT) |
+| 💳 Paiements | ✅ Livré | Transactions Mobile Money + webhooks CinetPay + recherche + export CSV (PARENT limité à ses enfants) |
+| 📷 Scan Réfectoire | ✅ Livré | Validation QR Code temps réel + cache offline 24h (masqué au rôle PARENT) |
+| 📋 Historique | ✅ Livré | Passages filtrés (date, établissement, résultat) + export CSV (PARENT limité à ses enfants) |
 | 📊 Dashboard | ✅ Livré | KPIs globaux + tendance 7 jours + statistiques paiements |
-| 👥 Utilisateurs | ✅ Livré | CRUD complet (ADMIN) + protection dernier admin |
+| 👥 Utilisateurs | ✅ Livré | CRUD complet (ADMIN) + téléphone obligatoire/unique + protection dernier admin |
+| 👨‍👩‍👧 Parents | ✅ Livré | Rattachement compte PARENT ↔ élèves, recherche par numéro/nom/matricule (ADMIN) |
 | ⚙️ Configuration | ✅ Livré | Paramètres tarifs et période de grâce |
 | 🎨 Thèmes UI | ✅ Livré | 3 thèmes switchables persistés en localStorage |
+
+Détail fonctionnel complet par rôle : `collaboration/doc/manuel-utilisateur.md`. Scénarios de recette : `collaboration/doc/cahier-de-recette.md`.
 
 ---
 

@@ -631,3 +631,21 @@
   - `pages/auth/LoginPage.jsx` — suppression de l'encart « Compte par défaut : admin@cantine.connect / Admin123! » affiché sous le formulaire de connexion
 - **Description :** Nettoyage des comptes de test avant présentation du produit — un seul compte de référence par rôle avec des identifiants prévisibles, et suppression de l'affichage en clair des identifiants admin sur l'écran de connexion. **Important :** la migration V6 s'exécute automatiquement au prochain déploiement Railway (Flyway) — tous les comptes utilisateurs existants en production seront supprimés et remplacés par ces 4 comptes de test.
 - **Tests validés :** `./mvnw -q compile` ✅ · `./mvnw test` (24/24) ✅ · `npm run build` ✅ · lint sans régression · vérification manuelle DB dev : migration V6 appliquée, les 4 comptes existent avec les bons rôles, connexion réussie (`/api/v1/auth/login`) pour les 4 comptes avec leurs identifiants respectifs
+
+---
+
+### [2026-07-01] - Actualisation de la Documentation de Gouvernance
+- **Statut :** Livré / Opérationnel
+- **Fichiers Créés :**
+  - `collaboration/doc/manuel-utilisateur.md` — guide fonctionnel par rôle (ADMIN, GESTIONNAIRE, CAISSIER, PARENT), reflète les restrictions RBAC PARENT et les nouvelles fonctionnalités (téléphone, recherche, export CSV)
+  - `collaboration/doc/cahier-de-recette.md` — scénarios de recette (UAT) orientés métier, complète les tables de tests techniques du ROADMAP
+  - `collaboration/history/adr/2026-07-01-rbac-parent-restriction-serveur.md` (ADR-011)
+  - `collaboration/history/adr/2026-07-01-migrations-source-unique-comptes-seed.md` (ADR-012)
+- **Fichiers Modifiés :**
+  - `collaboration/context/CONTEXT.md` — note technique reliant les 4 acteurs métier aux rôles applicatifs réels et à la restriction PARENT
+  - `collaboration/history/decision-log.md` — entrées ADR-011 et ADR-012
+  - `collaboration/RECAP-FINAL.md` — correction des faits obsolètes (identifiants admin, référence à `DataInitializer` supprimé, rôle `PARENT` absent de l'énumération) + section « Évolutions Post-Clôture »
+  - `collaboration/ROADMAP.md` — ajout des modules B-09/F-09 (Parents) et B-10/F-10 (RBAC PARENT), section Améliorations Post-Livraison étendue (P6–P10), correction des identifiants et de la référence DataInitializer dans B-04
+  - `README.md` — comptes de référence (un par rôle) à jour, module Parents ajouté au tableau, pointeurs vers le manuel utilisateur et le cahier de recette
+- **Description :** Mise à jour de l'ensemble de la documentation de gouvernance suite à la clôture du chantier RBAC PARENT + téléphone obligatoire + recherche/export CSV + réinitialisation des comptes. Objectif : qu'aucun document de référence n'affiche des identifiants, un rôle ou un composant (`DataInitializer`) qui n'existent plus dans le code.
+- **Tests validés :** Relecture croisée code ↔ documentation (identifiants, rôles, endpoints, composants mentionnés vérifiés contre l'état actuel du dépôt)

@@ -39,6 +39,8 @@ Développer une plateforme digitale intégrée, cloud-native et adaptée au cont
 | **Agent de Scan (Personnel de Restauration)** | Validation des QR Codes à l'entrée du réfectoire. Interface épurée, opérabilité hors ligne (cache local 24h). Journalisation automatique de chaque passage. | Application Android (Smartphone existant) |
 | **Parent / Tuteur** | Tableau de bord enfant : statut d'accès, solde, historique des passages et paiements. Initiation de paiement Mobile Money 24h/24. Téléchargement des reçus PDF. Réception des alertes avant échéance. | Web App Responsive (Mobile First) |
 
+> **Note technique de mise en œuvre (2026-07-01)** : dans le code, les 4 acteurs ci-dessus correspondent aux rôles `ADMIN`, `GESTIONNAIRE`, `CAISSIER` et `PARENT`. Le rôle `PARENT` est restreint **côté serveur** — masqué des fonctionnalités Établissements/Élèves/Scan Réfectoire, et limité à ses propres enfants pour les Paiements et l'Historique des Passages (cf. ADR-011). Chaque compte utilisateur requiert désormais un numéro de cellulaire unique, en préparation des notifications SMS.
+
 ---
 
 ## 🏗️ Les 5 Modules Fonctionnels

@@ -1,6 +1,6 @@
 # ROADMAP — Cantine Connect
 > Inventaire complet des modules, fonctionnalités et tests de validation
-> Mis à jour : 2026-06-30 | Responsable : Yacouba SYLLA
+> Mis à jour : 2026-07-01 | Responsable : Yacouba SYLLA
 
 ---
 
@@ -65,16 +65,16 @@
 ---
 
 ### ✅ B-04 · Authentification JWT Stateless
-**Périmètre :** Login, JwtFilter, SecurityConfig, rôles ADMIN/GESTIONNAIRE/CAISSIER  
+**Périmètre :** Login, JwtFilter, SecurityConfig, rôles ADMIN/GESTIONNAIRE/CAISSIER/PARENT  
 **Fichiers clés :** `auth/` (entity, repository, service, controller, config, dto), `common/JwtAuthFilter.java`
 
 | # | Test de validation | Résultat |
 |---|-------------------|----------|
-| 1 | `POST /api/v1/auth/login` (admin@cantine.connect / Admin123!) → 200 + token JWT | ✅ |
+| 1 | `POST /api/v1/auth/login` (admin@cantine.connect / admin@123) → 200 + token JWT | ✅ |
 | 2 | `POST /api/v1/auth/login` (mauvais mdp) → 401 + message `UNAUTHORIZED` | ✅ |
 | 3 | `GET /api/v1/eleves` sans token → 403 | ✅ |
 | 4 | `GET /api/v1/eleves` avec token valide → 200 | ✅ |
-| 5 | Compte admin créé automatiquement au 1er démarrage (DataInitializer) | ✅ |
+| 5 | Comptes de seed (un par rôle) créés via migration `V6__reset_comptes_un_par_role.sql` (ADR-012) | ✅ |
 | 6 | Token expiré → 403 et redirection /login côté frontend | ✅ |
 
 ---
@@ -268,6 +268,38 @@
 
 ---
 
+### ✅ B-09 / F-09 · Module Parents (Rattachement Compte ↔ Enfants)
+**Périmètre :** CRUD Parent (ADMIN), recherche parent par numéro/nom/prénom, recherche élève par matricule/nom/prénom
+**Fichiers clés :** `parent/` (entity, repository, service, controller, dto), `pages/parents/ParentsPage.jsx`, `services/parentService.js`
+
+| # | Test de validation | Résultat |
+|---|-------------------|----------|
+| 1 | `POST /api/v1/parents` (ADMIN) → lie un utilisateur PARENT existant à des élèves | ✅ |
+| 2 | `GET /api/v1/utilisateurs?role=PARENT&search=07...` → trouve le compte par numéro | ✅ |
+| 3 | `GET /api/v1/eleves?search=` → trouve l'élève par matricule/nom/prénom | ✅ |
+| 4 | `GET /api/v1/parents/moi` (PARENT) → retourne son profil + ses enfants | ✅ |
+| 5 | `PUT /api/v1/parents/{id}/enfants` → modifie la liste des enfants associés | ✅ |
+| 6 | Tentative de création sans compte PARENT existant → message explicite | ✅ |
+
+---
+
+### ✅ B-10 / F-10 · RBAC Serveur du Rôle PARENT (ADR-011)
+**Périmètre :** Restriction du rôle PARENT à ses propres enfants, masquage des fonctionnalités staff
+**Fichiers clés :** `PaiementService`, `ScanService`, `EleveController`, `EtablissementController`, `ScanController`, `components/StaffRoute.jsx`
+
+| # | Test de validation | Résultat |
+|---|-------------------|----------|
+| 1 | PARENT → `GET /api/v1/eleves` → 403 | ✅ |
+| 2 | PARENT → `GET /api/v1/etablissements` → 403 | ✅ |
+| 3 | PARENT → `GET /api/v1/scan/cache` → 403 | ✅ |
+| 4 | PARENT → `GET /api/v1/paiements` → uniquement les transactions de ses enfants | ✅ |
+| 5 | PARENT → `POST /api/v1/paiements/initier` pour un élève non-possédé → 403 | ✅ |
+| 6 | PARENT → `GET /api/v1/paiements/{id}` d'un tiers → 404 | ✅ |
+| 7 | PARENT → `GET /api/v1/passages` → uniquement les passages de ses enfants | ✅ |
+| 8 | PARENT navigue vers `/eleves`, `/etablissements`, `/scan` → redirigé `/dashboard` | ✅ |
+
+---
+
 ## Récapitulatif de progression
 
 | Module | Backend | Frontend | Priorité |
@@ -282,8 +314,10 @@
 | B-07 / F-07 QR Scan | ✅ | ✅ | ✅ Livré |
 | F-05 Dashboard | — | ✅ | ✅ Livré |
 | B-08 / F-08 Utilisateurs | ✅ | ✅ | ✅ Livré |
+| B-09 / F-09 Parents | ✅ | ✅ | ✅ Livré |
+| B-10 / F-10 RBAC PARENT | ✅ | ✅ | ✅ Livré |
 
-**Avancement global : 16/16 modules livrés (100%) 🎉**
+**Avancement global : 18/18 modules livrés (100%) 🎉**
 
 ---
 
@@ -296,6 +330,11 @@
 | P3 | Dockerfiles multi-stage (backend + frontend) + déploiement prod | ✅ Livré |
 | P4 | CI/CD GitHub Actions (build + test + lint) | 🔲 À faire |
 | P5 | Documentation API Swagger/OpenAPI | 🔲 À faire |
+| P6 | Numéro de cellulaire obligatoire et unique sur les comptes utilisateurs (V5, préparation SMS) | ✅ Livré |
+| P7 | Recherche + export CSV sur Élèves et Paiements (déjà présents sur l'Historique des Passages) | ✅ Livré |
+| P8 | Réinitialisation des comptes : un compte de référence par rôle via migration Flyway (V6, ADR-012) | ✅ Livré |
+| P9 | Suppression de l'indice « Compte par défaut » sur l'écran de connexion | ✅ Livré |
+| P10 | Notifications SMS effectives aux parents (le numéro de cellulaire est en place, l'envoi reste à implémenter) | 🔲 À faire |
 
 ### Déploiement Production
 | Composant | Plateforme | Statut |
