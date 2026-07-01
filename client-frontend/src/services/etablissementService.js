@@ -26,4 +26,10 @@ export const etablissementService = {
 
   supprimerClasse: (classeId) =>
     apiClient.delete(`/etablissements/classes/${classeId}`).then((r) => r.data),
+
+  modifier: (id, data) =>
+    apiClient.put(`/etablissements/${id}`, data).then((r) => r.data.data),
+
+  supprimer: (id) =>
+    apiClient.delete(`/etablissements/${id}`).then((r) => r.data),
 };

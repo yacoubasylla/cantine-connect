@@ -2,13 +2,15 @@ import { useState } from 'react'
 import {
   Box, Typography, Button, Card, CardContent, Stack, Chip,
   Dialog, DialogTitle, DialogContent, DialogActions,
-  TextField, CircularProgress, Alert,
+  TextField, CircularProgress, Alert, IconButton, Tooltip,
 } from '@mui/material'
 import AddIcon from '@mui/icons-material/Add'
 import SchoolIcon from '@mui/icons-material/School'
 import LocationOnIcon from '@mui/icons-material/LocationOn'
 import PhoneIcon from '@mui/icons-material/Phone'
 import AccountTreeIcon from '@mui/icons-material/AccountTree'
+import EditIcon from '@mui/icons-material/Edit'
+import DeleteIcon from '@mui/icons-material/Delete'
 import { useEtablissements } from '../../hooks/useEtablissements'
 import { useAuth } from '../../hooks/useAuth'
 import GestionStructureDialog from './GestionStructureDialog'
@@ -16,20 +18,44 @@ import GestionStructureDialog from './GestionStructureDialog'
 const FORM_INITIAL = { nom: '', adresse: '', ville: 'Abidjan', telephone: '' }
 
 export default function EtablissementsPage() {
-  const { etablissements, loading, error, creer } = useEtablissements()
+  const { etablissements, loading, error, creer, modifier, supprimer } = useEtablissements()
   const { user } = useAuth()
   const isAdmin = user?.role === 'ADMIN'
+
+  // dialog création / modification
   const [open, setOpen] = useState(false)
+  const [editTarget, setEditTarget] = useState(null) // null = création
   const [form, setForm] = useState(FORM_INITIAL)
   const [saving, setSaving] = useState(false)
   const [formError, setFormError] = useState(null)
+
+  // dialog suppression
+  const [deleteTarget, setDeleteTarget] = useState(null)
+  const [deleting, setDeleting] = useState(false)
+
+  // gestion structure
   const [structureEtab, setStructureEtab] = useState(null)
 
   const handleChange = (e) =>
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }))
 
+  const openCreate = () => {
+    setEditTarget(null)
+    setForm(FORM_INITIAL)
+    setFormError(null)
+    setOpen(true)
+  }
+
+  const openEdit = (etab) => {
+    setEditTarget(etab)
+    setForm({ nom: etab.nom, adresse: etab.adresse || '', ville: etab.ville || 'Abidjan', telephone: etab.telephone || '' })
+    setFormError(null)
+    setOpen(true)
+  }
+
   const handleClose = () => {
     setOpen(false)
+    setEditTarget(null)
     setForm(FORM_INITIAL)
     setFormError(null)
   }
@@ -39,7 +65,11 @@ export default function EtablissementsPage() {
     setSaving(true)
     setFormError(null)
     try {
-      await creer(form)
+      if (editTarget) {
+        await modifier(editTarget.id, form)
+      } else {
+        await creer(form)
+      }
       handleClose()
     } catch (e) {
       setFormError(e.message)
@@ -48,12 +78,25 @@ export default function EtablissementsPage() {
     }
   }
 
+  const handleDelete = async () => {
+    if (!deleteTarget) return
+    setDeleting(true)
+    try {
+      await supprimer(deleteTarget.id)
+      setDeleteTarget(null)
+    } catch (e) {
+      setDeleteTarget(null)
+    } finally {
+      setDeleting(false)
+    }
+  }
+
   return (
     <Box>
       <Stack direction="row" justifyContent="space-between" alignItems="center" mb={3}>
         <Typography variant="h5">Établissements</Typography>
         {isAdmin && (
-          <Button variant="contained" startIcon={<AddIcon />} onClick={() => setOpen(true)}>
+          <Button variant="contained" startIcon={<AddIcon />} onClick={openCreate}>
             Ajouter
           </Button>
         )}
@@ -72,7 +115,23 @@ export default function EtablissementsPage() {
               <Stack direction="row" spacing={2} alignItems="flex-start">
                 <SchoolIcon sx={{ color: 'primary.main', fontSize: 32, mt: 0.5 }} />
                 <Box flexGrow={1}>
-                  <Typography variant="subtitle1" fontWeight={700}>{etab.nom}</Typography>
+                  <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
+                    <Typography variant="subtitle1" fontWeight={700}>{etab.nom}</Typography>
+                    {isAdmin && (
+                      <Stack direction="row" spacing={0.5}>
+                        <Tooltip title="Modifier">
+                          <IconButton size="small" onClick={() => openEdit(etab)}>
+                            <EditIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                        <Tooltip title="Supprimer">
+                          <IconButton size="small" color="error" onClick={() => setDeleteTarget(etab)}>
+                            <DeleteIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                      </Stack>
+                    )}
+                  </Stack>
                   <Stack direction="row" alignItems="center" spacing={0.5} mt={0.5}>
                     <LocationOnIcon sx={{ fontSize: 14, color: 'text.secondary' }} />
                     <Typography variant="body2" color="text.secondary">{etab.ville}</Typography>
@@ -112,8 +171,9 @@ export default function EtablissementsPage() {
         etablissement={structureEtab}
       />
 
+      {/* Dialog création / modification */}
       <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
-        <DialogTitle>Nouvel établissement</DialogTitle>
+        <DialogTitle>{editTarget ? 'Modifier l\'établissement' : 'Nouvel établissement'}</DialogTitle>
         <DialogContent>
           <Stack spacing={2} mt={1}>
             {formError && <Alert severity="error">{formError}</Alert>}
@@ -126,7 +186,24 @@ export default function EtablissementsPage() {
         <DialogActions sx={{ px: 3, pb: 2 }}>
           <Button onClick={handleClose}>Annuler</Button>
           <Button variant="contained" onClick={handleSubmit} disabled={saving}>
-            {saving ? <CircularProgress size={20} /> : 'Créer'}
+            {saving ? <CircularProgress size={20} /> : editTarget ? 'Enregistrer' : 'Créer'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Dialog confirmation suppression */}
+      <Dialog open={Boolean(deleteTarget)} onClose={() => setDeleteTarget(null)} maxWidth="xs" fullWidth>
+        <DialogTitle>Supprimer l'établissement ?</DialogTitle>
+        <DialogContent>
+          <Typography>
+            Voulez-vous vraiment supprimer <strong>{deleteTarget?.nom}</strong> ?
+            Cette action désactivera l'établissement et toutes ses classes.
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button onClick={() => setDeleteTarget(null)}>Annuler</Button>
+          <Button variant="contained" color="error" onClick={handleDelete} disabled={deleting}>
+            {deleting ? <CircularProgress size={20} /> : 'Supprimer'}
           </Button>
         </DialogActions>
       </Dialog>

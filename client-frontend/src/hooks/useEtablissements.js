@@ -27,5 +27,16 @@ export function useEtablissements() {
     return created
   }
 
-  return { etablissements, loading, error, creer, recharger: charger }
+  const modifier = async (id, dto) => {
+    const updated = await etablissementService.modifier(id, dto)
+    setEtablissements((prev) => prev.map((e) => (e.id === id ? updated : e)))
+    return updated
+  }
+
+  const supprimer = async (id) => {
+    await etablissementService.supprimer(id)
+    setEtablissements((prev) => prev.filter((e) => e.id !== id))
+  }
+
+  return { etablissements, loading, error, creer, modifier, supprimer, recharger: charger }
 }

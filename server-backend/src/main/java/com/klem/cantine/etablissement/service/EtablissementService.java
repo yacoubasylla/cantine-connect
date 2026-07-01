@@ -70,6 +70,27 @@ public class EtablissementService {
                 .toList();
     }
 
+    @Traceable(action = TypeAction.UPDATE, entite = "Etablissement")
+    @Transactional
+    public EtablissementResponseDTO modifier(Long id, EtablissementRequestDTO dto) {
+        Etablissement e = etablissementRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Établissement introuvable : " + id));
+        if (dto.nom() != null && !dto.nom().isBlank()) e.setNom(dto.nom());
+        if (dto.adresse() != null) e.setAdresse(dto.adresse());
+        if (dto.ville() != null && !dto.ville().isBlank()) e.setVille(dto.ville());
+        if (dto.telephone() != null) e.setTelephone(dto.telephone());
+        return EtablissementResponseDTO.from(etablissementRepository.save(e));
+    }
+
+    @Traceable(action = TypeAction.DELETE, entite = "Etablissement")
+    @Transactional
+    public void supprimer(Long id) {
+        Etablissement e = etablissementRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Établissement introuvable : " + id));
+        e.setActif(false);
+        etablissementRepository.save(e);
+    }
+
     @Traceable(action = TypeAction.CREATE, entite = "Niveau")
     @Transactional
     public NiveauResponseDTO creerNiveau(Long etablissementId, NiveauRequestDTO dto) {
