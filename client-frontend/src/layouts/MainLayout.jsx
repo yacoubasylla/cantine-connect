@@ -16,7 +16,9 @@ import ManageAccountsIcon from '@mui/icons-material/ManageAccounts'
 import TuneIcon           from '@mui/icons-material/Tune'
 import LogoutIcon         from '@mui/icons-material/Logout'
 import MenuIcon           from '@mui/icons-material/Menu'
-import { useAuth } from '../hooks/useAuth'
+import InfoOutlinedIcon  from '@mui/icons-material/InfoOutlined'
+import { useAuth }       from '../hooks/useAuth'
+import AProposDialog     from '../components/AProposDialog'
 
 const DRAWER_WIDTH = 240
 
@@ -39,7 +41,8 @@ export default function MainLayout() {
   const { user, logout } = useAuth()
   const theme       = useTheme()
   const isDesktop   = useMediaQuery(theme.breakpoints.up('lg')) // ≥ 1200px
-  const [mobileOpen, setMobileOpen] = useState(false)
+  const [mobileOpen,   setMobileOpen]   = useState(false)
+  const [aProposOpen,  setAProposOpen]  = useState(false)
 
   const handleLogout = () => { logout(); navigate('/login', { replace: true }) }
 
@@ -70,15 +73,30 @@ export default function MainLayout() {
           ))}
       </List>
 
-      {user && (
-        <Box sx={{ mt: 'auto', p: 2, borderTop: '1px solid', borderColor: 'divider' }}>
+      <Box sx={{ mt: 'auto', p: 2, borderTop: '1px solid', borderColor: 'divider' }}>
+        {user && (
           <Chip
             label={ROLE_LABELS[user.role] ?? user.role}
             size="small" color="primary" variant="outlined"
-            sx={{ width: '100%' }}
+            sx={{ width: '100%', mb: 1 }}
           />
-        </Box>
-      )}
+        )}
+        <Stack direction="row" alignItems="center" justifyContent="center">
+          <Tooltip title="À Propos">
+            <IconButton size="small" onClick={() => setAProposOpen(true)} sx={{ color: 'text.disabled' }}>
+              <InfoOutlinedIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
+          <Typography
+            variant="caption"
+            color="text.disabled"
+            sx={{ cursor: 'pointer', '&:hover': { color: 'text.secondary' } }}
+            onClick={() => setAProposOpen(true)}
+          >
+            À Propos
+          </Typography>
+        </Stack>
+      </Box>
     </>
   )
 
@@ -154,6 +172,8 @@ export default function MainLayout() {
           {drawerContent}
         </Drawer>
       )}
+
+      <AProposDialog open={aProposOpen} onClose={() => setAProposOpen(false)} />
 
       {/* ── Contenu principal ───────────────────────────── */}
       <Box
