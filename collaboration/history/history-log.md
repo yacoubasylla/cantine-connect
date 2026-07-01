@@ -297,3 +297,64 @@
 - **Description :** Infrastructure de déploiement production opérationnelle. Frontend React/Vite déployé sur Vercel avec routing SPA. Backend Spring Boot containerisé via Dockerfile multi-stage déployé sur Railway avec PostgreSQL managée. 3 bugs corrigés en séquence : (1) port hardcodé → `${PORT:8081}`, (2) ENTRYPOINT shell expansion supprimée (Spring Boot lit `SPRING_PROFILES_ACTIVE` nativement), (3) `SPRING_DATASOURCE_URL` construite via variables atomiques PGHOST/PGPORT/PGDATABASE car Railway ne fournit pas de `JDBC_URL` (le `DATABASE_URL` natif est au format `postgresql://` incompatible avec HikariCP). Voir ADR-008 + ADR-009.
 - **Architecture prod :** Frontend (Vercel) → Backend (Railway) → PostgreSQL (Railway managed)
 - **Statuts finaux :** Vercel ✅ Online · Railway ✅ Online · PostgreSQL ✅ Online
+
+---
+
+### [2026-07-01] - Fix prod : CORS configurable via variable d'environnement
+- **Statut :** Livré / Opérationnel
+- **Commit :** `6fb3e2a`
+- **Fichiers Modifiés :**
+  - `server-backend/src/main/java/.../common/SecurityConfig.java` — `@Value("${cors.allowed-origins}")` + split virgule
+  - `server-backend/src/main/resources/application.yml` — `cors.allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:5173}`
+- **Description :** Les origines CORS étaient hardcodées à `localhost:5173`, bloquant les requêtes depuis le domaine Vercel. La configuration lit désormais `CORS_ALLOWED_ORIGINS` (variable d'environnement Railway), acceptant plusieurs domaines séparés par des virgules. Résolution du "Erreur réseau" sur la page de connexion après le premier déploiement.
+
+---
+
+### [2026-07-01] - Fix prod : Error Boundary — page blanche remplacée par message lisible
+- **Statut :** Livré / Opérationnel
+- **Commit :** `7980507`
+- **Fichiers Créés :**
+  - `client-frontend/src/components/ErrorBoundary.jsx` — composant classe React avec `getDerivedStateFromError`, bouton "Réessayer"
+- **Fichiers Modifiés :**
+  - `client-frontend/src/App.jsx` — toutes les routes wrappées dans `<ErrorBoundary>`
+- **Description :** En React 19, toute erreur de rendu non capturée démontre la racine React entière (page blanche). L'ErrorBoundary intercepte les erreurs d'affichage par route et affiche un message d'erreur lisible avec bouton de rechargement, limitant l'impact à la route fautive.
+
+---
+
+### [2026-07-01] - Fix prod : MUI v9 — Autocomplete paiements (params.slotProps)
+- **Statut :** Livré / Opérationnel
+- **Commit :** `d55f242`
+- **Fichiers Modifiés :**
+  - `client-frontend/src/pages/paiements/PaiementsPage.jsx` — `params.InputProps` → `params.slotProps?.input`
+  - `client-frontend/src/hooks/usePaiements.js` — `setData(result ?? { content: [], totalElements: 0 })` (null safety)
+- **Description :** MUI v9 a supprimé `params.InputProps` du callback `renderInput` de l'Autocomplete. L'accès à `params.InputProps.endAdornment` lançait une TypeError qui, sans Error Boundary, causait une page blanche complète sur `/paiements`. Migré vers `params.slotProps?.input` conformément à l'API MUI v9.
+
+---
+
+### [2026-07-01] - Feat : Scanner caméra QR Code + page Configuration admin
+- **Statut :** Livré / Opérationnel
+- **Commit :** `86583af`
+- **Packages installés :** `html5-qrcode`
+- **Fichiers Créés :**
+  - `client-frontend/src/components/QrCameraScanner.jsx` — composant Html5Qrcode (caméra arrière prioritaire, debounce 3s, cleanup propre)
+  - `client-frontend/src/services/configService.js` — lister, getParCle, modifier
+  - `client-frontend/src/hooks/useConfig.js` — `useConfigurations()`, `useConfigValeur(cle, default)`
+  - `client-frontend/src/pages/configuration/ConfigurationPage.jsx` — Switch toggle par fonctionnalité (ADMIN only)
+  - `server-backend/src/main/java/.../parametrage/` — entité Configuration, DTO, repository, service, controller (GET + PUT `@PreAuthorize ADMIN`)
+  - `server-backend/src/main/resources/db/migration/V2__add_configurations_table.sql` — table `configurations` + seed `SCAN_CAMERA_ENABLED=false`
+- **Fichiers Modifiés :**
+  - `client-frontend/src/pages/scan/ScanPage.jsx` — bouton "Activer caméra" conditionnel (config `SCAN_CAMERA_ENABLED`), callback `handleCameraDetected`
+  - `client-frontend/src/App.jsx` — route `/configuration` (AdminRoute)
+  - `client-frontend/src/layouts/MainLayout.jsx` — item "Configuration" (TuneIcon, ADMIN only)
+- **Description :** Scan par caméra smartphone/tablette comme alternative à la douchette USB. Activer/désactiver la fonctionnalité sans déploiement depuis la page `/configuration` (ADMIN). Le scanner utilise la caméra arrière par préférence, lance le scan automatiquement et intègre un debounce 3s pour éviter les doublons. La table `configurations` en base permet d'ajouter de futurs feature flags.
+
+---
+
+### [2026-07-01] - Feat : Interface entièrement responsive (≤1200px)
+- **Statut :** Livré / Opérationnel
+- **Commit :** `e81f78e`
+- **Fichiers Modifiés :**
+  - `client-frontend/src/layouts/MainLayout.jsx` — Drawer temporaire sur mobile (< lg), permanent sur desktop (≥ lg) ; hamburger MenuIcon ; padding responsif xs/sm/md
+  - `client-frontend/src/pages/scan/ScanPage.jsx` — layout colonne sur mobile, 2 colonnes sur md+ ; suppression hauteur fixe
+  - `client-frontend/src/pages/paiements/PaiementsPage.jsx` — en-tête `flexWrap="wrap"` pour éviter le débordement sur petits écrans
+- **Description :** L'application était inutilisable sur écrans ≤1200px : le Drawer permanent de 240px écrasait la zone de contenu principale. Threshold MUI `lg` (1200px) : en dessous le Drawer devient temporaire (overlay) et un bouton hamburger apparaît dans l'AppBar pour l'ouvrir ; la navigation ferme automatiquement le Drawer. Sur desktop (≥1200px) le comportement précédent (Drawer fixe latéral) est préservé.
