@@ -21,4 +21,7 @@ EXPOSE 8081
 HEALTHCHECK --interval=10s --timeout=5s --start-period=45s --retries=3 \
   CMD wget -qO- "http://localhost:${PORT:-8081}/actuator/health" || exit 1
 
-ENTRYPOINT ["java", "-jar", "app.jar"]
+# Bornes mémoire explicites — le conteneur Railway est limité à ~1 Go.
+# Sans -XX:MaxMetaspaceSize, le Metaspace (hors segment heap) peut croître
+# sans limite et faire dépasser le conteneur son quota mémoire (voir ADR-014).
+ENTRYPOINT ["java", "-XX:MaxRAMPercentage=60.0", "-XX:MaxMetaspaceSize=192m", "-Xss512k", "-jar", "app.jar"]

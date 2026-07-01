@@ -684,3 +684,19 @@
   - `collaboration/history/decision-log.md` — entrée ADR-014
 - **Description :** Le ralentissement perçu par l'utilisateur n'était pas un problème de requêtes non optimisées mais une erreur de configuration de logging : une clé présente dans le bloc de base n'avait pas été explicitement surchargée dans le profil de production. Correctif limité à la configuration, sans impact sur la logique métier.
 - **Tests validés :** `./mvnw test` (24/24) ✅ — changement de configuration pure. **Mesure de latence post-déploiement à confirmer.**
+
+---
+
+### [2026-07-01] - Latence Production (Suite) : Dépassement Mémoire du Conteneur Railway (Correctif)
+- **Statut :** Livré / Opérationnel
+- **Signalement :** L'utilisateur confirme le déploiement du correctif précédent mais observe toujours des données qui « disparaissent » à l'actualisation, et suppose de nouveau un problème de chargement lent.
+- **Diagnostic :** Installation du CLI Railway (`npm install -g @railway/cli`, déjà authentifié) pour aller au-delà des logs et consulter les métriques réelles du conteneur : `railway metrics --since 30m --json`. Résultat : CPU quasiment inutilisé (0 % d'utilisation, max 0,73 vCPU sur une limite de 2 vCPU) mais **mémoire maximale à 1099,6 Mo dépassant la limite du conteneur (1024 Mo)**, avec des latences HTTP P50/P90/P95/P99 uniformément à ~13,9 secondes sur toute la fenêtre — signature d'une pression mémoire extrême (pagination/GC), pas d'un problème CPU ou de requêtes SQL. Confirmé que le correctif TRACE précédent (ADR-014) était nécessaire mais pas suffisant.
+- **Cause racine :** Aucune borne mémoire explicite n'existait : le JVM tourne sans `-Xmx`/`-XX:MaxMetaspaceSize` (le Metaspace croît sans limite par défaut, en mémoire native hors segment heap), le pool Tomcat par défaut (200 threads × ~1 Mo de pile chacun) et le pool HikariCP (20 connexions) sont surdimensionnés pour le trafic réel d'un établissement pilote — l'ensemble pouvant faire dépasser au conteneur sa limite de ~1 Go.
+- **Fichiers Créés :**
+  - `collaboration/history/adr/2026-07-01-fix-memoire-conteneur-railway.md` (ADR-015)
+- **Fichiers Modifiés :**
+  - `server-backend/Dockerfile` — `ENTRYPOINT` avec `-XX:MaxRAMPercentage=60.0 -XX:MaxMetaspaceSize=192m -Xss512k` (conserve la forme tableau JSON requise par l'ADR-008)
+  - `server-backend/src/main/resources/application.yml` (profil `prod`) — `hikari.maximum-pool-size` 20→10, `spring.jpa.open-in-view: false` (corrige aussi un avertissement présent depuis l'origine), `server.tomcat.threads.max: 50` / `min-spare: 5`
+  - `collaboration/history/decision-log.md` — entrée ADR-015, complète l'ADR-014
+- **Description :** Le vrai goulot d'étranglement n'était ni une requête non optimisée ni le logging seul, mais un dimensionnement mémoire du conteneur jamais borné explicitement, faisant dépasser au processus sa limite Railway (~1 Go). Correctif de configuration/infrastructure, sans impact sur la logique métier.
+- **Tests validés :** `./mvnw test` (24/24) ✅ ; démarrage local réussi avec les nouveaux flags JVM. **Mesure `railway metrics` post-déploiement à confirmer** (mémoire max sous la limite, latences P50/P90/P95 sous la seconde).

@@ -134,13 +134,23 @@ spring:
     username: ${SPRING_DATASOURCE_USERNAME}
     password: ${SPRING_DATASOURCE_PASSWORD}
     hikari:
-      maximum-pool-size: 20
+      maximum-pool-size: 10
       connection-timeout: 30000
 
   jpa:
     hibernate:
       ddl-auto: validate
     show-sql: false
+    open-in-view: false
+
+# Conteneur Railway limité à ~1 Go — le pool de threads Tomcat par défaut
+# (200) réserve trop de mémoire (piles de threads) pour la charge réelle
+# de cette application ; réduit à un niveau adapté à un petit établissement.
+server:
+  tomcat:
+    threads:
+      max: 50
+      min-spare: 5
 
 logging:
   level:
