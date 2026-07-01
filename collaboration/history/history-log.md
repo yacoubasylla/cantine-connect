@@ -595,3 +595,25 @@
   - `pages/paiements/PaiementsPage.jsx` — dialogue d'initiation : pour PARENT, sélecteur d'élève limité à ses propres enfants (`parentService.getMoi()`) au lieu de la recherche libre sur `/eleves`
 - **Description :** Le parent connecté ne voit et n'initie que ses propres paiements, ne consulte que l'historique de passage de ses propres enfants, et n'a plus accès aux fonctionnalités Établissements / Élèves / Scan Réfectoire (masquées côté nav+routes, bloquées côté API). Toutes les restrictions sont appliquées côté serveur (pas seulement UI) : un parent qui forge une requête directe reste bloqué.
 - **Tests validés :** `./mvnw -q compile` ✅ · `./mvnw test` (23/23) ✅ · `npm run build` ✅ · lint sans régression (31 problèmes pré-existants, aucun nouveau) · vérification manuelle bout-en-bout via API réelle (compte PARENT de test créé/lié/supprimé en DB dev) : `/eleves`, `/etablissements`, `/scan/cache` → 403 ; `/parents/moi` → 200 ; `/paiements` et `/passages` → restreints aux enfants du parent ; `initier` paiement pour un élève non possédé → 403 ; `getById` sur une transaction d'un tiers → 404
+
+---
+
+### [2026-07-01] - Feat Téléphone obligatoire (SMS parents) + Recherche parent/élève + Export CSV Élèves & Paiements
+- **Statut :** Livré / Opérationnel
+- **Commits :** `bdbab80`, `7b4269a`
+- **Fichiers Créés :**
+  - `server-backend/.../db/migration/V5__add_telephone_utilisateurs.sql` — colonne `telephone` NOT NULL + UNIQUE, backfill des comptes existants avec un placeholder `A-COMPLETER-<id>` à corriger par un ADMIN
+- **Fichiers Modifiés (Backend) :**
+  - `auth/entity/Utilisateur.java` — champ `telephone` (unique, non null)
+  - `auth/dto/CreerUtilisateurRequestDTO.java`, `ModifierUtilisateurRequestDTO.java` — `telephone` obligatoire (regex format), `UtilisateurResponseDTO` l'expose
+  - `auth/repository/UtilisateurRepository.java` — `existsByTelephone`, `findByRoleAndActifTrueWithSearch`, `findAllWithSearch` (recherche nom/prénom/téléphone)
+  - `auth/service/UtilisateurService.java` — unicité téléphone vérifiée à la création et à la modification ; `lister()` accepte un paramètre `search`
+  - `auth/controller/UtilisateurController.java` — `GET /utilisateurs?search=`
+  - `paiement/repository/TransactionPaiementRepository.java`, `paiement/service/PaiementService.java`, `paiement/controller/PaiementController.java` — paramètre `search` (nom/prénom/matricule élève) sur `GET /paiements`, y compris sur le chemin restreint PARENT
+- **Fichiers Modifiés (Frontend) :**
+  - `pages/utilisateurs/UtilisateursPage.jsx` — champ Téléphone obligatoire (création + modification), colonne dans le tableau
+  - `pages/parents/ParentsPage.jsx` — sélection du compte parent : recherche serveur avec debounce 300ms par numéro ou nom/prénom (au lieu du préchargement de 100 comptes)
+  - `pages/eleves/ElevesPage.jsx` — en-tête restylée (icône + titre, bouton CSV, actualiser) à l'identique de l'Historique des Passages ; export CSV de la page courante
+  - `pages/paiements/PaiementsPage.jsx` — ajout d'un champ de recherche élève, en-tête restylée, filtres regroupés dans un encart, export CSV de la page courante
+- **Description :** Les parents seront notifiés par SMS — chaque compte utilisateur doit désormais avoir un numéro de cellulaire unique. La recherche de l'élève se faisait déjà par matricule/nom/prénom (page Parents) ; le compte parent se recherche maintenant de la même façon par numéro ou nom/prénom. Les pages Élèves et Paiements gagnent le même export CSV et la même présentation de filtres que l'Historique des Passages.
+- **Tests validés :** `./mvnw -q compile` ✅ · `./mvnw test` (24/24) ✅ · `npm run build` ✅ · lint sans régression (30 problèmes, aucun nouveau) · vérification manuelle via API réelle (DB dev) : création sans téléphone → 400 ; création avec téléphone en double → 400 ; recherche utilisateurs par numéro et par nom → OK ; recherche paiements par nom d'élève → OK (0 résultat sur terme absent)
