@@ -19,6 +19,7 @@ import MenuIcon           from '@mui/icons-material/Menu'
 import InfoOutlinedIcon  from '@mui/icons-material/InfoOutlined'
 import { useAuth }       from '../hooks/useAuth'
 import AProposDialog     from '../components/AProposDialog'
+import ThemeSwitcher     from '../components/ThemeSwitcher'
 
 const DRAWER_WIDTH = 240
 
@@ -118,7 +119,9 @@ export default function MainLayout() {
               </IconButton>
             )}
             <RestaurantIcon sx={{ display: { xs: 'none', sm: 'block' } }} />
-            <Typography variant="h6" noWrap>Cantine Connect</Typography>
+            <Typography variant="h6" noWrap fontWeight={700}>
+              🍽️ Cantine Connect
+            </Typography>
           </Stack>
 
           {user && (
@@ -134,6 +137,7 @@ export default function MainLayout() {
               <Avatar sx={{ width: 34, height: 34, bgcolor: 'primary.dark', fontSize: 14 }}>
                 {initials}
               </Avatar>
+              <ThemeSwitcher />
               <Tooltip title="Déconnexion">
                 <IconButton color="inherit" onClick={handleLogout} size="small">
                   <LogoutIcon fontSize="small" />

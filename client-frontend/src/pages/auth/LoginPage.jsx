@@ -3,21 +3,23 @@ import { useNavigate } from 'react-router-dom'
 import {
   Box, Card, CardContent, Typography, TextField,
   Button, Stack, Alert, CircularProgress, InputAdornment, IconButton,
+  Divider,
 } from '@mui/material'
-import RestaurantIcon from '@mui/icons-material/Restaurant'
-import VisibilityIcon from '@mui/icons-material/Visibility'
+import { alpha } from '@mui/material/styles'
+import VisibilityIcon    from '@mui/icons-material/Visibility'
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff'
+import LockOutlinedIcon  from '@mui/icons-material/LockOutlined'
 import { useAuth } from '../../hooks/useAuth'
 import { authService } from '../../services/authService'
 
 export default function LoginPage() {
-  const { login } = useAuth()
-  const navigate  = useNavigate()
+  const { login }  = useAuth()
+  const navigate   = useNavigate()
 
-  const [form, setForm]           = useState({ email: '', motDePasse: '' })
-  const [showPwd, setShowPwd]     = useState(false)
-  const [loading, setLoading]     = useState(false)
-  const [error, setError]         = useState(null)
+  const [form, setForm]       = useState({ email: '', motDePasse: '' })
+  const [showPwd, setShowPwd] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [error, setError]     = useState(null)
 
   const handleChange = (e) => setForm((p) => ({ ...p, [e.target.name]: e.target.value }))
 
@@ -37,64 +39,118 @@ export default function LoginPage() {
   }
 
   return (
-    <Box sx={{
-      minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center',
-      bgcolor: 'background.default',
-    }}>
-      <Card sx={{ width: '100%', maxWidth: 420, mx: 2 }}>
-        <CardContent sx={{ p: 4 }}>
-          {/* Logo */}
-          <Stack alignItems="center" spacing={1} mb={3}>
-            <Box sx={{
-              width: 56, height: 56, borderRadius: '50%',
-              bgcolor: 'primary.main', display: 'flex', alignItems: 'center', justifyContent: 'center',
-            }}>
-              <RestaurantIcon sx={{ color: 'white', fontSize: 28 }} />
-            </Box>
-            <Typography variant="h5">Cantine Connect</Typography>
-            <Typography variant="body2" color="text.secondary">
-              Connectez-vous à votre espace
-            </Typography>
-          </Stack>
-
-          {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
-
-          <form onSubmit={handleSubmit}>
-            <Stack spacing={2}>
-              <TextField
-                label="Adresse email" name="email" type="email"
-                value={form.email} onChange={handleChange}
-                fullWidth autoFocus autoComplete="email"
-              />
-              <TextField
-                label="Mot de passe" name="motDePasse"
-                type={showPwd ? 'text' : 'password'}
-                value={form.motDePasse} onChange={handleChange}
-                fullWidth autoComplete="current-password"
-                InputProps={{
-                  endAdornment: (
-                    <InputAdornment position="end">
-                      <IconButton onClick={() => setShowPwd(!showPwd)} edge="end">
-                        {showPwd ? <VisibilityOffIcon /> : <VisibilityIcon />}
-                      </IconButton>
-                    </InputAdornment>
-                  ),
-                }}
-              />
-              <Button
-                type="submit" variant="contained" size="large" fullWidth
-                disabled={loading}
-              >
-                {loading ? <CircularProgress size={22} color="inherit" /> : 'Se connecter'}
-              </Button>
-            </Stack>
-          </form>
-
-          <Typography variant="caption" color="text.secondary" display="block" textAlign="center" mt={3}>
-            Compte par défaut : admin@cantine.connect / Admin123!
+    <Box
+      sx={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: (t) =>
+          `linear-gradient(160deg, ${alpha(t.palette.primary.main, 0.10)} 0%, ${t.palette.background.default} 55%, ${alpha(t.palette.secondary.main, 0.06)} 100%)`,
+        px: 2,
+      }}
+    >
+      <Box sx={{ width: '100%', maxWidth: 420 }}>
+        {/* Branding au-dessus de la carte */}
+        <Stack alignItems="center" spacing={0.5} mb={3}>
+          <Box
+            sx={{
+              width: 64,
+              height: 64,
+              borderRadius: '50%',
+              background: (t) =>
+                `linear-gradient(135deg, ${t.palette.primary.light} 0%, ${t.palette.primary.dark} 100%)`,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: (t) => `0 8px 24px ${alpha(t.palette.primary.main, 0.35)}`,
+              mb: 1,
+            }}
+          >
+            <Typography fontSize={28} lineHeight={1}>🍽️</Typography>
+          </Box>
+          <Typography variant="h5" fontWeight={800} letterSpacing="-0.02em">
+            Cantine Connect
           </Typography>
-        </CardContent>
-      </Card>
+          <Typography variant="caption" color="text.secondary" fontWeight={500}>
+            KLEM Technologies &amp; Services
+          </Typography>
+        </Stack>
+
+        {/* Carte de connexion */}
+        <Card sx={{ overflow: 'visible' }}>
+          <CardContent sx={{ p: { xs: 3, sm: 4 } }}>
+            <Stack direction="row" alignItems="center" spacing={1} mb={2.5}>
+              <LockOutlinedIcon fontSize="small" color="primary" />
+              <Typography variant="subtitle1" fontWeight={700}>
+                Connexion à votre espace
+              </Typography>
+            </Stack>
+
+            {error && (
+              <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>
+                {error}
+              </Alert>
+            )}
+
+            <form onSubmit={handleSubmit}>
+              <Stack spacing={2.5}>
+                <TextField
+                  label="Adresse email"
+                  name="email"
+                  type="email"
+                  value={form.email}
+                  onChange={handleChange}
+                  fullWidth
+                  autoFocus
+                  autoComplete="email"
+                  size="medium"
+                />
+                <TextField
+                  label="Mot de passe"
+                  name="motDePasse"
+                  type={showPwd ? 'text' : 'password'}
+                  value={form.motDePasse}
+                  onChange={handleChange}
+                  fullWidth
+                  autoComplete="current-password"
+                  InputProps={{
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton onClick={() => setShowPwd(!showPwd)} edge="end" size="small">
+                          {showPwd ? <VisibilityOffIcon /> : <VisibilityIcon />}
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+                <Button
+                  type="submit"
+                  variant="contained"
+                  size="large"
+                  fullWidth
+                  disabled={loading}
+                  sx={{ py: 1.4, mt: 0.5 }}
+                >
+                  {loading
+                    ? <CircularProgress size={22} color="inherit" />
+                    : 'Se connecter'
+                  }
+                </Button>
+              </Stack>
+            </form>
+
+            <Divider sx={{ my: 2.5 }} />
+            <Typography variant="caption" color="text.disabled" display="block" textAlign="center">
+              Compte par défaut : admin@cantine.connect / Admin123!
+            </Typography>
+          </CardContent>
+        </Card>
+
+        <Typography variant="caption" color="text.disabled" display="block" textAlign="center" mt={2.5}>
+          © 2026 KLEM Technologies &amp; Services
+        </Typography>
+      </Box>
     </Box>
   )
 }
