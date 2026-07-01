@@ -10,6 +10,12 @@ export const utilisateurService = {
   changerRole: (id, role) =>
     apiClient.patch(`/utilisateurs/${id}/role`, { role }).then((r) => r.data.data),
 
+  modifier: (id, data) =>
+    apiClient.put(`/utilisateurs/${id}`, data).then((r) => r.data.data),
+
+  supprimer: (id) =>
+    apiClient.delete(`/utilisateurs/${id}/permanent`),
+
   desactiver: (id) =>
     apiClient.delete(`/utilisateurs/${id}`),
 

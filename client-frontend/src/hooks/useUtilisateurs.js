@@ -31,6 +31,12 @@ export function useUtilisateurs() {
     return created
   }
 
+  const modifier = async (id, dto) => {
+    const updated = await utilisateurService.modifier(id, dto)
+    charger()
+    return updated
+  }
+
   const changerRole = async (id, role) => {
     await utilisateurService.changerRole(id, role)
     charger()
@@ -46,13 +52,18 @@ export function useUtilisateurs() {
     charger()
   }
 
+  const supprimer = async (id) => {
+    await utilisateurService.supprimer(id)
+    charger()
+  }
+
   return {
     utilisateurs: data.content,
     total: data.totalElements,
     page, setPage,
     rowsPerPage, setRowsPerPage,
     loading, error,
-    creer, changerRole, desactiver, reactiver,
+    creer, modifier, changerRole, desactiver, reactiver, supprimer,
     recharger: charger,
   }
 }

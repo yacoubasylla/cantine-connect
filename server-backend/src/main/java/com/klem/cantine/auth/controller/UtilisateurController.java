@@ -2,6 +2,7 @@ package com.klem.cantine.auth.controller;
 
 import com.klem.cantine.auth.dto.ChangerRoleRequestDTO;
 import com.klem.cantine.auth.dto.CreerUtilisateurRequestDTO;
+import com.klem.cantine.auth.dto.ModifierUtilisateurRequestDTO;
 import com.klem.cantine.auth.dto.UtilisateurResponseDTO;
 import com.klem.cantine.auth.service.UtilisateurService;
 import com.klem.cantine.common.ApiResponse;
@@ -39,6 +40,19 @@ public class UtilisateurController {
             @Valid @RequestBody CreerUtilisateurRequestDTO dto) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.created(utilisateurService.creer(dto)));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<ApiResponse<UtilisateurResponseDTO>> modifier(
+            @PathVariable Long id,
+            @Valid @RequestBody ModifierUtilisateurRequestDTO dto) {
+        return ResponseEntity.ok(ApiResponse.ok(utilisateurService.modifier(id, dto)));
+    }
+
+    @DeleteMapping("/{id}/permanent")
+    public ResponseEntity<Void> supprimerDefinitivement(@PathVariable Long id) {
+        utilisateurService.supprimerDefinitivement(id);
+        return ResponseEntity.noContent().build();
     }
 
     @PatchMapping("/{id}/role")

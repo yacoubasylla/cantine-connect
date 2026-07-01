@@ -2,6 +2,7 @@ package com.klem.cantine.auth.service;
 
 import com.klem.cantine.auth.dto.ChangerRoleRequestDTO;
 import com.klem.cantine.auth.dto.CreerUtilisateurRequestDTO;
+import com.klem.cantine.auth.dto.ModifierUtilisateurRequestDTO;
 import com.klem.cantine.auth.dto.UtilisateurResponseDTO;
 import com.klem.cantine.auth.entity.Role;
 import com.klem.cantine.auth.entity.Utilisateur;
@@ -49,6 +50,27 @@ public class UtilisateurService {
     }
 
     @Transactional
+    public UtilisateurResponseDTO modifier(Long id, ModifierUtilisateurRequestDTO dto) {
+        Utilisateur u = utilisateurRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Utilisateur introuvable : " + id));
+        // Email uniqueness check (seulement si l'email change)
+        if (!u.getEmail().equalsIgnoreCase(dto.email())
+                && utilisateurRepository.existsByEmail(dto.email())) {
+            throw new IllegalArgumentException("Un compte existe déjà avec l'email : " + dto.email());
+        }
+        u.setNom(dto.nom());
+        u.setPrenom(dto.prenom());
+        u.setEmail(dto.email());
+        if (dto.nouveauMotDePasse() != null && !dto.nouveauMotDePasse().isBlank()) {
+            if (dto.nouveauMotDePasse().length() < 8) {
+                throw new IllegalArgumentException("Le mot de passe doit contenir au moins 8 caractères.");
+            }
+            u.setMotDePasse(passwordEncoder.encode(dto.nouveauMotDePasse()));
+        }
+        return UtilisateurResponseDTO.from(utilisateurRepository.save(u));
+    }
+
+    @Transactional
     public UtilisateurResponseDTO changerRole(Long id, ChangerRoleRequestDTO dto) {
         Utilisateur u = trouverActif(id);
         u.setRole(dto.role());
@@ -76,6 +98,20 @@ public class UtilisateurService {
                 .orElseThrow(() -> new EntityNotFoundException("Utilisateur introuvable : " + id));
         u.setActif(true);
         return UtilisateurResponseDTO.from(utilisateurRepository.save(u));
+    }
+
+    @Transactional
+    public void supprimerDefinitivement(Long id) {
+        Utilisateur u = utilisateurRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Utilisateur introuvable : " + id));
+        if (u.getRole() == Role.ADMIN) {
+            long nbAdmins = utilisateurRepository.countByRoleAndActifTrue(Role.ADMIN);
+            if (nbAdmins <= 1) {
+                throw new IllegalStateException(
+                        "Impossible de supprimer le dernier compte ADMIN du système.");
+            }
+        }
+        utilisateurRepository.delete(u);
     }
 
     private Utilisateur trouverActif(Long id) {
