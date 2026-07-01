@@ -53,11 +53,11 @@
 
   /* SCREENSHOT PLACEHOLDER */
   .screenshot {
-    border: 2px dashed #90CAF9; border-radius: 8px; background: #F5F7FF;
-    padding: 32px 20px; text-align: center; margin: 20px 0; color: #1565C0;
+    border-radius: 8px; background: #F5F7FF; margin: 20px 0; overflow: hidden;
+    box-shadow: 0 4px 16px rgba(21,101,192,0.12);
   }
-  .screenshot .icon { font-size: 36px; margin-bottom: 8px; }
-  .screenshot .caption { font-size: 10pt; color: #546E7A; margin-top: 8px; font-style: italic; }
+  .screenshot img { display: block; width: 100%; height: auto; border-radius: 6px 6px 0 0; }
+  .screenshot .caption { font-size: 10pt; color: #546E7A; padding: 8px 16px 10px; font-style: italic; background: #F5F7FF; }
 
   /* STEPS */
   .steps { counter-reset: step; list-style: none; padding: 0; }
@@ -174,9 +174,8 @@
 <p>Ouvrez votre navigateur et accédez à l'URL de l'application fournie par votre administrateur.</p>
 
 <div class="screenshot">
-  <div class="icon">🖥️</div>
-  <strong>Capture d'écran : Page de connexion</strong>
-  <div class="caption">La page affiche le logo 🍽️ Cantine Connect, le sous-titre KLEM Technologies &amp; Services,<br>un champ email, un champ mot de passe avec œil (afficher/masquer) et le bouton « Se connecter ».</div>
+  <img src="assets/01-login.png" alt="Page de connexion Cantine Connect">
+  <div class="caption">Page de connexion — logo 🍽️, champ email, mot de passe avec affichage, bouton « Se connecter »</div>
 </div>
 
 <ol class="steps">
@@ -222,9 +221,8 @@
 <p>Le tableau de bord est la page d'accueil de l'application. Il donne une vue synthétique et en temps réel de l'activité de la cantine.</p>
 
 <div class="screenshot">
-  <div class="icon">📊</div>
-  <strong>Capture d'écran : Tableau de bord — vue globale</strong>
-  <div class="caption">4 cartes KPI en haut, répartition des statuts, panneau accès du jour, panneau paiements du mois,<br>graphique tendance 7 jours, table des derniers passages.</div>
+  <img src="assets/02-dashboard.png" alt="Tableau de bord Cantine Connect">
+  <div class="caption">Tableau de bord — 4 cartes KPI, répartition des statuts, graphique tendance 7 jours, derniers passages</div>
 </div>
 
 <h2 class="subsection">3.1 Cartes KPI (indicateurs clés)</h2>
@@ -264,9 +262,8 @@
 <p>Cliquez sur <strong>🏫 Établissements</strong> dans le menu de gauche. La liste affiche tous les établissements actifs avec leur nom, adresse, nombre de classes et statut.</p>
 
 <div class="screenshot">
-  <div class="icon">🏫</div>
-  <strong>Capture d'écran : Liste des établissements</strong>
-  <div class="caption">Tableau avec colonnes : Nom, Ville, Niveaux, Classes, Statut. Bouton « + Ajouter » en haut à droite.</div>
+  <img src="assets/05-etablissements.png" alt="Liste des établissements">
+  <div class="caption">Module Établissements — tableau avec nom, ville, niveaux, classes et statut. Bouton « + Ajouter » en haut.</div>
 </div>
 
 <h2 class="subsection">4.2 Ajouter un établissement</h2>
@@ -305,9 +302,8 @@
 </ul>
 
 <div class="screenshot">
-  <div class="icon">👨‍🎓</div>
-  <strong>Capture d'écran : Liste des élèves avec filtres</strong>
-  <div class="caption">Barre de filtres en haut (Établissement, Classe, Statut, Recherche), tableau paginé en bas avec actions par ligne.</div>
+  <img src="assets/06-eleves-liste.png" alt="Liste des élèves">
+  <div class="caption">Module Élèves — filtres (établissement, classe, statut, recherche), tableau paginé avec actions par ligne</div>
 </div>
 
 <h2 class="subsection">5.2 Inscrire un nouvel élève</h2>
@@ -338,6 +334,19 @@
   <li>Cliquez sur <strong>Enregistrer</strong>. Un QR Code unique est automatiquement généré.</li>
 </ol>
 
+<div class="screenshot">
+  <img src="assets/07-eleve-form-onglet1.png" alt="Formulaire élève — Onglet Général">
+  <div class="caption">Formulaire Onglet 1 — Général : Nom, Prénom, Date de naissance, Matricule, Sexe</div>
+</div>
+<div class="screenshot">
+  <img src="assets/08-eleve-form-onglet2.png" alt="Formulaire élève — Onglet Cantine">
+  <div class="caption">Formulaire Onglet 2 — Cantine / Affectation : Établissement, Niveau, Classe, Statut d'accès</div>
+</div>
+<div class="screenshot">
+  <img src="assets/09-eleve-form-onglet3.png" alt="Formulaire élève — Onglet Contacts">
+  <div class="caption">Formulaire Onglet 3 — Contacts / Allergies : Nom tuteur, Téléphone, Email, Allergies</div>
+</div>
+
 <div class="success">
   <strong>✅ QR Code automatique</strong>
   À la création, chaque élève reçoit un QR Code UUID unique. Ce code est imprimable depuis la fiche élève et sert de badge d'accès au réfectoire.
@@ -365,9 +374,8 @@
 <p>Ce module permet de consulter toutes les transactions de paiement Mobile Money reçues pour les élèves inscrits.</p>
 
 <div class="screenshot">
-  <div class="icon">💳</div>
-  <strong>Capture d'écran : Liste des paiements</strong>
-  <div class="caption">Tableau avec : Date, Référence, Élève, Établissement, Opérateur, Montant FCFA, Statut (EN ATTENTE / ACCEPTÉ / REFUSÉ). Filtres par élève et statut en haut.</div>
+  <img src="assets/10-paiements.png" alt="Module Paiements">
+  <div class="caption">Module Paiements — transactions Mobile Money avec date, référence, élève, opérateur, montant FCFA et statut</div>
 </div>
 
 <h2 class="subsection">6.1 Statuts des transactions</h2>
@@ -396,9 +404,8 @@
 <p>Ce module permet de valider l'accès au réfectoire en scannant le QR Code du badge élève. La validation s'effectue en <strong>moins d'une seconde</strong>.</p>
 
 <div class="screenshot">
-  <div class="icon">📷</div>
-  <strong>Capture d'écran : Interface de scan</strong>
-  <div class="caption">Colonne gauche : caméra en temps réel avec zone de ciblage QR Code.<br>Colonne droite : résultat du dernier scan (ACCORDÉ en vert / REFUSÉ en rouge + motif).</div>
+  <img src="assets/11-scan-refectoire.png" alt="Interface de scan réfectoire">
+  <div class="caption">Scan Réfectoire — zone caméra QR Code à gauche, résultat du dernier scan à droite (ACCORDÉ/REFUSÉ)</div>
 </div>
 
 <h2 class="subsection">7.1 Effectuer un scan</h2>
@@ -439,9 +446,8 @@
 <p>Ce module permet de consulter l'historique complet de tous les passages enregistrés au réfectoire, avec des filtres avancés.</p>
 
 <div class="screenshot">
-  <div class="icon">📋</div>
-  <strong>Capture d'écran : Historique des passages</strong>
-  <div class="caption">Filtres en haut : Période (du / au), Établissement, Résultat (Accordé / Refusé), Recherche élève.<br>Barre récapitulative : Total / Accordés / Refusés. Tableau paginé. Bouton Export CSV.</div>
+  <img src="assets/12-historique.png" alt="Historique des passages">
+  <div class="caption">Historique — filtres (période, établissement, résultat), barre récapitulative Total/Accordés/Refusés, export CSV</div>
 </div>
 
 <h2 class="subsection">8.1 Filtrer les passages</h2>
@@ -473,9 +479,8 @@
 <p>Ce module permet à l'administrateur de gérer les comptes d'accès à l'application.</p>
 
 <div class="screenshot">
-  <div class="icon">👥</div>
-  <strong>Capture d'écran : Gestion des utilisateurs</strong>
-  <div class="caption">Tableau des utilisateurs : Nom, Email, Rôle, Statut (Actif/Inactif). Boutons d'action sur chaque ligne : Modifier (✏️), Désactiver/Réactiver, Supprimer (🗑️).</div>
+  <img src="assets/13-utilisateurs.png" alt="Gestion des utilisateurs">
+  <div class="caption">Module Utilisateurs — tableau avec nom, email, rôle et statut. Actions : modifier, activer/désactiver, supprimer</div>
 </div>
 
 <h2 class="subsection">9.1 Créer un utilisateur</h2>
@@ -508,9 +513,8 @@
 <p>Ce module permet de configurer les paramètres globaux de la cantine : tarifs, périodes de grâce, et autres paramètres opérationnels. Toute modification est prise en compte immédiatement.</p>
 
 <div class="screenshot">
-  <div class="icon">⚙️</div>
-  <strong>Capture d'écran : Page de configuration</strong>
-  <div class="caption">Formulaire avec : Tarif mensuel par défaut (FCFA), Durée de la période de grâce (jours), Paramètres de notification.</div>
+  <img src="assets/14-configuration.png" alt="Page de configuration">
+  <div class="caption">Configuration — paramètres globaux : tarif mensuel (FCFA), durée période de grâce, activation scanner caméra</div>
 </div>
 
 <!-- ══════════════════════════════════════════════════════════════════════════ -->
@@ -550,6 +554,19 @@
   </tbody>
 </table>
 
+<div class="screenshot">
+  <img src="assets/03-theme-switcher.png" alt="Sélecteur de thème">
+  <div class="caption">Panneau de sélection des thèmes — accessible via l'icône 🎨 palette dans la barre du haut</div>
+</div>
+<div class="screenshot">
+  <img src="assets/04-dashboard-corporate.png" alt="Thème Corporatif — dark mode">
+  <div class="caption">Thème 🏢 Corporatif — dark mode, fond marine profond #0F172A, texte clair, interface sobre et premium</div>
+</div>
+<div class="screenshot">
+  <img src="assets/16-dashboard-ivoirien.png" alt="Thème École Ivoirienne">
+  <div class="caption">Thème 🇨🇮 École Ivoirienne — couleurs orange (#E65100), vert (#2E7D32) et fond ivoire</div>
+</div>
+
 <!-- ══════════════════════════════════════════════════════════════════════════ -->
 <h1 class="section page-break">12. Fenêtre À Propos</h1>
 
@@ -560,9 +577,8 @@
 </ol>
 
 <div class="screenshot">
-  <div class="icon">ℹ️</div>
-  <strong>Capture d'écran : Fenêtre À Propos</strong>
-  <div class="caption">KLEM Technologies &amp; Services — Version 1.0.0-beta<br>📞 +225 07 58 89 24 77 | 🌐 www.klemtech.net | 📧 infos@klemtech.net<br>© 2026 KLEM Technologies &amp; Services</div>
+  <img src="assets/15-apropos.png" alt="Fenêtre À Propos">
+  <div class="caption">Fenêtre À Propos — version 1.0.0-beta, coordonnées KLEM Technologies &amp; Services, copyright 2026</div>
 </div>
 
 <!-- ══════════════════════════════════════════════════════════════════════════ -->

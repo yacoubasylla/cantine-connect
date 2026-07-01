@@ -415,6 +415,21 @@
 
 ---
 
+### [2026-07-01] - Documentation : Manuel Utilisateur & Cahier de Recette avec captures d'écran réelles
+- **Statut :** Livré / Opérationnel
+- **Fichiers Créés :**
+  - `documentations/manuel-utilisateur.html` + `.pdf` (1,3 Mo) — 12 sections, 13 captures d'écran réelles intégrées
+  - `documentations/cahier-de-recette.html` + `.pdf` — 49 cas de test (AUTH, DASH, ETB, ELV, PAI, SCN, HIS, USR, CFG, THM)
+  - `documentations/assets/01-login.png` à `16-dashboard-ivoirien.png` — 16 captures Playwright (1280×800)
+  - `README.md` — réécriture complète avec stack, modules, setup local, sécurité, contact
+- **Contexte résolu :**
+  - Création manuelle de la table `configurations` (V2 Flyway) dans PostgreSQL Docker
+  - Correction import Playwright (CommonJS → `import pkg from index.js`) + flag `--no-sandbox`
+  - Résolution du bug Spring Security (InMemoryUserDetailsManager) via restart DevTools après création table manquante
+- **Description :** Génération de documentation complète avec captures d'écran automatisées par Playwright. Le script capture 16 écrans : connexion, dashboard (3 thèmes), sélecteur thème, établissements, liste élèves, formulaire (3 onglets), paiements, scan réfectoire, historique, utilisateurs, configuration, À Propos. Le manuel utilisateur en PDF (1,3 Mo) intègre toutes les captures avec captions. Le cahier de recette couvre 49 cas de test fonctionnels.
+
+---
+
 ### [2026-07-01] - Feat : Statistiques Globales — Dashboard enrichi
 - **Statut :** Livré / Opérationnel
 - **Fichiers Créés :**
@@ -430,3 +445,19 @@
   - `client-frontend/src/services/dashboardService.js` — remplace 7 appels parallèles par un unique `GET /dashboard/stats`
   - `client-frontend/src/pages/DashboardPage.jsx` — 4 KPI cards enrichies (sous-info, FCFA), répartition statuts, panneau accès/paiements, graphique tendance 7 jours (barres MUI), table derniers passages
 - **Description :** Remplacement des 7 appels API indépendants du frontend par un endpoint dédié côté backend (`DashboardService`) qui agrège toutes les données en une seule transaction. Enrichissements UI : sous-informations dans les KPI cards (accordés/refusés, nb transactions), panneau "Accès réfectoire aujourd'hui" avec barre de progression et taux d'accès %, panneau "Paiements du mois" avec montant FCFA formaté et compteur en attente, graphique en barres empilées pour la tendance des 7 derniers jours (vert accordés / rouge refusés) sans dépendance externe — 100% MUI.
+
+---
+
+### [2026-07-01] - Feat : Système de Thèmes & Design KLEM + Fenêtre À Propos
+- **Statut :** Livré / Opérationnel
+- **Fichiers Créés :**
+  - `client-frontend/src/theme/themes.js` — 3 thèmes MUI : Corporatif (dark navy), Moderne (blanc/bling), École Ivoirienne (orange/vert)
+  - `client-frontend/src/context/ThemeContext.jsx` — `ThemeModeProvider` + `useThemeMode()` avec persistance localStorage `klem-theme`
+  - `client-frontend/src/components/ThemeSwitcher.jsx` — bouton palette + Popover 3 thèmes avec swatches et CheckIcon
+  - `client-frontend/src/components/AProposDialog.jsx` — dialog ℹ️ avec version, coordonnées KLEM, copyright 2026
+- **Fichiers Modifiés :**
+  - `client-frontend/src/main.jsx` — pattern `ThemedApp` + `ThemeModeProvider` wrapper
+  - `client-frontend/src/pages/auth/LoginPage.jsx` — redesign complet (gradient dynamique thème, logo 🍽️, KLEM Technologies & Services)
+  - `client-frontend/src/layouts/MainLayout.jsx` — ThemeSwitcher dans AppBar, bouton À Propos en bas drawer
+  - `client-frontend/package.json` — version `1.0.0-beta`
+- **Description :** Identité visuelle KLEM (bleu #1565C0, orange #FF6D00) déclinée en 3 thèmes persistés en localStorage. Corporatif : dark mode marine profond, premium et sobre. Moderne : fond blanc, gradients colorés, effets lift-on-hover, animations cubic-bezier. École Ivoirienne : orange primaire, vert secondaire, fond ivoire. Tous les composants MUI (boutons, Drawer, AppBar, TableCell, Tabs, Chips) respectent les couleurs primary/secondary du thème actif. Fenêtre À Propos avec téléphone +225 07 58 89 24 77, site www.klemtech.net, email infos@klemtech.net.
