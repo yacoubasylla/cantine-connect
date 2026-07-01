@@ -27,7 +27,7 @@ export default function AProposDialog({ open, onClose }) {
             Cantine Connect — Gestion multi-établissements
           </Typography>
           <Chip
-            label="Version xxxtest"
+            label="Version 1.0.0-beta"
             size="small"
             variant="outlined"
             color="primary"
