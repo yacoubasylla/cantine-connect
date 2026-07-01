@@ -21,7 +21,7 @@ export default function AProposDialog({ open, onClose }) {
         {/* En-tête produit */}
         <Box sx={{ textAlign: 'center', py: 2 }}>
           <Typography variant="h5" fontWeight={800} color="primary.main" letterSpacing={1}>
-            KLEM Technologies
+            KLEM Technologies &amp; Services
           </Typography>
           <Typography variant="body2" color="text.secondary" mt={0.5}>
             Cantine Connect — Gestion multi-établissements
@@ -71,7 +71,7 @@ export default function AProposDialog({ open, onClose }) {
         <Divider sx={{ mt: 2, mb: 1.5 }} />
 
         <Typography variant="caption" color="text.disabled" display="block" textAlign="center">
-          © 2026 KLEM Technologies. Tous droits réservés.
+          © 2026 KLEM Technologies &amp; Services. Tous droits réservés.
         </Typography>
       </DialogContent>
 
