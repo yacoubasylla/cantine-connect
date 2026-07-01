@@ -7,9 +7,10 @@ import ElevesPage from './pages/eleves/ElevesPage'
 import PaiementsPage      from './pages/paiements/PaiementsPage'
 import ScanPage           from './pages/scan/ScanPage'
 import UtilisateursPage   from './pages/utilisateurs/UtilisateursPage'
-import ProtectedRoute     from './components/ProtectedRoute'
-import AdminRoute         from './components/AdminRoute'
-import ErrorBoundary      from './components/ErrorBoundary'
+import ProtectedRoute       from './components/ProtectedRoute'
+import AdminRoute           from './components/AdminRoute'
+import ErrorBoundary        from './components/ErrorBoundary'
+import ConfigurationPage    from './pages/configuration/ConfigurationPage'
 
 export default function App() {
   return (
@@ -30,6 +31,7 @@ export default function App() {
         <Route path="paiements"      element={<ErrorBoundary><PaiementsPage /></ErrorBoundary>} />
         <Route path="scan"           element={<ErrorBoundary><ScanPage /></ErrorBoundary>} />
         <Route path="utilisateurs"   element={<ErrorBoundary><AdminRoute><UtilisateursPage /></AdminRoute></ErrorBoundary>} />
+        <Route path="configuration"  element={<ErrorBoundary><AdminRoute><ConfigurationPage /></AdminRoute></ErrorBoundary>} />
       </Route>
     </Routes>
   )

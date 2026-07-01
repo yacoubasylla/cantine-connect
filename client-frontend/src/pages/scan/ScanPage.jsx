@@ -12,9 +12,13 @@ import RefreshIcon        from '@mui/icons-material/Refresh'
 import CheckCircleIcon    from '@mui/icons-material/CheckCircle'
 import CancelIcon         from '@mui/icons-material/Cancel'
 import CloseIcon          from '@mui/icons-material/Close'
-import { useScan }        from '../../hooks/useScan'
-import { scanService }    from '../../services/scanService'
+import CameraAltIcon      from '@mui/icons-material/CameraAlt'
+import VideocamOffIcon    from '@mui/icons-material/VideocamOff'
+import { useScan }             from '../../hooks/useScan'
+import { scanService }         from '../../services/scanService'
 import { cacheOfflineService } from '../../services/cacheOfflineService'
+import { useConfigValeur }     from '../../hooks/useConfig'
+import QrCameraScanner         from '../../components/QrCameraScanner'
 
 // ── Formatters ────────────────────────────────────────────────────────────────
 
@@ -161,10 +165,13 @@ function PassagesPanel({ passages, loading, onRefresh }) {
 // ── Page principale ───────────────────────────────────────────────────────────
 
 export default function ScanPage() {
-  const [token,    setToken]    = useState('')
-  const [passages, setPassages] = useState([])
-  const [loadingP, setLoadingP] = useState(false)
+  const [token,        setToken]        = useState('')
+  const [passages,     setPassages]     = useState([])
+  const [loadingP,     setLoadingP]     = useState(false)
+  const [cameraActive, setCameraActive] = useState(false)
   const inputRef = useRef(null)
+
+  const { valeur: cameraEnabled } = useConfigValeur('SCAN_CAMERA_ENABLED', 'false')
 
   const {
     result, scanning, error,
@@ -195,6 +202,12 @@ export default function ScanPage() {
     setToken('')
     inputRef.current?.focus()
   }
+
+  const handleCameraDetected = useCallback(async (decodedText) => {
+    setToken(decodedText)
+    await scanner(decodedText)
+    setToken('')
+  }, [scanner])
 
   const handleKeyDown = (e) => {
     if (e.key === 'Enter') handleScan()
@@ -249,14 +262,30 @@ export default function ScanPage() {
         {/* Colonne gauche : scan + résultat */}
         <Box sx={{ flex: '0 0 55%', display: 'flex', flexDirection: 'column' }}>
           <Paper variant="outlined" sx={{ p: 2.5 }}>
-            <Stack direction="row" spacing={1} alignItems="center" mb={0.5}>
-              <QrCodeScannerIcon color="primary" />
-              <Typography variant="subtitle1" fontWeight={600}>
-                Scanner le QR Code
-              </Typography>
+            <Stack direction="row" spacing={1} alignItems="center" mb={0.5} justifyContent="space-between">
+              <Stack direction="row" spacing={1} alignItems="center">
+                <QrCodeScannerIcon color="primary" />
+                <Typography variant="subtitle1" fontWeight={600}>
+                  Scanner le QR Code
+                </Typography>
+              </Stack>
+              {cameraEnabled === 'true' && (
+                <Button
+                  size="small"
+                  variant={cameraActive ? 'outlined' : 'contained'}
+                  color={cameraActive ? 'error' : 'secondary'}
+                  startIcon={cameraActive ? <VideocamOffIcon /> : <CameraAltIcon />}
+                  onClick={() => setCameraActive(v => !v)}
+                >
+                  {cameraActive ? 'Désactiver caméra' : 'Activer caméra'}
+                </Button>
+              )}
             </Stack>
             <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 2 }}>
-              Collez le token QR ou utilisez un lecteur de code-barres USB — appuyez sur Entrée pour valider.
+              {cameraActive
+                ? 'Pointez la caméra vers le QR Code — scan automatique.'
+                : 'Collez le token QR ou utilisez un lecteur de code-barres USB — appuyez sur Entrée pour valider.'
+              }
             </Typography>
             <Stack direction="row" spacing={1}>
               <TextField
@@ -281,6 +310,8 @@ export default function ScanPage() {
                 {scanning ? 'Scan…' : 'Scanner'}
               </Button>
             </Stack>
+
+            <QrCameraScanner active={cameraActive} onDetected={handleCameraDetected} />
           </Paper>
 
           {result && <ResultCard result={result} onClear={reinitialiser} />}

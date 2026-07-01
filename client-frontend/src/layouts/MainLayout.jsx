@@ -11,6 +11,7 @@ import RestaurantIcon from '@mui/icons-material/Restaurant'
 import PaymentsIcon       from '@mui/icons-material/Payments'
 import QrCodeScannerIcon  from '@mui/icons-material/QrCodeScanner'
 import ManageAccountsIcon from '@mui/icons-material/ManageAccounts'
+import TuneIcon           from '@mui/icons-material/Tune'
 import LogoutIcon         from '@mui/icons-material/Logout'
 import { useAuth } from '../hooks/useAuth'
 
@@ -23,6 +24,7 @@ const NAV_ITEMS = [
   { label: 'Paiements',       icon: <PaymentsIcon />,       path: '/paiements',      roles: null },
   { label: 'Scan Réfectoire', icon: <QrCodeScannerIcon />,  path: '/scan',           roles: null },
   { label: 'Utilisateurs',    icon: <ManageAccountsIcon />, path: '/utilisateurs',   roles: ['ADMIN'] },
+  { label: 'Configuration',   icon: <TuneIcon />,           path: '/configuration',  roles: ['ADMIN'] },
 ]
 
 const ROLE_LABELS = { ADMIN: 'Administrateur', GESTIONNAIRE: 'Gestionnaire', CAISSIER: 'Caissier' }
