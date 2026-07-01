@@ -9,6 +9,7 @@ import com.klem.cantine.scan.dto.ScanResultDTO;
 import com.klem.cantine.scan.entity.MotifRefus;
 import com.klem.cantine.scan.entity.PassageRefectoire;
 import com.klem.cantine.scan.entity.ResultatScan;
+import org.springframework.lang.Nullable;
 import com.klem.cantine.scan.repository.PassageRefectoireRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -74,15 +75,25 @@ public class ScanService {
 
     // ── Historique des passages ───────────────────────────────────────────────
 
-    public Page<PassageResponseDTO> listerPassages(LocalDate date, Long etablissementId, Pageable pageable) {
-        LocalDate targetDate = date != null ? date : LocalDate.now();
-        if (etablissementId != null) {
-            return passageRepository
-                    .findByDatePassageAndEtablissementId(targetDate, etablissementId, pageable)
-                    .map(PassageResponseDTO::from);
+    public Page<PassageResponseDTO> listerPassages(
+            LocalDate date, LocalDate dateDebut, LocalDate dateFin,
+            Long etablissementId, ResultatScan resultat, String search,
+            Pageable pageable) {
+
+        LocalDate debut, fin;
+        if (dateDebut != null && dateFin != null) {
+            debut = dateDebut;
+            fin   = dateFin;
+        } else {
+            LocalDate d = date != null ? date : LocalDate.now();
+            debut = d;
+            fin   = d;
         }
+
+        String searchParam = (search != null && !search.isBlank()) ? search.trim() : null;
+
         return passageRepository
-                .findByDatePassageWithDetails(targetDate, pageable)
+                .findWithFilters(debut, fin, etablissementId, resultat, searchParam, pageable)
                 .map(PassageResponseDTO::from);
     }
 

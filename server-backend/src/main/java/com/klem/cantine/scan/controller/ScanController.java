@@ -4,6 +4,7 @@ import com.klem.cantine.common.ApiResponse;
 import com.klem.cantine.scan.dto.CacheEntreeDTO;
 import com.klem.cantine.scan.dto.PassageResponseDTO;
 import com.klem.cantine.scan.dto.ScanResultDTO;
+import com.klem.cantine.scan.entity.ResultatScan;
 import com.klem.cantine.scan.service.ScanService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -45,16 +46,26 @@ public class ScanController {
     }
 
     /**
-     * Historique des passages du jour ou d'une date donnée.
-     * GET /api/v1/passages?date=2026-06-30&etablissementId=1
+     * Historique des passages — filtres multi-critères.
+     * GET /api/v1/passages?date=2026-07-01&dateDebut=&dateFin=&etablissementId=&resultat=ACCORDE&search=
+     * - date       : raccourci pour un seul jour (utilisé par ScanPage)
+     * - dateDebut/dateFin : plage (prioritaire sur date)
+     * - etablissementId, resultat, search : filtres optionnels
      */
     @GetMapping("/api/v1/passages")
     public ResponseEntity<ApiResponse<Page<PassageResponseDTO>>> passages(
             @RequestParam(required = false)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+            @RequestParam(required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateDebut,
+            @RequestParam(required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFin,
             @RequestParam(required = false) Long etablissementId,
+            @RequestParam(required = false) ResultatScan resultat,
+            @RequestParam(required = false) String search,
             @PageableDefault(size = 50, sort = "heurePassage") Pageable pageable) {
         return ResponseEntity.ok(ApiResponse.ok(
-                scanService.listerPassages(date, etablissementId, pageable)));
+                scanService.listerPassages(date, dateDebut, dateFin,
+                        etablissementId, resultat, search, pageable)));
     }
 }
