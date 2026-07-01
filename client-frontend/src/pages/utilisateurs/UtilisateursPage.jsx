@@ -33,7 +33,7 @@ const formatDate = (dt) =>
 // ── Dialog : créer ────────────────────────────────────────────────────────────
 
 function CreerDialog({ open, onClose, onSubmit }) {
-  const INIT = { nom: '', prenom: '', email: '', motDePasse: '', role: 'GESTIONNAIRE' }
+  const INIT = { nom: '', prenom: '', email: '', telephone: '', motDePasse: '', role: 'GESTIONNAIRE' }
   const [form,       setForm]  = useState(INIT)
   const [submitting, setSub]   = useState(false)
   const [err,        setErr]   = useState(null)
@@ -42,7 +42,7 @@ function CreerDialog({ open, onClose, onSubmit }) {
   const field = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }))
 
   const handleSubmit = async () => {
-    if (!form.nom || !form.prenom || !form.email || !form.motDePasse) {
+    if (!form.nom || !form.prenom || !form.email || !form.telephone || !form.motDePasse) {
       setErr('Tous les champs sont obligatoires'); return
     }
     if (form.motDePasse.length < 8) {
@@ -64,6 +64,12 @@ function CreerDialog({ open, onClose, onSubmit }) {
             <TextField label="Prénom *" size="small" fullWidth value={form.prenom} onChange={field('prenom')} />
           </Stack>
           <TextField label="Email *" type="email" size="small" fullWidth value={form.email} onChange={field('email')} />
+          <TextField
+            label="Numéro de cellulaire *" size="small" fullWidth
+            value={form.telephone} onChange={field('telephone')}
+            placeholder="07XXXXXXXX"
+            helperText="Utilisé pour les notifications SMS (parents)"
+          />
           <TextField
             label="Mot de passe *" type="password" size="small" fullWidth
             value={form.motDePasse} onChange={field('motDePasse')}
@@ -100,6 +106,7 @@ function ModifierDialog({ utilisateur, onClose, onSubmit }) {
     nom:              utilisateur?.nom    ?? '',
     prenom:           utilisateur?.prenom ?? '',
     email:            utilisateur?.email  ?? '',
+    telephone:        utilisateur?.telephone ?? '',
     nouveauMotDePasse: '',
   })
   const [submitting, setSub]  = useState(false)
@@ -108,8 +115,8 @@ function ModifierDialog({ utilisateur, onClose, onSubmit }) {
   const field = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }))
 
   const handleSubmit = async () => {
-    if (!form.nom || !form.prenom || !form.email) {
-      setErr('Nom, prénom et email sont obligatoires'); return
+    if (!form.nom || !form.prenom || !form.email || !form.telephone) {
+      setErr('Nom, prénom, email et téléphone sont obligatoires'); return
     }
     if (form.nouveauMotDePasse && form.nouveauMotDePasse.length < 8) {
       setErr('Nouveau mot de passe : 8 caractères minimum'); return
@@ -120,6 +127,7 @@ function ModifierDialog({ utilisateur, onClose, onSubmit }) {
         nom:               form.nom,
         prenom:            form.prenom,
         email:             form.email,
+        telephone:         form.telephone,
         nouveauMotDePasse: form.nouveauMotDePasse || null,
       })
       onClose()
@@ -140,6 +148,7 @@ function ModifierDialog({ utilisateur, onClose, onSubmit }) {
             <TextField label="Prénom *" size="small" fullWidth value={form.prenom} onChange={field('prenom')} />
           </Stack>
           <TextField label="Email *" type="email" size="small" fullWidth value={form.email} onChange={field('email')} />
+          <TextField label="Numéro de cellulaire *" size="small" fullWidth value={form.telephone} onChange={field('telephone')} />
           <Divider />
           <TextField
             label="Nouveau mot de passe"
@@ -267,6 +276,7 @@ export default function UtilisateursPage() {
               <TableRow sx={{ bgcolor: 'action.hover' }}>
                 <TableCell>Nom / Prénom</TableCell>
                 <TableCell>Email</TableCell>
+                <TableCell>Téléphone</TableCell>
                 <TableCell>Rôle</TableCell>
                 <TableCell align="center">Statut</TableCell>
                 <TableCell>Créé le</TableCell>
@@ -277,7 +287,7 @@ export default function UtilisateursPage() {
               {loading
                 ? Array.from({ length: 4 }).map((_, i) => (
                     <TableRow key={i}>
-                      {Array.from({ length: 6 }).map((__, j) => (
+                      {Array.from({ length: 7 }).map((__, j) => (
                         <TableCell key={j}><Skeleton /></TableCell>
                       ))}
                     </TableRow>
@@ -285,7 +295,7 @@ export default function UtilisateursPage() {
                 : utilisateurs.length === 0
                   ? (
                     <TableRow>
-                      <TableCell colSpan={6} align="center" sx={{ py: 4, color: 'text.secondary' }}>
+                      <TableCell colSpan={7} align="center" sx={{ py: 4, color: 'text.secondary' }}>
                         Aucun utilisateur
                       </TableCell>
                     </TableRow>
@@ -306,6 +316,13 @@ export default function UtilisateursPage() {
                         <TableCell>
                           <Typography variant="body2" sx={{ fontFamily: 'monospace', fontSize: 12 }}>
                             {u.email}
+                          </Typography>
+                        </TableCell>
+
+                        {/* Téléphone */}
+                        <TableCell>
+                          <Typography variant="body2" sx={{ fontFamily: 'monospace', fontSize: 12 }}>
+                            {u.telephone}
                           </Typography>
                         </TableCell>
 

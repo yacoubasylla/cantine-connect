@@ -20,19 +20,25 @@ public interface TransactionPaiementRepository extends JpaRepository<Transaction
 
     Page<TransactionPaiement> findByStatut(StatutPaiement statut, Pageable pageable);
 
-    @Query("SELECT t FROM TransactionPaiement t WHERE " +
-           "(:eleveId IS NULL OR t.eleve.id = :eleveId) AND " +
-           "(:statut IS NULL OR t.statut = :statut) " +
+    @Query("SELECT t FROM TransactionPaiement t JOIN t.eleve e WHERE " +
+           "(:eleveId IS NULL OR e.id = :eleveId) AND " +
+           "(:statut IS NULL OR t.statut = :statut) AND " +
+           "(:search IS NULL OR LOWER(e.nom) LIKE LOWER(CONCAT('%', :search, '%')) " +
+           "OR LOWER(e.prenom) LIKE LOWER(CONCAT('%', :search, '%')) " +
+           "OR LOWER(e.matricule) LIKE LOWER(CONCAT('%', :search, '%'))) " +
            "ORDER BY t.dateCreation DESC")
-    Page<TransactionPaiement> findAllWithFilters(Long eleveId, StatutPaiement statut, Pageable pageable);
+    Page<TransactionPaiement> findAllWithFilters(Long eleveId, StatutPaiement statut, String search, Pageable pageable);
 
-    @Query("SELECT t FROM TransactionPaiement t WHERE " +
-           "t.eleve.id IN :eleveIds AND " +
-           "(:eleveId IS NULL OR t.eleve.id = :eleveId) AND " +
-           "(:statut IS NULL OR t.statut = :statut) " +
+    @Query("SELECT t FROM TransactionPaiement t JOIN t.eleve e WHERE " +
+           "e.id IN :eleveIds AND " +
+           "(:eleveId IS NULL OR e.id = :eleveId) AND " +
+           "(:statut IS NULL OR t.statut = :statut) AND " +
+           "(:search IS NULL OR LOWER(e.nom) LIKE LOWER(CONCAT('%', :search, '%')) " +
+           "OR LOWER(e.prenom) LIKE LOWER(CONCAT('%', :search, '%')) " +
+           "OR LOWER(e.matricule) LIKE LOWER(CONCAT('%', :search, '%'))) " +
            "ORDER BY t.dateCreation DESC")
     Page<TransactionPaiement> findAllWithFiltersForEleves(
-            List<Long> eleveIds, Long eleveId, StatutPaiement statut, Pageable pageable);
+            List<Long> eleveIds, Long eleveId, StatutPaiement statut, String search, Pageable pageable);
 
     long countByStatut(StatutPaiement statut);
 

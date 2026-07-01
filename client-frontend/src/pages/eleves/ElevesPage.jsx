@@ -12,12 +12,37 @@ import DeleteIcon from '@mui/icons-material/Delete'
 import QrCode2Icon from '@mui/icons-material/QrCode2'
 import PrintIcon  from '@mui/icons-material/Print'
 import ContentCopyIcon from '@mui/icons-material/ContentCopy'
+import PeopleIcon from '@mui/icons-material/People'
+import FileDownloadIcon from '@mui/icons-material/FileDownload'
+import RefreshIcon from '@mui/icons-material/Refresh'
 import { QRCodeSVG } from 'qrcode.react'
 import { useEleves } from '../../hooks/useEleves'
 import { useEtablissements } from '../../hooks/useEtablissements'
 import { useAuth } from '../../hooks/useAuth'
 import StatutBadge from '../../components/StatutBadge'
 import EleveFormDialog from './EleveFormDialog'
+
+// ── Export CSV ────────────────────────────────────────────────────────────────
+
+function exportCsv(eleves) {
+  const header = ['Matricule', 'Nom', 'Prénom', 'Établissement', 'Classe', 'Statut']
+  const rows = eleves.map((e) => [
+    e.matricule ?? '',
+    e.nom ?? '',
+    e.prenom ?? '',
+    e.etablissementNom ?? '',
+    e.classeLibelle ?? '',
+    e.statutAcces ?? '',
+  ])
+  const csv = [header, ...rows].map((r) => r.map((c) => `"${c}"`).join(';')).join('\n')
+  const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `eleves_${new Date().toISOString().split('T')[0]}.csv`
+  a.click()
+  URL.revokeObjectURL(url)
+}
 
 function QrCodeDialog({ eleve, onClose }) {
   if (!eleve) return null
@@ -77,7 +102,7 @@ export default function ElevesPage() {
   const { etablissements } = useEtablissements()
   const {
     eleves, total, page, setPage, rowsPerPage, setRowsPerPage,
-    loading, error, creer, modifier, supprimer,
+    loading, error, creer, modifier, supprimer, recharger,
   } = useEleves(filtres)
 
   const setFiltre = (name, value) =>
@@ -102,45 +127,70 @@ export default function ElevesPage() {
   return (
     <Box>
       {/* ── En-tête ─────────────────────────────────────── */}
-      <Stack direction="row" justifyContent="space-between" alignItems="center" mb={3}>
-        <Typography variant="h5">Élèves</Typography>
-        {isAdmin && (
-          <Button variant="contained" startIcon={<AddIcon />} onClick={handleAdd}>
-            Ajouter
-          </Button>
-        )}
+      <Stack direction="row" alignItems="center" justifyContent="space-between" mb={3} flexWrap="wrap" gap={1}>
+        <Stack direction="row" alignItems="center" spacing={1.5}>
+          <PeopleIcon color="primary" />
+          <Typography variant="h5" fontWeight={600}>Élèves</Typography>
+        </Stack>
+        <Stack direction="row" spacing={1}>
+          <Tooltip title="Exporter CSV (page courante)">
+            <span>
+              <Button
+                size="small"
+                variant="outlined"
+                startIcon={<FileDownloadIcon />}
+                disabled={eleves.length === 0}
+                onClick={() => exportCsv(eleves)}
+              >
+                CSV
+              </Button>
+            </span>
+          </Tooltip>
+          <Tooltip title="Actualiser">
+            <IconButton size="small" onClick={recharger} disabled={loading}>
+              <RefreshIcon />
+            </IconButton>
+          </Tooltip>
+          {isAdmin && (
+            <Button variant="contained" startIcon={<AddIcon />} onClick={handleAdd}>
+              Ajouter
+            </Button>
+          )}
+        </Stack>
       </Stack>
 
       {/* ── Filtres ─────────────────────────────────────── */}
-      <Stack direction="row" spacing={2} mb={2} flexWrap="wrap">
-        <TextField
-          size="small" label="Recherche" placeholder="Nom, prénom, matricule…"
-          value={filtres.search}
-          onChange={(e) => setFiltre('search', e.target.value)}
-          sx={{ minWidth: 220 }}
-        />
-        <TextField
-          select size="small" label="Établissement"
-          value={filtres.etablissementId}
-          onChange={(e) => setFiltre('etablissementId', e.target.value)}
-          sx={{ minWidth: 200 }}
-        >
-          <MenuItem value="">Tous</MenuItem>
-          {etablissements.map((e) => (
-            <MenuItem key={e.id} value={String(e.id)}>{e.nom}</MenuItem>
-          ))}
-        </TextField>
-        <TextField
-          select size="small" label="Statut"
-          value={filtres.statut}
-          onChange={(e) => setFiltre('statut', e.target.value)}
-          sx={{ minWidth: 180 }}
-        >
-          {STATUTS_FILTRE.map((s) => (
-            <MenuItem key={s.value} value={s.value}>{s.label}</MenuItem>
-          ))}
-        </TextField>
-      </Stack>
+      <Paper variant="outlined" sx={{ p: 2, mb: 2 }}>
+        <Stack direction="row" spacing={2} flexWrap="wrap" gap={1.5} alignItems="flex-end">
+          <TextField
+            size="small" label="Recherche" placeholder="Nom, prénom, matricule…"
+            value={filtres.search}
+            onChange={(e) => setFiltre('search', e.target.value)}
+            sx={{ minWidth: 220, flex: 1 }}
+          />
+          <TextField
+            select size="small" label="Établissement"
+            value={filtres.etablissementId}
+            onChange={(e) => setFiltre('etablissementId', e.target.value)}
+            sx={{ minWidth: 200 }}
+          >
+            <MenuItem value="">Tous</MenuItem>
+            {etablissements.map((e) => (
+              <MenuItem key={e.id} value={String(e.id)}>{e.nom}</MenuItem>
+            ))}
+          </TextField>
+          <TextField
+            select size="small" label="Statut"
+            value={filtres.statut}
+            onChange={(e) => setFiltre('statut', e.target.value)}
+            sx={{ minWidth: 180 }}
+          >
+            {STATUTS_FILTRE.map((s) => (
+              <MenuItem key={s.value} value={s.value}>{s.label}</MenuItem>
+            ))}
+          </TextField>
+        </Stack>
+      </Paper>
 
       {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
 

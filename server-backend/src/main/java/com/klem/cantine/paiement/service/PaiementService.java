@@ -66,7 +66,8 @@ public class PaiementService {
         return PaiementResponseDTO.from(transaction, paymentUrl);
     }
 
-    public Page<PaiementResponseDTO> lister(Long eleveId, StatutPaiement statut, Pageable pageable, Utilisateur principal) {
+    public Page<PaiementResponseDTO> lister(Long eleveId, StatutPaiement statut, String search, Pageable pageable, Utilisateur principal) {
+        String searchParam = (search != null && !search.isBlank()) ? search.trim() : null;
         if (principal.getRole() == Role.PARENT) {
             List<Long> enfantIds = enfantIds(principal);
             if (eleveId != null && !enfantIds.contains(eleveId)) {
@@ -75,10 +76,10 @@ public class PaiementService {
             if (enfantIds.isEmpty()) {
                 return Page.empty(pageable);
             }
-            return transactionRepository.findAllWithFiltersForEleves(enfantIds, eleveId, statut, pageable)
+            return transactionRepository.findAllWithFiltersForEleves(enfantIds, eleveId, statut, searchParam, pageable)
                     .map(PaiementResponseDTO::from);
         }
-        return transactionRepository.findAllWithFilters(eleveId, statut, pageable)
+        return transactionRepository.findAllWithFilters(eleveId, statut, searchParam, pageable)
                 .map(PaiementResponseDTO::from);
     }
 

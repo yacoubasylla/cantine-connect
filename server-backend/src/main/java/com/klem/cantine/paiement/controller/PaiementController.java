@@ -38,9 +38,10 @@ public class PaiementController {
     public ResponseEntity<ApiResponse<Page<PaiementResponseDTO>>> lister(
             @RequestParam(required = false) Long eleveId,
             @RequestParam(required = false) StatutPaiement statut,
+            @RequestParam(required = false) String search,
             @PageableDefault(size = 20, sort = "dateCreation") Pageable pageable,
             @AuthenticationPrincipal Utilisateur principal) {
-        return ResponseEntity.ok(ApiResponse.ok(paiementService.lister(eleveId, statut, pageable, principal)));
+        return ResponseEntity.ok(ApiResponse.ok(paiementService.lister(eleveId, statut, search, pageable, principal)));
     }
 
     @GetMapping("/{id}")

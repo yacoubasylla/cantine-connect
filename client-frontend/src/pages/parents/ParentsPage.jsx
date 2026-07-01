@@ -28,6 +28,7 @@ function ParentFormDialog({ open, onClose, onSuccess, editTarget }) {
   const [selectedParent, setSelectedParent] = useState(null)
   const [parentOptions, setParentOptions]   = useState([])
   const [parentLoading, setParentLoading]   = useState(false)
+  const [parentInput, setParentInput]       = useState('')
 
   // Élèves associés
   const [selectedEleves, setSelectedEleves] = useState([])
@@ -38,21 +39,28 @@ function ParentFormDialog({ open, onClose, onSuccess, editTarget }) {
   const [saving, setSaving] = useState(false)
   const [err, setErr]       = useState(null)
 
-  // Chargement des comptes PARENT une seule fois à l'ouverture (création)
+  // Recherche des comptes PARENT par numéro ou nom/prénom, avec debounce 300ms
   useEffect(() => {
     if (!open || isEdit) return
-    setParentLoading(true)
-    utilisateurService.lister({ role: 'PARENT', size: 100, sort: 'nom' })
-      .then((r) => setParentOptions(r?.content ?? []))
-      .catch(() => {})
-      .finally(() => setParentLoading(false))
-  }, [open, isEdit])
+    const q = parentInput?.trim()
+    let active = true
+    const timer = setTimeout(() => {
+      setParentLoading(true)
+      utilisateurService.lister({ role: 'PARENT', search: q || undefined, size: 20, sort: 'nom' })
+        .then((r) => { if (active) setParentOptions(r?.content ?? []) })
+        .catch(() => { if (active) setParentOptions([]) })
+        .finally(() => { if (active) setParentLoading(false) })
+    }, 300)
+    return () => { active = false; clearTimeout(timer) }
+  }, [open, isEdit, parentInput])
 
   // Remise à zéro à chaque ouverture
   useEffect(() => {
     if (open) {
       setSelectedParent(null)
       setSelectedEleves(editTarget ? (editTarget.enfants ?? []) : [])
+      setParentInput('')
+      setParentOptions([])
       setEleveInput('')
       setEleveOptions([])
       setErr(null)
@@ -102,13 +110,16 @@ function ParentFormDialog({ open, onClose, onSuccess, editTarget }) {
           {/* Sélection du compte parent — création uniquement */}
           {!isEdit ? (
             <Autocomplete
+              filterOptions={(x) => x}
               options={parentOptions}
               loading={parentLoading}
-              loadingText="Chargement des comptes PARENT…"
-              noOptionsText="Aucun compte avec le rôle PARENT. Créez-en un dans Utilisateurs d'abord."
+              loadingText="Recherche en cours…"
+              noOptionsText={parentInput?.trim() ? 'Aucun compte PARENT trouvé' : 'Aucun compte avec le rôle PARENT. Créez-en un dans Utilisateurs d\'abord.'}
               value={selectedParent}
               onChange={(_, v) => setSelectedParent(v)}
-              getOptionLabel={(u) => `${u.prenom} ${u.nom} — ${u.email}`}
+              inputValue={parentInput}
+              onInputChange={(_, v) => setParentInput(v)}
+              getOptionLabel={(u) => `${u.prenom} ${u.nom} — ${u.telephone}`}
               isOptionEqualToValue={(a, b) => a.id === b.id}
               renderOption={(props, u) => (
                 <li {...props} key={u.id}>
@@ -116,7 +127,7 @@ function ParentFormDialog({ open, onClose, onSuccess, editTarget }) {
                     <Typography variant="body2" fontWeight={600}>
                       {u.prenom} {u.nom}
                     </Typography>
-                    <Typography variant="caption" color="text.secondary">{u.email}</Typography>
+                    <Typography variant="caption" color="text.secondary">{u.telephone} · {u.email}</Typography>
                   </Stack>
                 </li>
               )}
@@ -124,7 +135,7 @@ function ParentFormDialog({ open, onClose, onSuccess, editTarget }) {
                 <TextField
                   {...params}
                   label="Compte parent"
-                  placeholder="Rechercher par nom ou email…"
+                  placeholder="Rechercher par numéro, nom ou prénom…"
                   helperText="Seuls les comptes avec le rôle PARENT sont listés ici."
                 />
               )}

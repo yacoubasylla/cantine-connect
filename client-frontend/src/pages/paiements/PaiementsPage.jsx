@@ -7,11 +7,13 @@ import {
   TextField, Select, MenuItem, FormControl, InputLabel,
   Autocomplete, CircularProgress, Link,
 } from '@mui/material'
-import AddIcon       from '@mui/icons-material/Add'
-import RefreshIcon   from '@mui/icons-material/Refresh'
-import OpenInNewIcon from '@mui/icons-material/OpenInNew'
-import EditIcon      from '@mui/icons-material/Edit'
-import DeleteIcon    from '@mui/icons-material/Delete'
+import AddIcon          from '@mui/icons-material/Add'
+import RefreshIcon      from '@mui/icons-material/Refresh'
+import OpenInNewIcon    from '@mui/icons-material/OpenInNew'
+import EditIcon         from '@mui/icons-material/Edit'
+import DeleteIcon       from '@mui/icons-material/Delete'
+import PaymentsIcon     from '@mui/icons-material/Payments'
+import FileDownloadIcon from '@mui/icons-material/FileDownload'
 import { usePaiements }     from '../../hooks/usePaiements'
 import { eleveService }     from '../../services/eleveService'
 import { parentService }    from '../../services/parentService'
@@ -49,6 +51,29 @@ const formatMontant = (val) =>
 
 const formatDate = (dt) =>
   dt ? new Date(dt).toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short' }) : '—'
+
+// ── Export CSV ────────────────────────────────────────────────────────────────
+
+function exportCsv(paiements) {
+  const header = ['Date', 'Élève', 'Opérateur', 'Montant', 'Téléphone', 'Statut', 'Référence']
+  const rows = paiements.map((p) => [
+    formatDate(p.dateCreation),
+    p.eleveNomComplet ?? '',
+    operateurLabel(p.operateur),
+    p.montant,
+    p.telephonePayeur ?? '',
+    STATUTS.find((s) => s.value === p.statut)?.label ?? p.statut,
+    p.referenceInterne ?? '',
+  ])
+  const csv = [header, ...rows].map((r) => r.map((c) => `"${c}"`).join(';')).join('\n')
+  const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `paiements_${new Date().toISOString().split('T')[0]}.csv`
+  a.click()
+  URL.revokeObjectURL(url)
+}
 
 // ── Dialogue : Initier un paiement ────────────────────────────────────────────
 
@@ -316,6 +341,7 @@ function ModifierDialog({ paiement, onClose, onSubmit }) {
 
 export default function PaiementsPage() {
   const [statutFiltre, setStatutFiltre] = useState('')
+  const [searchFiltre, setSearchFiltre] = useState('')
   const [dialogOpen,   setDialogOpen]   = useState(false)
   const [editTarget,   setEditTarget]   = useState(null)
   const [deleteTarget, setDeleteTarget] = useState(null)
@@ -325,10 +351,14 @@ export default function PaiementsPage() {
   const isAdmin  = user?.role === 'ADMIN'
   const isParent = user?.role === 'PARENT'
 
+  const filtres = {}
+  if (statutFiltre) filtres.statut = statutFiltre
+  if (searchFiltre.trim()) filtres.search = searchFiltre.trim()
+
   const {
     paiements, total, page, setPage, rowsPerPage, setRowsPerPage,
     loading, error, initier, modifier, supprimer, recharger,
-  } = usePaiements(statutFiltre ? { statut: statutFiltre } : {})
+  } = usePaiements(filtres)
 
   const handleDelete = async () => {
     setDeleting(true)
@@ -340,8 +370,24 @@ export default function PaiementsPage() {
     <Box>
       {/* ── En-tête ─────────────────────────────────────── */}
       <Stack direction="row" alignItems="center" justifyContent="space-between" mb={2} flexWrap="wrap" gap={1}>
-        <Typography variant="h5" fontWeight={600}>Paiements Mobile Money</Typography>
+        <Stack direction="row" alignItems="center" spacing={1.5}>
+          <PaymentsIcon color="primary" />
+          <Typography variant="h5" fontWeight={600}>Paiements Mobile Money</Typography>
+        </Stack>
         <Stack direction="row" spacing={1}>
+          <Tooltip title="Exporter CSV (page courante)">
+            <span>
+              <Button
+                size="small"
+                variant="outlined"
+                startIcon={<FileDownloadIcon />}
+                disabled={paiements.length === 0}
+                onClick={() => exportCsv(paiements)}
+              >
+                CSV
+              </Button>
+            </span>
+          </Tooltip>
           <Tooltip title="Actualiser">
             <IconButton onClick={recharger} disabled={loading} size="small">
               <RefreshIcon />
@@ -353,19 +399,31 @@ export default function PaiementsPage() {
         </Stack>
       </Stack>
 
-      {/* ── Filtres statut ──────────────────────────────── */}
-      <Stack direction="row" spacing={1} mb={2} flexWrap="wrap">
-        {STATUTS.map((s) => (
-          <Chip
-            key={s.value}
-            label={s.label}
-            onClick={() => { setStatutFiltre(s.value); setPage(0) }}
-            color={statutFiltre === s.value ? (STATUT_COLOR[s.value] || 'primary') : 'default'}
-            variant={statutFiltre === s.value ? 'filled' : 'outlined'}
+      {/* ── Filtres ─────────────────────────────────────── */}
+      <Paper variant="outlined" sx={{ p: 2, mb: 2 }}>
+        <Stack direction="row" spacing={2} flexWrap="wrap" gap={1.5} alignItems="center">
+          <TextField
             size="small"
+            label="Recherche élève"
+            placeholder="Nom, prénom, matricule…"
+            value={searchFiltre}
+            onChange={(e) => { setSearchFiltre(e.target.value); setPage(0) }}
+            sx={{ minWidth: 220, flex: 1 }}
           />
-        ))}
-      </Stack>
+          <Stack direction="row" spacing={1} flexWrap="wrap">
+            {STATUTS.map((s) => (
+              <Chip
+                key={s.value}
+                label={s.label}
+                onClick={() => { setStatutFiltre(s.value); setPage(0) }}
+                color={statutFiltre === s.value ? (STATUT_COLOR[s.value] || 'primary') : 'default'}
+                variant={statutFiltre === s.value ? 'filled' : 'outlined'}
+                size="small"
+              />
+            ))}
+          </Stack>
+        </Stack>
+      </Paper>
 
       {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
 
