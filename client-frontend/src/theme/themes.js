@@ -9,27 +9,41 @@ const baseTypography = {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 🏢  CORPORATIF — sobre, dense, focus données
+// 🏢  CORPORATIF — Dark mode, marine profond, sobre et premium
 // ─────────────────────────────────────────────────────────────────────────────
 const corporate = createTheme({
   palette: {
-    primary:    { main: '#1565C0', light: '#1E88E5', dark: '#0D47A1' },
-    secondary:  { main: '#E65100', light: '#FF8A50', dark: '#BF360C' },
-    background: { default: '#F4F6FA', paper: '#FFFFFF' },
+    mode: 'dark',
+    primary:    { main: '#60A5FA', light: '#93C5FD', dark: '#2563EB' },
+    secondary:  { main: '#FB923C', light: '#FCA5A5', dark: '#EA580C' },
+    background: { default: '#0F172A', paper: '#1E293B' },
+    divider:    'rgba(148,163,184,0.12)',
+    text: {
+      primary:   '#F1F5F9',
+      secondary: '#94A3B8',
+      disabled:  '#475569',
+    },
   },
   typography: baseTypography,
-  shape: { borderRadius: 6 },
+  shape: { borderRadius: 8 },
   components: {
     MuiButton: {
       styleOverrides: {
         root: { textTransform: 'none', fontWeight: 600 },
+        containedPrimary: {
+          backgroundColor: '#2563EB',
+          boxShadow: '0 2px 8px rgba(37,99,235,0.40)',
+          '&:hover': { backgroundColor: '#1D4ED8', boxShadow: '0 4px 14px rgba(37,99,235,0.50)' },
+        },
       },
     },
     MuiCard: {
       styleOverrides: {
         root: {
-          boxShadow: '0 1px 4px rgba(0,0,0,0.08)',
-          border: '1px solid #DDE3EE',
+          backgroundColor: '#1E293B',
+          boxShadow: '0 4px 24px rgba(0,0,0,0.40)',
+          border: '1px solid rgba(148,163,184,0.10)',
+          borderRadius: 10,
         },
       },
     },
@@ -37,17 +51,36 @@ const corporate = createTheme({
       styleOverrides: {
         head: {
           fontWeight: 700,
-          backgroundColor: '#EEF2F8',
-          color: '#0D47A1',
-          borderBottom: '2px solid #1565C0',
+          backgroundColor: '#0F172A',
+          color: '#60A5FA',
+          borderBottom: '2px solid #2563EB',
+        },
+        body: {
+          borderBottom: '1px solid rgba(148,163,184,0.08)',
+        },
+      },
+    },
+    MuiTableRow: {
+      styleOverrides: {
+        root: {
+          '&:hover': { backgroundColor: 'rgba(96,165,250,0.05)' },
         },
       },
     },
     MuiAppBar: {
       styleOverrides: {
         root: {
-          backgroundColor: '#0D47A1',
-          boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+          backgroundColor: '#0A1628',
+          borderBottom: '1px solid rgba(148,163,184,0.12)',
+          boxShadow: 'none',
+        },
+      },
+    },
+    MuiDrawer: {
+      styleOverrides: {
+        paper: {
+          backgroundColor: '#0F172A',
+          borderRight: '1px solid rgba(148,163,184,0.10)',
         },
       },
     },
@@ -55,77 +88,110 @@ const corporate = createTheme({
       styleOverrides: {
         root: {
           '&.Mui-selected': {
-            backgroundColor: '#E8EEF9',
-            borderLeft: '3px solid #1565C0',
-            '& .MuiListItemIcon-root': { color: '#1565C0' },
-            '& .MuiListItemText-primary': { fontWeight: 700, color: '#1565C0' },
+            backgroundColor: 'rgba(96,165,250,0.12)',
+            borderLeft: '3px solid #60A5FA',
+            '& .MuiListItemIcon-root': { color: '#60A5FA' },
+            '& .MuiListItemText-primary': { fontWeight: 700, color: '#60A5FA' },
           },
-          '&.Mui-selected:hover': { backgroundColor: '#DCE5F5' },
+          '&.Mui-selected:hover': { backgroundColor: 'rgba(96,165,250,0.18)' },
         },
       },
-    },
-    MuiDrawer: {
-      styleOverrides: { paper: { borderRight: '1px solid #DDE3EE' } },
     },
     MuiChip: {
       styleOverrides: { root: { fontWeight: 600 } },
     },
     MuiTabs: {
       styleOverrides: {
-        indicator: { backgroundColor: '#1565C0', height: 3 },
+        indicator: { backgroundColor: '#60A5FA', height: 3 },
+      },
+    },
+    MuiTab: {
+      styleOverrides: {
+        root: {
+          textTransform: 'none',
+          fontWeight: 600,
+          color: '#94A3B8',
+          '&.Mui-selected': { color: '#60A5FA' },
+        },
+      },
+    },
+    MuiDivider: {
+      styleOverrides: { root: { borderColor: 'rgba(148,163,184,0.12)' } },
+    },
+    MuiPaper: {
+      styleOverrides: { root: { backgroundImage: 'none' } },
+    },
+    MuiOutlinedInput: {
+      styleOverrides: {
+        root: {
+          '& fieldset': { borderColor: 'rgba(148,163,184,0.25)' },
+          '&:hover fieldset': { borderColor: 'rgba(148,163,184,0.50)' },
+        },
       },
     },
   },
 })
 
 // ─────────────────────────────────────────────────────────────────────────────
-// ✨  MODERNE — aéré, Material Design prononcé, bleu+orange KLEM
+// ✨  MODERNE — Blanc pur, gradients bling, effets premium KLEM
 // ─────────────────────────────────────────────────────────────────────────────
 const modern = createTheme({
   palette: {
     primary:    { main: '#1565C0', light: '#42A5F5', dark: '#0D47A1' },
     secondary:  { main: '#FF6D00', light: '#FF9E40', dark: '#E65100' },
-    background: { default: '#EEF2F7', paper: '#FFFFFF' },
+    background: { default: '#F5F7FF', paper: '#FFFFFF' },
   },
   typography: {
     ...baseTypography,
-    h5: { fontWeight: 700, letterSpacing: '-0.02em' },
-    h6: { fontWeight: 700, letterSpacing: '-0.01em' },
+    h5: { fontWeight: 800, letterSpacing: '-0.03em' },
+    h6: { fontWeight: 700, letterSpacing: '-0.02em' },
   },
-  shape: { borderRadius: 12 },
+  shape: { borderRadius: 16 },
   components: {
     MuiButton: {
       styleOverrides: {
-        root: { textTransform: 'none', fontWeight: 600, borderRadius: 8 },
+        root: {
+          textTransform: 'none',
+          fontWeight: 700,
+          borderRadius: 10,
+          transition: 'all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)',
+        },
         containedPrimary: {
-          background: 'linear-gradient(135deg, #1E88E5 0%, #1565C0 100%)',
-          boxShadow: '0 4px 12px rgba(21,101,192,0.35)',
+          background: 'linear-gradient(135deg, #42A5F5 0%, #1565C0 100%)',
+          boxShadow: '0 6px 20px rgba(21,101,192,0.40)',
           '&:hover': {
-            background: 'linear-gradient(135deg, #1565C0 0%, #0D47A1 100%)',
-            boxShadow: '0 6px 18px rgba(21,101,192,0.45)',
+            background: 'linear-gradient(135deg, #1E88E5 0%, #0D47A1 100%)',
+            boxShadow: '0 10px 28px rgba(21,101,192,0.55)',
+            transform: 'translateY(-2px)',
           },
         },
         containedSecondary: {
           background: 'linear-gradient(135deg, #FF9E40 0%, #FF6D00 100%)',
-          boxShadow: '0 4px 12px rgba(255,109,0,0.35)',
+          boxShadow: '0 6px 20px rgba(255,109,0,0.40)',
           '&:hover': {
             background: 'linear-gradient(135deg, #FF6D00 0%, #E65100 100%)',
+            boxShadow: '0 10px 28px rgba(255,109,0,0.55)',
+            transform: 'translateY(-2px)',
           },
         },
         outlinedPrimary: {
-          borderColor: '#1565C0',
-          '&:hover': { backgroundColor: 'rgba(21,101,192,0.06)' },
+          borderWidth: 2,
+          '&:hover': { borderWidth: 2, backgroundColor: 'rgba(21,101,192,0.06)' },
         },
       },
     },
     MuiCard: {
       styleOverrides: {
         root: {
-          boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
+          backgroundColor: '#FFFFFF',
+          boxShadow: '0 4px 24px rgba(21,101,192,0.10)',
           border: 'none',
-          borderRadius: 16,
-          transition: 'box-shadow 0.25s ease',
-          '&:hover': { boxShadow: '0 8px 30px rgba(0,0,0,0.13)' },
+          borderRadius: 20,
+          transition: 'all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)',
+          '&:hover': {
+            boxShadow: '0 12px 40px rgba(21,101,192,0.18)',
+            transform: 'translateY(-4px)',
+          },
         },
       },
     },
@@ -133,7 +199,7 @@ const modern = createTheme({
       styleOverrides: {
         head: {
           fontWeight: 700,
-          backgroundColor: '#1565C0',
+          background: 'linear-gradient(135deg, #1565C0 0%, #42A5F5 100%)',
           color: '#FFFFFF',
         },
       },
@@ -145,29 +211,22 @@ const modern = createTheme({
           '&:hover': { color: '#FFFFFF' },
           '&.Mui-active': { color: '#FFFFFF' },
         },
-        icon: { color: 'rgba(255,255,255,0.7) !important' },
+        icon: { color: 'rgba(255,255,255,0.70) !important' },
+      },
+    },
+    MuiTableRow: {
+      styleOverrides: {
+        root: {
+          transition: 'background-color 0.15s ease',
+          '&:hover': { backgroundColor: 'rgba(21,101,192,0.04)' },
+        },
       },
     },
     MuiAppBar: {
       styleOverrides: {
         root: {
-          background: 'linear-gradient(135deg, #1565C0 0%, #0D47A1 100%)',
-          boxShadow: '0 4px 20px rgba(13,71,161,0.30)',
-        },
-      },
-    },
-    MuiListItemButton: {
-      styleOverrides: {
-        root: {
-          borderRadius: 8,
-          margin: '2px 8px',
-          width: 'calc(100% - 16px)',
-          '&.Mui-selected': {
-            background: 'rgba(21,101,192,0.10)',
-            '& .MuiListItemIcon-root': { color: '#1565C0' },
-            '& .MuiListItemText-primary': { fontWeight: 700, color: '#1565C0' },
-          },
-          '&.Mui-selected:hover': { background: 'rgba(21,101,192,0.15)' },
+          background: 'linear-gradient(135deg, #1565C0 0%, #0D47A1 60%, #FF6D00 200%)',
+          boxShadow: '0 6px 30px rgba(13,71,161,0.35)',
         },
       },
     },
@@ -175,20 +234,53 @@ const modern = createTheme({
       styleOverrides: {
         paper: {
           borderRight: 'none',
-          boxShadow: '2px 0 20px rgba(0,0,0,0.06)',
+          boxShadow: '4px 0 30px rgba(21,101,192,0.08)',
+          background: 'linear-gradient(180deg, #FFFFFF 0%, #F5F7FF 100%)',
+        },
+      },
+    },
+    MuiListItemButton: {
+      styleOverrides: {
+        root: {
+          borderRadius: 10,
+          margin: '2px 8px',
+          width: 'calc(100% - 16px)',
+          transition: 'all 0.15s ease',
+          '&.Mui-selected': {
+            background: 'linear-gradient(135deg, rgba(21,101,192,0.12) 0%, rgba(66,165,245,0.08) 100%)',
+            boxShadow: '0 2px 8px rgba(21,101,192,0.15)',
+            '& .MuiListItemIcon-root': { color: '#1565C0' },
+            '& .MuiListItemText-primary': { fontWeight: 700, color: '#1565C0' },
+          },
+          '&.Mui-selected:hover': {
+            background: 'linear-gradient(135deg, rgba(21,101,192,0.18) 0%, rgba(66,165,245,0.12) 100%)',
+          },
         },
       },
     },
     MuiChip: {
-      styleOverrides: { root: { fontWeight: 600, borderRadius: 8 } },
+      styleOverrides: {
+        root: {
+          fontWeight: 600,
+          borderRadius: 8,
+        },
+        colorPrimary: {
+          background: 'linear-gradient(135deg, #42A5F5 0%, #1565C0 100%)',
+          color: '#FFFFFF',
+        },
+        colorSecondary: {
+          background: 'linear-gradient(135deg, #FF9E40 0%, #FF6D00 100%)',
+          color: '#FFFFFF',
+        },
+      },
     },
     MuiPaper: {
-      styleOverrides: { rounded: { borderRadius: 12 } },
+      styleOverrides: { rounded: { borderRadius: 16 } },
     },
     MuiTabs: {
       styleOverrides: {
         indicator: {
-          background: 'linear-gradient(90deg, #1E88E5, #FF6D00)',
+          background: 'linear-gradient(90deg, #1565C0, #FF6D00)',
           height: 3,
           borderRadius: 2,
         },
@@ -200,6 +292,19 @@ const modern = createTheme({
           textTransform: 'none',
           fontWeight: 600,
           '&.Mui-selected': { color: '#1565C0' },
+        },
+      },
+    },
+    MuiTextField: {
+      styleOverrides: {
+        root: {
+          '& .MuiOutlinedInput-root': {
+            borderRadius: 10,
+            '&.Mui-focused fieldset': {
+              borderColor: '#1565C0',
+              boxShadow: '0 0 0 3px rgba(21,101,192,0.15)',
+            },
+          },
         },
       },
     },
@@ -304,14 +409,14 @@ export const THEMES = { corporate, modern, ivoirien }
 export const THEME_META = {
   corporate: {
     label: 'Corporatif',
-    description: 'Sobre, dense, focus sur les données',
-    colors: ['#0D47A1', '#E65100', '#F4F6FA'],
+    description: 'Dark mode — marine profond',
+    colors: ['#0F172A', '#1E293B', '#60A5FA'],
     emoji: '🏢',
   },
   modern: {
     label: 'Moderne',
-    description: 'Aéré, Material Design prononcé',
-    colors: ['#1565C0', '#FF6D00', '#EEF2F7'],
+    description: 'Blanc pur — gradients bling',
+    colors: ['#1565C0', '#FF6D00', '#F5F7FF'],
     emoji: '✨',
   },
   ivoirien: {
