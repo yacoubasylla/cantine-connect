@@ -17,6 +17,6 @@ COPY --from=builder /app/target/*.jar app.jar
 
 EXPOSE 8081
 
-ENTRYPOINT ["java", \
-  "-Dspring.profiles.active=${SPRING_PROFILES_ACTIVE:prod}", \
-  "-jar", "app.jar"]
+# Spring Boot lit SPRING_PROFILES_ACTIVE depuis l'environnement Railway automatiquement
+# Shell form pour permettre l'expansion de $PORT par le shell
+ENTRYPOINT ["java", "-jar", "app.jar"]
