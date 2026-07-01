@@ -1,18 +1,20 @@
+import { useState } from 'react'
 import { Outlet, useNavigate, useLocation } from 'react-router-dom'
 import {
   Box, Drawer, AppBar, Toolbar, Typography,
   List, ListItemButton, ListItemIcon, ListItemText, Divider,
-  Avatar, Stack, Tooltip, IconButton, Chip,
+  Avatar, Stack, Tooltip, IconButton, Chip, useTheme, useMediaQuery,
 } from '@mui/material'
-import DashboardIcon from '@mui/icons-material/Dashboard'
-import SchoolIcon from '@mui/icons-material/School'
-import PeopleIcon from '@mui/icons-material/People'
-import RestaurantIcon from '@mui/icons-material/Restaurant'
+import DashboardIcon      from '@mui/icons-material/Dashboard'
+import SchoolIcon         from '@mui/icons-material/School'
+import PeopleIcon         from '@mui/icons-material/People'
+import RestaurantIcon     from '@mui/icons-material/Restaurant'
 import PaymentsIcon       from '@mui/icons-material/Payments'
 import QrCodeScannerIcon  from '@mui/icons-material/QrCodeScanner'
 import ManageAccountsIcon from '@mui/icons-material/ManageAccounts'
 import TuneIcon           from '@mui/icons-material/Tune'
 import LogoutIcon         from '@mui/icons-material/Logout'
+import MenuIcon           from '@mui/icons-material/Menu'
 import { useAuth } from '../hooks/useAuth'
 
 const DRAWER_WIDTH = 240
@@ -33,24 +35,75 @@ export default function MainLayout() {
   const navigate    = useNavigate()
   const location    = useLocation()
   const { user, logout } = useAuth()
+  const theme       = useTheme()
+  const isDesktop   = useMediaQuery(theme.breakpoints.up('lg')) // ≥ 1200px
+  const [mobileOpen, setMobileOpen] = useState(false)
 
   const handleLogout = () => { logout(); navigate('/login', { replace: true }) }
 
+  const handleNav = (path) => {
+    navigate(path)
+    if (!isDesktop) setMobileOpen(false) // ferme le drawer sur mobile après navigation
+  }
+
   const initials = user ? `${user.prenom?.[0] ?? ''}${user.nom?.[0] ?? ''}`.toUpperCase() : '?'
 
+  const drawerContent = (
+    <>
+      <Toolbar />
+      <Divider />
+      <List disablePadding>
+        {NAV_ITEMS
+          .filter((item) => !item.roles || item.roles.includes(user?.role))
+          .map((item) => (
+            <ListItemButton
+              key={item.path}
+              selected={location.pathname.startsWith(item.path)}
+              onClick={() => handleNav(item.path)}
+              sx={{ py: 1.5 }}
+            >
+              <ListItemIcon sx={{ minWidth: 40 }}>{item.icon}</ListItemIcon>
+              <ListItemText primary={item.label} />
+            </ListItemButton>
+          ))}
+      </List>
+
+      {user && (
+        <Box sx={{ mt: 'auto', p: 2, borderTop: '1px solid', borderColor: 'divider' }}>
+          <Chip
+            label={ROLE_LABELS[user.role] ?? user.role}
+            size="small" color="primary" variant="outlined"
+            sx={{ width: '100%' }}
+          />
+        </Box>
+      )}
+    </>
+  )
+
   return (
-    <Box sx={{ display: 'flex', height: '100vh' }}>
+    <Box sx={{ display: 'flex', minHeight: '100vh' }}>
       {/* ── AppBar ──────────────────────────────────────── */}
       <AppBar position="fixed" sx={{ zIndex: (t) => t.zIndex.drawer + 1 }}>
         <Toolbar sx={{ justifyContent: 'space-between' }}>
           <Stack direction="row" alignItems="center" spacing={1}>
-            <RestaurantIcon />
-            <Typography variant="h6">Cantine Connect</Typography>
+            {/* Hamburger visible uniquement sous lg */}
+            {!isDesktop && (
+              <IconButton
+                color="inherit"
+                onClick={() => setMobileOpen(v => !v)}
+                edge="start"
+                sx={{ mr: 0.5 }}
+              >
+                <MenuIcon />
+              </IconButton>
+            )}
+            <RestaurantIcon sx={{ display: { xs: 'none', sm: 'block' } }} />
+            <Typography variant="h6" noWrap>Cantine Connect</Typography>
           </Stack>
 
           {user && (
-            <Stack direction="row" alignItems="center" spacing={1.5}>
-              <Box textAlign="right" sx={{ display: { xs: 'none', sm: 'block' } }}>
+            <Stack direction="row" alignItems="center" spacing={1}>
+              <Box textAlign="right" sx={{ display: { xs: 'none', md: 'block' } }}>
                 <Typography variant="body2" fontWeight={600} lineHeight={1.2}>
                   {user.prenom} {user.nom}
                 </Typography>
@@ -71,48 +124,46 @@ export default function MainLayout() {
         </Toolbar>
       </AppBar>
 
-      {/* ── Drawer ──────────────────────────────────────── */}
-      <Drawer
-        variant="permanent"
-        sx={{
-          width: DRAWER_WIDTH,
-          flexShrink: 0,
-          '& .MuiDrawer-paper': { width: DRAWER_WIDTH, boxSizing: 'border-box' },
-        }}
-      >
-        <Toolbar />
-        <Divider />
-        <List disablePadding>
-          {NAV_ITEMS
-            .filter((item) => !item.roles || item.roles.includes(user?.role))
-            .map((item) => (
-              <ListItemButton
-                key={item.path}
-                selected={location.pathname.startsWith(item.path)}
-                onClick={() => navigate(item.path)}
-                sx={{ py: 1.5 }}
-              >
-                <ListItemIcon sx={{ minWidth: 40 }}>{item.icon}</ListItemIcon>
-                <ListItemText primary={item.label} />
-              </ListItemButton>
-            ))}
-        </List>
+      {/* ── Drawer mobile (temporaire, < lg) ────────────── */}
+      {!isDesktop && (
+        <Drawer
+          variant="temporary"
+          open={mobileOpen}
+          onClose={() => setMobileOpen(false)}
+          ModalProps={{ keepMounted: true }}
+          sx={{
+            '& .MuiDrawer-paper': { width: DRAWER_WIDTH, boxSizing: 'border-box' },
+          }}
+        >
+          {drawerContent}
+        </Drawer>
+      )}
 
-        {user && (
-          <Box sx={{ mt: 'auto', p: 2, borderTop: '1px solid', borderColor: 'divider' }}>
-            <Chip
-              label={ROLE_LABELS[user.role] ?? user.role}
-              size="small" color="primary" variant="outlined"
-              sx={{ width: '100%' }}
-            />
-          </Box>
-        )}
-      </Drawer>
+      {/* ── Drawer desktop (permanent, ≥ lg) ────────────── */}
+      {isDesktop && (
+        <Drawer
+          variant="permanent"
+          sx={{
+            width: DRAWER_WIDTH,
+            flexShrink: 0,
+            '& .MuiDrawer-paper': { width: DRAWER_WIDTH, boxSizing: 'border-box' },
+          }}
+        >
+          {drawerContent}
+        </Drawer>
+      )}
 
       {/* ── Contenu principal ───────────────────────────── */}
       <Box
         component="main"
-        sx={{ flexGrow: 1, p: 3, overflow: 'auto', bgcolor: 'background.default' }}
+        sx={{
+          flexGrow: 1,
+          p: { xs: 2, sm: 2.5, md: 3 },
+          overflow: 'auto',
+          bgcolor: 'background.default',
+          minWidth: 0, // évite le dépassement flex
+          width: { xs: '100%', lg: `calc(100% - ${DRAWER_WIDTH}px)` },
+        }}
       >
         <Toolbar />
         <Outlet />

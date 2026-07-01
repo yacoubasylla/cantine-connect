@@ -214,7 +214,7 @@ export default function ScanPage() {
   }
 
   return (
-    <Box sx={{ height: 'calc(100vh - 112px)', display: 'flex', flexDirection: 'column' }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: 0 }}>
       {/* ── Barre statut ──────────────────────────────── */}
       <Stack direction="row" alignItems="center" justifyContent="space-between" mb={2} flexWrap="wrap" gap={1}>
         <Typography variant="h5" fontWeight={600}>Contrôle Accès Réfectoire</Typography>
@@ -256,11 +256,11 @@ export default function ScanPage() {
         </Alert>
       )}
 
-      {/* ── Layout deux colonnes ───────────────────────── */}
-      <Box sx={{ flex: 1, display: 'flex', gap: 3, overflow: 'hidden' }}>
+      {/* ── Layout : deux colonnes sur md+, une colonne sur mobile ── */}
+      <Box sx={{ display: 'flex', gap: 3, flexDirection: { xs: 'column', md: 'row' }, alignItems: 'flex-start' }}>
 
         {/* Colonne gauche : scan + résultat */}
-        <Box sx={{ flex: '0 0 55%', display: 'flex', flexDirection: 'column' }}>
+        <Box sx={{ flex: { xs: '1 1 auto', md: '0 0 55%' }, width: { xs: '100%', md: 'auto' }, display: 'flex', flexDirection: 'column' }}>
           <Paper variant="outlined" sx={{ p: 2.5 }}>
             <Stack direction="row" spacing={1} alignItems="center" mb={0.5} justifyContent="space-between">
               <Stack direction="row" spacing={1} alignItems="center">
@@ -330,7 +330,7 @@ export default function ScanPage() {
         </Box>
 
         {/* Colonne droite : passages */}
-        <Paper variant="outlined" sx={{ flex: 1, p: 2, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+        <Paper variant="outlined" sx={{ flex: 1, minWidth: 0, p: 2, display: 'flex', flexDirection: 'column', maxHeight: { xs: 400, md: 'none' }, overflow: 'auto' }}>
           <PassagesPanel passages={passages} loading={loadingP} onRefresh={chargerPassages} />
         </Paper>
       </Box>

@@ -232,7 +232,7 @@ export default function PaiementsPage() {
   return (
     <Box>
       {/* ── En-tête ─────────────────────────────────────── */}
-      <Stack direction="row" alignItems="center" justifyContent="space-between" mb={2}>
+      <Stack direction="row" alignItems="center" justifyContent="space-between" mb={2} flexWrap="wrap" gap={1}>
         <Typography variant="h5" fontWeight={600}>Paiements Mobile Money</Typography>
         <Stack direction="row" spacing={1}>
           <Tooltip title="Actualiser">
