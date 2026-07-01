@@ -63,4 +63,8 @@ public interface EleveRepository extends JpaRepository<Eleve, Long> {
     List<Eleve> findAllActiveWithDetails();
 
     boolean existsByMatricule(String matricule);
+
+    long countByActifTrue();
+
+    long countByStatutAccesAndActifTrue(StatutAcces statut);
 }

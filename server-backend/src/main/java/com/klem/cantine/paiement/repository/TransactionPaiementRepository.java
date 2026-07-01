@@ -6,7 +6,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 public interface TransactionPaiementRepository extends JpaRepository<TransactionPaiement, Long> {
@@ -22,4 +24,11 @@ public interface TransactionPaiementRepository extends JpaRepository<Transaction
            "(:statut IS NULL OR t.statut = :statut) " +
            "ORDER BY t.dateCreation DESC")
     Page<TransactionPaiement> findAllWithFilters(Long eleveId, StatutPaiement statut, Pageable pageable);
+
+    long countByStatut(StatutPaiement statut);
+
+    @Query("SELECT COUNT(t), COALESCE(SUM(t.montant), 0) FROM TransactionPaiement t " +
+           "WHERE t.statut = com.klem.cantine.paiement.entity.StatutPaiement.ACCEPTE " +
+           "AND t.dateCreation >= :debut AND t.dateCreation < :fin")
+    Object[] statsAcceptesPeriode(@Param("debut") LocalDateTime debut, @Param("fin") LocalDateTime fin);
 }

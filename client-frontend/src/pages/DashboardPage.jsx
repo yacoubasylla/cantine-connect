@@ -2,35 +2,43 @@ import {
   Box, Typography, Card, CardContent, Stack,
   Skeleton, Chip, Divider, Alert, IconButton, Tooltip,
   Table, TableHead, TableBody, TableRow, TableCell, TableContainer,
+  LinearProgress,
 } from '@mui/material'
-import SchoolIcon       from '@mui/icons-material/School'
-import PeopleIcon       from '@mui/icons-material/People'
-import RestaurantIcon   from '@mui/icons-material/Restaurant'
-import HourglassIcon    from '@mui/icons-material/HourglassEmpty'
-import CheckCircleIcon  from '@mui/icons-material/CheckCircle'
-import CancelIcon       from '@mui/icons-material/Cancel'
-import RefreshIcon      from '@mui/icons-material/Refresh'
-import { useDashboard } from '../hooks/useDashboard'
+import SchoolIcon        from '@mui/icons-material/School'
+import PeopleIcon        from '@mui/icons-material/People'
+import RestaurantIcon    from '@mui/icons-material/Restaurant'
+import PaymentsIcon      from '@mui/icons-material/Payments'
+import CheckCircleIcon   from '@mui/icons-material/CheckCircle'
+import CancelIcon        from '@mui/icons-material/Cancel'
+import HourglassIcon     from '@mui/icons-material/HourglassEmpty'
+import RefreshIcon       from '@mui/icons-material/Refresh'
+import TrendingUpIcon    from '@mui/icons-material/TrendingUp'
+import { useDashboard }  from '../hooks/useDashboard'
 
 const STATUT_CONFIG = {
-  AUTORISE:            { label: 'Autorisés',    color: 'success' },
-  GRACE:               { label: 'Grâce',        color: 'info'    },
-  EN_ATTENTE_PAIEMENT: { label: 'En attente',   color: 'warning' },
-  SUSPENDU:            { label: 'Suspendus',    color: 'error'   },
+  AUTORISE:            { label: 'Autorisés',  color: 'success' },
+  GRACE:               { label: 'Grâce',      color: 'info'    },
+  EN_ATTENTE_PAIEMENT: { label: 'En attente', color: 'warning' },
+  SUSPENDU:            { label: 'Suspendus',  color: 'error'   },
 }
 
-function KpiCard({ label, value, icon: Icon, color, loading }) {
+function KpiCard({ label, value, icon: Icon, color, loading, sub }) {
   return (
     <Card sx={{ flex: '1 1 180px', minWidth: 160 }}>
       <CardContent sx={{ pb: '16px !important' }}>
-        <Stack direction="row" alignItems="center" spacing={2}>
-          <Icon sx={{ fontSize: 38, color }} />
+        <Stack direction="row" alignItems="flex-start" spacing={2}>
+          <Icon sx={{ fontSize: 38, color, mt: 0.5 }} />
           <Box>
             {loading
               ? <Skeleton width={60} height={40} />
               : <Typography variant="h4" fontWeight={700} lineHeight={1}>{value}</Typography>
             }
             <Typography variant="caption" color="text.secondary">{label}</Typography>
+            {sub && !loading && (
+              <Typography variant="caption" display="block" color="text.disabled" mt={0.25}>
+                {sub}
+              </Typography>
+            )}
           </Box>
         </Stack>
       </CardContent>
@@ -48,6 +56,159 @@ function StatutChip({ statut, count, loading }) {
           : <Typography variant="h5" fontWeight={700}>{count}</Typography>
         }
         <Chip label={label} color={color} size="small" sx={{ mt: 0.5 }} />
+      </CardContent>
+    </Card>
+  )
+}
+
+const JOURS_FR = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam']
+
+function TendanceChart({ tendance, loading }) {
+  const maxTotal = Math.max(...(tendance ?? []).map((j) => j.accordes + j.refuses), 1)
+
+  return (
+    <Card>
+      <CardContent sx={{ pb: '16px !important' }}>
+        <Stack direction="row" alignItems="center" spacing={1} mb={2}>
+          <TrendingUpIcon color="primary" fontSize="small" />
+          <Typography variant="subtitle1" fontWeight={600}>
+            Passages — 7 derniers jours
+          </Typography>
+        </Stack>
+        <Divider sx={{ mb: 2 }} />
+
+        {loading ? (
+          <Skeleton variant="rectangular" height={90} />
+        ) : (
+          <Box sx={{ display: 'flex', alignItems: 'flex-end', gap: 1, height: 90 }}>
+            {(tendance ?? []).map((jour) => {
+              const total = jour.accordes + jour.refuses
+              const heightPct = (total / maxTotal) * 100
+              const accordesPct = total > 0 ? (jour.accordes / total) * 100 : 0
+              const dateObj = new Date(jour.date + 'T00:00:00')
+              const jourLabel = JOURS_FR[dateObj.getDay()]
+              const dateLabel = dateObj.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' })
+
+              return (
+                <Tooltip
+                  key={jour.date}
+                  title={`${jourLabel} ${dateLabel} — ✓ ${jour.accordes} accordés / ✗ ${jour.refuses} refusés`}
+                  arrow
+                >
+                  <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0.5 }}>
+                    <Box
+                      sx={{
+                        width: '100%',
+                        height: `${Math.max(heightPct, total > 0 ? 8 : 0)}%`,
+                        minHeight: total > 0 ? 4 : 0,
+                        borderRadius: 1,
+                        overflow: 'hidden',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        cursor: 'default',
+                      }}
+                    >
+                      <Box sx={{ flex: accordesPct, bgcolor: 'success.light' }} />
+                      <Box sx={{ flex: 100 - accordesPct, bgcolor: 'error.light' }} />
+                    </Box>
+                    {total > 0 && (
+                      <Typography variant="caption" color="text.secondary" fontWeight={600} lineHeight={1}>
+                        {total}
+                      </Typography>
+                    )}
+                    <Typography variant="caption" color="text.disabled" fontSize={10} lineHeight={1}>
+                      {jourLabel}
+                    </Typography>
+                  </Box>
+                </Tooltip>
+              )
+            })}
+          </Box>
+        )}
+
+        <Stack direction="row" spacing={2} mt={1.5} justifyContent="center">
+          <Stack direction="row" alignItems="center" spacing={0.5}>
+            <Box sx={{ width: 12, height: 12, bgcolor: 'success.light', borderRadius: 0.5 }} />
+            <Typography variant="caption" color="text.secondary">Accordés</Typography>
+          </Stack>
+          <Stack direction="row" alignItems="center" spacing={0.5}>
+            <Box sx={{ width: 12, height: 12, bgcolor: 'error.light', borderRadius: 0.5 }} />
+            <Typography variant="caption" color="text.secondary">Refusés</Typography>
+          </Stack>
+        </Stack>
+      </CardContent>
+    </Card>
+  )
+}
+
+function AccesAujourdhui({ accordes, refuses, loading }) {
+  const total = accordes + refuses
+  const tauxPct = total > 0 ? Math.round((accordes / total) * 100) : 0
+
+  return (
+    <Card sx={{ flex: '1 1 260px' }}>
+      <CardContent sx={{ pb: '16px !important' }}>
+        <Typography variant="subtitle2" color="text.secondary" mb={1.5}>
+          Accès réfectoire aujourd'hui
+        </Typography>
+        {loading ? (
+          <Skeleton height={60} />
+        ) : (
+          <>
+            <Stack direction="row" justifyContent="space-between" mb={0.5}>
+              <Stack direction="row" alignItems="center" spacing={0.5}>
+                <CheckCircleIcon color="success" fontSize="small" />
+                <Typography variant="body2" fontWeight={600}>{accordes} accordés</Typography>
+              </Stack>
+              <Stack direction="row" alignItems="center" spacing={0.5}>
+                <CancelIcon color="error" fontSize="small" />
+                <Typography variant="body2" fontWeight={600}>{refuses} refusés</Typography>
+              </Stack>
+            </Stack>
+            <LinearProgress
+              variant="determinate"
+              value={tauxPct}
+              color="success"
+              sx={{ height: 8, borderRadius: 4, bgcolor: 'error.light' }}
+            />
+            <Typography variant="caption" color="text.secondary" mt={0.5} display="block">
+              Taux d'accès : {tauxPct}% ({total} passages au total)
+            </Typography>
+          </>
+        )}
+      </CardContent>
+    </Card>
+  )
+}
+
+function PaiementsCard({ nbMois, montantMois, nbEnAttente, loading }) {
+  const montantFormate = loading ? '—' : new Intl.NumberFormat('fr-FR').format(montantMois ?? 0)
+
+  return (
+    <Card sx={{ flex: '1 1 260px' }}>
+      <CardContent sx={{ pb: '16px !important' }}>
+        <Typography variant="subtitle2" color="text.secondary" mb={1.5}>
+          Paiements — mois en cours
+        </Typography>
+        {loading ? (
+          <Skeleton height={60} />
+        ) : (
+          <>
+            <Typography variant="h5" fontWeight={700} color="success.main">
+              {montantFormate} FCFA
+            </Typography>
+            <Typography variant="caption" color="text.secondary">
+              {nbMois} transaction{nbMois > 1 ? 's' : ''} acceptée{nbMois > 1 ? 's' : ''}
+            </Typography>
+            <Divider sx={{ my: 1 }} />
+            <Stack direction="row" alignItems="center" spacing={1}>
+              <HourglassIcon fontSize="small" color="warning" />
+              <Typography variant="body2">
+                <strong>{nbEnAttente}</strong> paiement{nbEnAttente > 1 ? 's' : ''} en attente
+              </Typography>
+            </Stack>
+          </>
+        )}
       </CardContent>
     </Card>
   )
@@ -90,7 +251,7 @@ function PassagesTable({ passages, loading }) {
                     </TableRow>
                   )
                   : passages.map((p) => (
-                    <TableRow key={p.passageId} hover>
+                    <TableRow key={p.id ?? p.passageId} hover>
                       <TableCell sx={{ whiteSpace: 'nowrap' }}>
                         {p.heurePassage
                           ? new Date(p.heurePassage).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
@@ -157,6 +318,7 @@ export default function DashboardPage() {
           icon={PeopleIcon}
           color="secondary.main"
           loading={loading}
+          sub={`${stats?.autorises ?? 0} autorisés`}
         />
         <KpiCard
           label="Passages aujourd'hui"
@@ -164,13 +326,15 @@ export default function DashboardPage() {
           icon={RestaurantIcon}
           color="warning.main"
           loading={loading}
+          sub={`✓ ${stats?.passagesAccordes ?? 0}  ✗ ${stats?.passagesRefuses ?? 0}`}
         />
         <KpiCard
-          label="En attente paiement"
-          value={stats?.enAttente ?? 0}
-          icon={HourglassIcon}
-          color="error.main"
+          label="Paiements du mois"
+          value={loading ? '…' : new Intl.NumberFormat('fr-FR').format(stats?.montantPaiementsMois ?? 0) + ' FCFA'}
+          icon={PaymentsIcon}
+          color="success.main"
           loading={loading}
+          sub={`${stats?.nbPaiementsMois ?? 0} transactions`}
         />
       </Box>
 
@@ -183,6 +347,26 @@ export default function DashboardPage() {
         <StatutChip statut="GRACE"               count={stats?.grace    ?? 0} loading={loading} />
         <StatutChip statut="EN_ATTENTE_PAIEMENT" count={stats?.enAttente ?? 0} loading={loading} />
         <StatutChip statut="SUSPENDU"            count={stats?.suspendus ?? 0} loading={loading} />
+      </Box>
+
+      {/* Accès + Paiements (ligne d'analyse) */}
+      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mb: 3 }}>
+        <AccesAujourdhui
+          accordes={stats?.passagesAccordes ?? 0}
+          refuses={stats?.passagesRefuses ?? 0}
+          loading={loading}
+        />
+        <PaiementsCard
+          nbMois={stats?.nbPaiementsMois ?? 0}
+          montantMois={stats?.montantPaiementsMois ?? 0}
+          nbEnAttente={stats?.nbPaiementsEnAttente ?? 0}
+          loading={loading}
+        />
+      </Box>
+
+      {/* Tendance 7 jours */}
+      <Box sx={{ mb: 3 }}>
+        <TendanceChart tendance={stats?.tendance7Jours} loading={loading} />
       </Box>
 
       {/* Derniers passages */}

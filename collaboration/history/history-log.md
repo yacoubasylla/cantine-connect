@@ -412,3 +412,21 @@
   - `client-frontend/src/hooks/useUtilisateurs.js` — `modifier()` + `supprimer()` ajoutés
   - `client-frontend/src/pages/utilisateurs/UtilisateursPage.jsx` — `ModifierDialog` (formulaire pré-rempli + champ nouveau mdp optionnel), `ConfirmSupprimerDialog` (alerte irréversible), boutons Edit et DeleteForever sur chaque ligne
 - **Description :** Complétion du CRUD utilisateurs pour les administrateurs. Modification : dialog pré-rempli permettant de changer nom, prénom, email et optionnellement le mot de passe (vide = conserver l'actuel). Suppression définitive : dialog de confirmation avec alerte "irréversible", protection systématique contre la suppression du dernier ADMIN (409 CONFLICT). Les boutons modifier et supprimer sont désactivés sur la propre ligne de l'utilisateur connecté.
+
+---
+
+### [2026-07-01] - Feat : Statistiques Globales — Dashboard enrichi
+- **Statut :** Livré / Opérationnel
+- **Fichiers Créés :**
+  - `server-backend/.../dashboard/dto/DashboardStatsDTO.java` — record complet (établissements, élèves, passages, tendance 7 jours, paiements du mois)
+  - `server-backend/.../dashboard/dto/JourPassageDTO.java` — projection jour : date, accordes, refuses
+  - `server-backend/.../dashboard/service/DashboardService.java` — agrège toutes les stats en une seule transaction read-only
+  - `server-backend/.../dashboard/controller/DashboardController.java` — `GET /api/v1/dashboard/stats`
+- **Fichiers Modifiés :**
+  - `server-backend/.../eleve/repository/EleveRepository.java` — `countByActifTrue()`, `countByStatutAccesAndActifTrue()`
+  - `server-backend/.../etablissement/repository/EtablissementRepository.java` — `countByActifTrue()`
+  - `server-backend/.../scan/repository/PassageRefectoireRepository.java` — `findTop5ByDatePassageOrderByHeurePassageDesc()`, `countByDateRangeGrouped()` (JPQL groupé)
+  - `server-backend/.../paiement/repository/TransactionPaiementRepository.java` — `countByStatut()`, `statsAcceptesPeriode()` (COUNT + SUM du mois)
+  - `client-frontend/src/services/dashboardService.js` — remplace 7 appels parallèles par un unique `GET /dashboard/stats`
+  - `client-frontend/src/pages/DashboardPage.jsx` — 4 KPI cards enrichies (sous-info, FCFA), répartition statuts, panneau accès/paiements, graphique tendance 7 jours (barres MUI), table derniers passages
+- **Description :** Remplacement des 7 appels API indépendants du frontend par un endpoint dédié côté backend (`DashboardService`) qui agrège toutes les données en une seule transaction. Enrichissements UI : sous-informations dans les KPI cards (accordés/refusés, nb transactions), panneau "Accès réfectoire aujourd'hui" avec barre de progression et taux d'accès %, panneau "Paiements du mois" avec montant FCFA formaté et compteur en attente, graphique en barres empilées pour la tendance des 7 derniers jours (vert accordés / rouge refusés) sans dépendance externe — 100% MUI.

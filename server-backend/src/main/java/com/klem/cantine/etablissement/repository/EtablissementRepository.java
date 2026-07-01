@@ -9,6 +9,8 @@ public interface EtablissementRepository extends JpaRepository<Etablissement, Lo
 
     List<Etablissement> findByActifTrue();
 
+    long countByActifTrue();
+
     @Query("SELECT e FROM Etablissement e LEFT JOIN FETCH e.niveaux WHERE e.id = :id")
     java.util.Optional<Etablissement> findByIdWithNiveaux(Long id);
 }
