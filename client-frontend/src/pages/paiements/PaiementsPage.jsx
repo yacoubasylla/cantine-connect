@@ -131,6 +131,7 @@ function InitierDialog({ open, onClose, onSubmit }) {
               <Autocomplete
                 options={optEleves}
                 loading={loadingEleves}
+                loadingText="Chargement..."
                 value={form.eleve}
                 onChange={(_, v) => field('eleve')(v)}
                 inputValue={inputEleve}
@@ -143,12 +144,13 @@ function InitierDialog({ open, onClose, onSubmit }) {
                     label="Élève *"
                     size="small"
                     slotProps={{
+                      ...params.slotProps,
                       input: {
-                        ...params.InputProps,
+                        ...params.slotProps?.input,
                         endAdornment: (
                           <>
                             {loadingEleves && <CircularProgress size={16} />}
-                            {params.InputProps.endAdornment}
+                            {params.slotProps?.input?.endAdornment}
                           </>
                         ),
                       },
