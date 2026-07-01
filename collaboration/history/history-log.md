@@ -516,3 +516,33 @@
 
 - **Description :** 6 améliorations architecturales majeures. (1) RBAC : seul l'ADMIN peut créer/modifier/supprimer établissements, classes et élèves — les autres rôles sont en lecture seule. (2) Comptes parents : nouveau rôle PARENT lié à des élèves via ManyToMany ; CRUD ADMIN dans `/parents`. (3+4) Notifications : emails asynchrones aux parents via Spring Mail (optionnel, `ObjectProvider<MailSender>` pour tolérance gracieuse si SMTP non configuré). (5) Mode crédits : solde sur l'élève, crédité au paiement et débité au passage cantine (configurable via `MODE_PAIEMENT`). (6) Image de fond : URL configurée dans le panneau d'administration, appliquée dynamiquement sur la page de connexion.
 - **Tests validés :** 23 tests unitaires ✅ (`./mvnw test`)
+
+---
+
+### [2026-07-01] - Feat CRUD : Modifier & Supprimer les Établissements, Classes, Niveaux, Paiements et Passages (ADMIN)
+- **Statut :** Livré / Opérationnel
+- **Commit :** `fb39a04`
+- **Fichiers Créés :**
+  - `server-backend/.../paiement/dto/ModifierPaiementRequestDTO.java` — statut, montant, operateur, telephonePayeur
+  - `server-backend/.../scan/dto/ModifierPassageRequestDTO.java` — resultat, motifRefus
+- **Fichiers Modifiés (Backend) :**
+  - `etablissement/service/EtablissementService.java` — `modifier()`, `supprimer()` (soft), `modifierNiveau()`, `modifierClasse()` avec `@Traceable` + `@Transactional`
+  - `etablissement/controller/EtablissementController.java` — `PUT /{id}`, `DELETE /{id}`, `PUT /niveaux/{id}`, `PUT /classes/{id}`, tous `@PreAuthorize("hasRole('ADMIN')")`
+  - `paiement/service/PaiementService.java` — `modifier()`, `supprimer()` avec `@Traceable`
+  - `paiement/controller/PaiementController.java` — `PUT /{id}`, `DELETE /{id}`
+  - `scan/entity/PassageRefectoire.java` — ajout `@Setter` Lombok
+  - `scan/service/ScanService.java` — `modifierPassage()`, `supprimerPassage()` avec `@Traceable`
+  - `scan/controller/ScanController.java` — `PUT /passages/{id}`, `DELETE /passages/{id}`
+- **Fichiers Modifiés (Frontend) :**
+  - `services/etablissementService.js` — `modifier`, `supprimer`, `modifierClasse`, `modifierNiveau`
+  - `hooks/useEtablissements.js` — `modifier`, `supprimer` (mise à jour état local optimiste)
+  - `pages/etablissements/EtablissementsPage.jsx` — boutons Edit/Delete sur cartes + dialog confirmation suppression
+  - `pages/etablissements/GestionStructureDialog.jsx` — édition inline sur lignes Classe et bannières Niveau
+  - `services/paiementService.js` — `modifier`, `supprimer`
+  - `hooks/usePaiements.js` — `modifier`, `supprimer`
+  - `pages/paiements/PaiementsPage.jsx` — colonne Actions (ADMIN) + ModifierDialog (select statut/opérateur, montant, téléphone)
+  - `services/scanService.js` — `modifierPassage`, `supprimerPassage`
+  - `hooks/usePassages.js` — `modifier`, `supprimer`
+  - `pages/passages/PassagesPage.jsx` — colonne Actions (ADMIN) + ModifierDialog (résultat + motifRefus) + dialog confirmation
+- **Description :** CRUD complet sur les 5 entités modifiables. Pattern uniforme : `@Traceable` AOP sur chaque méthode d'écriture, `@PreAuthorize("hasRole('ADMIN')")` sur chaque endpoint, mise à jour optimiste du state React (pas de rechargement réseau inutile). Établissements : suppression logique (`actif = false`). Passages : le champ `motifRefus` peut être mis à null pour effacer un motif erroné. Élèves : déjà entièrement implémenté depuis la session précédente.
+- **Tests validés :** `./mvnw clean package -DskipTests` ✅ · `npm run build` ✅ · Déploiement Railway ✅
