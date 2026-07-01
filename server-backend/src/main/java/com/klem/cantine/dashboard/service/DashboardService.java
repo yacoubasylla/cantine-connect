@@ -51,7 +51,8 @@ public class DashboardService {
 
         List<JourPassageDTO> tendance = buildTendance(debut7Jours, today);
 
-        Object[] payStats = transactionRepository.statsAcceptesPeriode(debutMois, finMois);
+        List<Object[]> payStatsRows = transactionRepository.statsAcceptesPeriode(debutMois, finMois);
+        Object[] payStats = payStatsRows.isEmpty() ? null : payStatsRows.get(0);
         long nbPaiementsMois = (payStats != null && payStats[0] != null)
                 ? ((Number) payStats[0]).longValue() : 0L;
         BigDecimal montantMois = (payStats != null && payStats[1] != null)

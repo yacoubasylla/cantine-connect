@@ -20,30 +20,70 @@ public interface TransactionPaiementRepository extends JpaRepository<Transaction
 
     Page<TransactionPaiement> findByStatut(StatutPaiement statut, Pageable pageable);
 
-    @Query("SELECT t FROM TransactionPaiement t JOIN t.eleve e WHERE " +
-           "(:eleveId IS NULL OR e.id = :eleveId) AND " +
-           "(:statut IS NULL OR t.statut = :statut) AND " +
-           "(:search IS NULL OR LOWER(e.nom) LIKE LOWER(CONCAT('%', :search, '%')) " +
-           "OR LOWER(e.prenom) LIKE LOWER(CONCAT('%', :search, '%')) " +
-           "OR LOWER(e.matricule) LIKE LOWER(CONCAT('%', :search, '%'))) " +
-           "ORDER BY t.dateCreation DESC")
-    Page<TransactionPaiement> findAllWithFilters(Long eleveId, StatutPaiement statut, String search, Pageable pageable);
+    // Requêtes natives — voir ADR-007 : Hibernate 6 + PostgreSQL échouent à inférer le type
+    // d'un paramètre JPQL nullable utilisé dans LOWER()/LIKE ("operator does not exist: lower(bytea)").
+    // Le CAST explicite (CAST(:param AS ...)) contourne le problème.
+    @Query(value = """
+            SELECT t.* FROM transactions_paiement t
+            JOIN eleves e ON e.id = t.eleve_id
+            WHERE (CAST(:eleveId AS bigint) IS NULL OR e.id = CAST(:eleveId AS bigint))
+              AND (CAST(:statut AS varchar) IS NULL OR t.statut = CAST(:statut AS varchar))
+              AND (CAST(:search AS varchar) IS NULL
+                   OR LOWER(e.nom) LIKE LOWER(CONCAT('%', CAST(:search AS varchar), '%'))
+                   OR LOWER(e.prenom) LIKE LOWER(CONCAT('%', CAST(:search AS varchar), '%'))
+                   OR LOWER(e.matricule) LIKE LOWER(CONCAT('%', CAST(:search AS varchar), '%')))
+            ORDER BY t.date_creation DESC
+            """,
+           countQuery = """
+            SELECT COUNT(*) FROM transactions_paiement t
+            JOIN eleves e ON e.id = t.eleve_id
+            WHERE (CAST(:eleveId AS bigint) IS NULL OR e.id = CAST(:eleveId AS bigint))
+              AND (CAST(:statut AS varchar) IS NULL OR t.statut = CAST(:statut AS varchar))
+              AND (CAST(:search AS varchar) IS NULL
+                   OR LOWER(e.nom) LIKE LOWER(CONCAT('%', CAST(:search AS varchar), '%'))
+                   OR LOWER(e.prenom) LIKE LOWER(CONCAT('%', CAST(:search AS varchar), '%'))
+                   OR LOWER(e.matricule) LIKE LOWER(CONCAT('%', CAST(:search AS varchar), '%')))
+            """,
+           nativeQuery = true)
+    Page<TransactionPaiement> findAllWithFilters(
+            @Param("eleveId") Long eleveId, @Param("statut") String statut,
+            @Param("search") String search, Pageable pageable);
 
-    @Query("SELECT t FROM TransactionPaiement t JOIN t.eleve e WHERE " +
-           "e.id IN :eleveIds AND " +
-           "(:eleveId IS NULL OR e.id = :eleveId) AND " +
-           "(:statut IS NULL OR t.statut = :statut) AND " +
-           "(:search IS NULL OR LOWER(e.nom) LIKE LOWER(CONCAT('%', :search, '%')) " +
-           "OR LOWER(e.prenom) LIKE LOWER(CONCAT('%', :search, '%')) " +
-           "OR LOWER(e.matricule) LIKE LOWER(CONCAT('%', :search, '%'))) " +
-           "ORDER BY t.dateCreation DESC")
+    @Query(value = """
+            SELECT t.* FROM transactions_paiement t
+            JOIN eleves e ON e.id = t.eleve_id
+            WHERE e.id IN (:eleveIds)
+              AND (CAST(:eleveId AS bigint) IS NULL OR e.id = CAST(:eleveId AS bigint))
+              AND (CAST(:statut AS varchar) IS NULL OR t.statut = CAST(:statut AS varchar))
+              AND (CAST(:search AS varchar) IS NULL
+                   OR LOWER(e.nom) LIKE LOWER(CONCAT('%', CAST(:search AS varchar), '%'))
+                   OR LOWER(e.prenom) LIKE LOWER(CONCAT('%', CAST(:search AS varchar), '%'))
+                   OR LOWER(e.matricule) LIKE LOWER(CONCAT('%', CAST(:search AS varchar), '%')))
+            ORDER BY t.date_creation DESC
+            """,
+           countQuery = """
+            SELECT COUNT(*) FROM transactions_paiement t
+            JOIN eleves e ON e.id = t.eleve_id
+            WHERE e.id IN (:eleveIds)
+              AND (CAST(:eleveId AS bigint) IS NULL OR e.id = CAST(:eleveId AS bigint))
+              AND (CAST(:statut AS varchar) IS NULL OR t.statut = CAST(:statut AS varchar))
+              AND (CAST(:search AS varchar) IS NULL
+                   OR LOWER(e.nom) LIKE LOWER(CONCAT('%', CAST(:search AS varchar), '%'))
+                   OR LOWER(e.prenom) LIKE LOWER(CONCAT('%', CAST(:search AS varchar), '%'))
+                   OR LOWER(e.matricule) LIKE LOWER(CONCAT('%', CAST(:search AS varchar), '%')))
+            """,
+           nativeQuery = true)
     Page<TransactionPaiement> findAllWithFiltersForEleves(
-            List<Long> eleveIds, Long eleveId, StatutPaiement statut, String search, Pageable pageable);
+            @Param("eleveIds") List<Long> eleveIds, @Param("eleveId") Long eleveId,
+            @Param("statut") String statut, @Param("search") String search, Pageable pageable);
 
     long countByStatut(StatutPaiement statut);
 
+    // Retourne toujours exactement une ligne (agrégat sans GROUP BY) — déclarer Object[]
+    // directement ici plante en ClassCastException (Spring Data ne l'aplatit pas) : il faut
+    // passer par List<Object[]> et prendre le premier élément côté service.
     @Query("SELECT COUNT(t), COALESCE(SUM(t.montant), 0) FROM TransactionPaiement t " +
            "WHERE t.statut = com.klem.cantine.paiement.entity.StatutPaiement.ACCEPTE " +
            "AND t.dateCreation >= :debut AND t.dateCreation < :fin")
-    Object[] statsAcceptesPeriode(@Param("debut") LocalDateTime debut, @Param("fin") LocalDateTime fin);
+    List<Object[]> statsAcceptesPeriode(@Param("debut") LocalDateTime debut, @Param("fin") LocalDateTime fin);
 }

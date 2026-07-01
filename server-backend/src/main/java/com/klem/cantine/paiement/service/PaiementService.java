@@ -18,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -68,6 +69,11 @@ public class PaiementService {
 
     public Page<PaiementResponseDTO> lister(Long eleveId, StatutPaiement statut, String search, Pageable pageable, Utilisateur principal) {
         String searchParam = (search != null && !search.isBlank()) ? search.trim() : null;
+        String statutParam = statut != null ? statut.name() : null;
+        // Les requêtes natives ci-dessous fixent déjà leur propre ORDER BY (t.date_creation) ;
+        // repasser le Sort du Pageable ferait que Spring Data l'ajoute tel quel en SQL
+        // (ex. "dateCreation" au lieu de "date_creation") et casse la requête.
+        Pageable unsorted = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize());
         if (principal.getRole() == Role.PARENT) {
             List<Long> enfantIds = enfantIds(principal);
             if (eleveId != null && !enfantIds.contains(eleveId)) {
@@ -76,10 +82,10 @@ public class PaiementService {
             if (enfantIds.isEmpty()) {
                 return Page.empty(pageable);
             }
-            return transactionRepository.findAllWithFiltersForEleves(enfantIds, eleveId, statut, searchParam, pageable)
+            return transactionRepository.findAllWithFiltersForEleves(enfantIds, eleveId, statutParam, searchParam, unsorted)
                     .map(PaiementResponseDTO::from);
         }
-        return transactionRepository.findAllWithFilters(eleveId, statut, searchParam, pageable)
+        return transactionRepository.findAllWithFilters(eleveId, statutParam, searchParam, unsorted)
                 .map(PaiementResponseDTO::from);
     }
 

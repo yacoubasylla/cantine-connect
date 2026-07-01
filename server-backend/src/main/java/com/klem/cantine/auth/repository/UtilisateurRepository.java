@@ -15,18 +15,44 @@ public interface UtilisateurRepository extends JpaRepository<Utilisateur, Long> 
     boolean existsByEmail(String email);
     boolean existsByTelephone(String telephone);
     long countByRoleAndActifTrue(Role role);
-    Page<Utilisateur> findByRoleAndActifTrue(Role role, Pageable pageable);
 
-    @Query("SELECT u FROM Utilisateur u WHERE u.role = :role AND u.actif = true AND " +
-           "(:search IS NULL OR LOWER(u.nom) LIKE LOWER(CONCAT('%', :search, '%')) " +
-           "OR LOWER(u.prenom) LIKE LOWER(CONCAT('%', :search, '%')) " +
-           "OR u.telephone LIKE CONCAT('%', :search, '%'))")
+    // Requêtes natives — voir ADR-007 : Hibernate 6 + PostgreSQL échouent à inférer le type
+    // d'un paramètre JPQL nullable utilisé dans LOWER()/LIKE ("operator does not exist: lower(bytea)").
+    // Le CAST explicite (CAST(:param AS varchar)) contourne le problème.
+    @Query(value = """
+            SELECT * FROM utilisateurs u
+            WHERE u.role = CAST(:role AS varchar) AND u.actif = true
+              AND (CAST(:search AS varchar) IS NULL
+                   OR LOWER(u.nom) LIKE LOWER(CONCAT('%', CAST(:search AS varchar), '%'))
+                   OR LOWER(u.prenom) LIKE LOWER(CONCAT('%', CAST(:search AS varchar), '%'))
+                   OR u.telephone LIKE CONCAT('%', CAST(:search AS varchar), '%'))
+            """,
+           countQuery = """
+            SELECT COUNT(*) FROM utilisateurs u
+            WHERE u.role = CAST(:role AS varchar) AND u.actif = true
+              AND (CAST(:search AS varchar) IS NULL
+                   OR LOWER(u.nom) LIKE LOWER(CONCAT('%', CAST(:search AS varchar), '%'))
+                   OR LOWER(u.prenom) LIKE LOWER(CONCAT('%', CAST(:search AS varchar), '%'))
+                   OR u.telephone LIKE CONCAT('%', CAST(:search AS varchar), '%'))
+            """,
+           nativeQuery = true)
     Page<Utilisateur> findByRoleAndActifTrueWithSearch(
-            @Param("role") Role role, @Param("search") String search, Pageable pageable);
+            @Param("role") String role, @Param("search") String search, Pageable pageable);
 
-    @Query("SELECT u FROM Utilisateur u WHERE " +
-           "(:search IS NULL OR LOWER(u.nom) LIKE LOWER(CONCAT('%', :search, '%')) " +
-           "OR LOWER(u.prenom) LIKE LOWER(CONCAT('%', :search, '%')) " +
-           "OR u.telephone LIKE CONCAT('%', :search, '%'))")
+    @Query(value = """
+            SELECT * FROM utilisateurs u
+            WHERE (CAST(:search AS varchar) IS NULL
+                   OR LOWER(u.nom) LIKE LOWER(CONCAT('%', CAST(:search AS varchar), '%'))
+                   OR LOWER(u.prenom) LIKE LOWER(CONCAT('%', CAST(:search AS varchar), '%'))
+                   OR u.telephone LIKE CONCAT('%', CAST(:search AS varchar), '%'))
+            """,
+           countQuery = """
+            SELECT COUNT(*) FROM utilisateurs u
+            WHERE (CAST(:search AS varchar) IS NULL
+                   OR LOWER(u.nom) LIKE LOWER(CONCAT('%', CAST(:search AS varchar), '%'))
+                   OR LOWER(u.prenom) LIKE LOWER(CONCAT('%', CAST(:search AS varchar), '%'))
+                   OR u.telephone LIKE CONCAT('%', CAST(:search AS varchar), '%'))
+            """,
+           nativeQuery = true)
     Page<Utilisateur> findAllWithSearch(@Param("search") String search, Pageable pageable);
 }

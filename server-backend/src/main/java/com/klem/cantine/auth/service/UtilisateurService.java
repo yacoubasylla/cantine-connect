@@ -26,7 +26,7 @@ public class UtilisateurService {
     public Page<UtilisateurResponseDTO> lister(Role role, String search, Pageable pageable) {
         String searchParam = (search != null && !search.isBlank()) ? search.trim() : null;
         if (role != null) {
-            return utilisateurRepository.findByRoleAndActifTrueWithSearch(role, searchParam, pageable)
+            return utilisateurRepository.findByRoleAndActifTrueWithSearch(role.name(), searchParam, pageable)
                     .map(UtilisateurResponseDTO::from);
         }
         return utilisateurRepository.findAllWithSearch(searchParam, pageable)
