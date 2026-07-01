@@ -617,3 +617,17 @@
   - `pages/paiements/PaiementsPage.jsx` — ajout d'un champ de recherche élève, en-tête restylée, filtres regroupés dans un encart, export CSV de la page courante
 - **Description :** Les parents seront notifiés par SMS — chaque compte utilisateur doit désormais avoir un numéro de cellulaire unique. La recherche de l'élève se faisait déjà par matricule/nom/prénom (page Parents) ; le compte parent se recherche maintenant de la même façon par numéro ou nom/prénom. Les pages Élèves et Paiements gagnent le même export CSV et la même présentation de filtres que l'Historique des Passages.
 - **Tests validés :** `./mvnw -q compile` ✅ · `./mvnw test` (24/24) ✅ · `npm run build` ✅ · lint sans régression (30 problèmes, aucun nouveau) · vérification manuelle via API réelle (DB dev) : création sans téléphone → 400 ; création avec téléphone en double → 400 ; recherche utilisateurs par numéro et par nom → OK ; recherche paiements par nom d'élève → OK (0 résultat sur terme absent)
+
+---
+
+### [2026-07-01] - Reset comptes (un par rôle) + Suppression de l'indice de connexion par défaut
+- **Statut :** Livré / Opérationnel — ⚠️ **Action destructive confirmée par l'utilisateur, appliquée en local ET en production (Railway)**
+- **Commits :** `c4f3500`, `7816389`
+- **Fichiers Créés :**
+  - `server-backend/.../db/migration/V6__reset_comptes_un_par_role.sql` — vide `parents_eleves`, `parents`, `utilisateurs`, puis recrée exactement 4 comptes (un par rôle) : `admin@cantine.connect` / `admin@123` / ADMIN, `gestionnaire@cantine.connect` / `gestionnaire@123` / GESTIONNAIRE, `caissier@cantine.connect` / `caissier@123` / CAISSIER, `parent@cantine.connect` / `parent@123` / PARENT — numéros de cellulaire incrémentés depuis `0707388678` (unicité oblige, cf. V5)
+- **Fichiers Supprimés :**
+  - `auth/config/DataInitializer.java` — son garde `count()==0` ne se déclenchera plus jamais une fois la V6 appliquée (toujours 4 lignes après migration), et son mot de passe par défaut (`Admin123!`) était devenu obsolète face au nouveau `admin@123` : code mort à retirer plutôt qu'à laisser trompeur
+- **Fichiers Modifiés (Frontend) :**
+  - `pages/auth/LoginPage.jsx` — suppression de l'encart « Compte par défaut : admin@cantine.connect / Admin123! » affiché sous le formulaire de connexion
+- **Description :** Nettoyage des comptes de test avant présentation du produit — un seul compte de référence par rôle avec des identifiants prévisibles, et suppression de l'affichage en clair des identifiants admin sur l'écran de connexion. **Important :** la migration V6 s'exécute automatiquement au prochain déploiement Railway (Flyway) — tous les comptes utilisateurs existants en production seront supprimés et remplacés par ces 4 comptes de test.
+- **Tests validés :** `./mvnw -q compile` ✅ · `./mvnw test` (24/24) ✅ · `npm run build` ✅ · lint sans régression · vérification manuelle DB dev : migration V6 appliquée, les 4 comptes existent avec les bons rôles, connexion réussie (`/api/v1/auth/login`) pour les 4 comptes avec leurs identifiants respectifs
