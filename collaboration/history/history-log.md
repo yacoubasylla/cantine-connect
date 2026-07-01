@@ -350,6 +350,45 @@
 
 ---
 
+### [2026-07-01] - Feat : Historique des Passages — filtres multi-critères + export CSV
+- **Statut :** Livré / Opérationnel
+- **Commit :** `1440a2d`
+- **Fichiers Créés :**
+  - `server-backend/.../scan/repository/PassageSpecification.java` — Specification JPA Criteria (plage dates, établissement, résultat, recherche texte)
+  - `client-frontend/src/hooks/usePassages.js` — hook pagination + filtres
+  - `client-frontend/src/pages/passages/PassagesPage.jsx` — filtres, table paginée, compteurs, export CSV
+- **Fichiers Modifiés :**
+  - `server-backend/.../scan/repository/PassageRefectoireRepository.java` — `JpaSpecificationExecutor`
+  - `server-backend/.../scan/service/ScanService.java` — `listerPassages()` étendu (dateDebut/dateFin/resultat/search) + délégation à la Specification
+  - `server-backend/.../scan/controller/ScanController.java` — nouveaux query params (dateDebut, dateFin, resultat, search)
+  - `client-frontend/src/App.jsx` — route `/passages`
+  - `client-frontend/src/layouts/MainLayout.jsx` — item "Historique" (HistoryIcon)
+- **Description :** Page dédiée à la consultation de l'historique complet des passages réfectoire. Filtres cumulables : plage de dates (initialisée à aujourd'hui), établissement, résultat (ACCORDÉ/REFUSÉ), recherche par nom/prénom/matricule. Table paginée (10/25/50/100 lignes) avec colonnes date, heure, matricule, élève, classe, établissement, résultat, motif. Compteurs temps réel (total / accordés / refusés). Export CSV UTF-8 BOM compatible Excel. Rétro-compatible avec la vue daily de ScanPage (paramètre `date` conservé).
+
+---
+
+### [2026-07-01] - Fix : Passages 500 — double ORDER BY + JOIN FETCH Hibernate 6
+- **Statut :** Livré / Opérationnel
+- **Commit :** `a1dbe16`
+- **Fichiers Modifiés :**
+  - `server-backend/.../scan/repository/PassageRefectoireRepository.java` — suppression `JOIN FETCH` + `ORDER BY` hardcodé
+  - `server-backend/src/main/resources/application.yml` — `default_batch_fetch_size: 50`, `max-page-size: 200`
+- **Description :** Deux causes de 500 identifiées : (1) `JOIN FETCH` + Pageable en Hibernate 6 applique la pagination en mémoire (HHH90003004) et peut lever une exception ; (2) `ORDER BY p.heurePassage DESC` codé dans `@Query` + `sort=heurePassage,desc` dans l'URL Pageable générait un double `ORDER BY` invalide. Fix : suppression du `JOIN FETCH` et du `ORDER BY` dans le `@Query`, activation du batch fetch size (N+1 → N/50+1 queries), `max-page-size` porté à 200.
+
+---
+
+### [2026-07-01] - Fix : Passages 500 — migration @Query JPQL → JPA Specifications (Criteria API)
+- **Statut :** Livré / Opérationnel
+- **Commit :** `ac2dbdc`
+- **Fichiers Créés :**
+  - `server-backend/.../scan/repository/PassageSpecification.java`
+- **Fichiers Modifiés :**
+  - `server-backend/.../scan/repository/PassageRefectoireRepository.java` — `JpaSpecificationExecutor`
+  - `server-backend/.../scan/service/ScanService.java` — `findAll(spec, pageable)`
+- **Description :** Le `@Query` JPQL avec `(:resultat IS NULL OR p.resultat = :resultat)` continuait à échouer en 500 — Hibernate 6 ne résout pas fiablement les types null pour les enums dans les paramètres JPQL. Remplacement complet par JPA Criteria API : `PassageSpecification.withFilters()` ajoute chaque prédicat conditionnellement en Java, sans jamais passer de type null à Hibernate. Le sort Pageable est nativement résolu par Spring Data Criteria. Voir ADR-010.
+
+---
+
 ### [2026-07-01] - Feat : Interface entièrement responsive (≤1200px)
 - **Statut :** Livré / Opérationnel
 - **Commit :** `e81f78e`
@@ -358,3 +397,18 @@
   - `client-frontend/src/pages/scan/ScanPage.jsx` — layout colonne sur mobile, 2 colonnes sur md+ ; suppression hauteur fixe
   - `client-frontend/src/pages/paiements/PaiementsPage.jsx` — en-tête `flexWrap="wrap"` pour éviter le débordement sur petits écrans
 - **Description :** L'application était inutilisable sur écrans ≤1200px : le Drawer permanent de 240px écrasait la zone de contenu principale. Threshold MUI `lg` (1200px) : en dessous le Drawer devient temporaire (overlay) et un bouton hamburger apparaît dans l'AppBar pour l'ouvrir ; la navigation ferme automatiquement le Drawer. Sur desktop (≥1200px) le comportement précédent (Drawer fixe latéral) est préservé.
+
+---
+
+### [2026-07-01] - Feat : Gestion Utilisateurs — Modification & Suppression définitive (ADMIN)
+- **Statut :** Livré / Opérationnel
+- **Commit :** `d6fa644`
+- **Fichiers Créés :**
+  - `server-backend/.../auth/dto/ModifierUtilisateurRequestDTO.java` — nom, prenom, email, nouveauMotDePasse (optionnel)
+- **Fichiers Modifiés :**
+  - `server-backend/.../auth/service/UtilisateurService.java` — `modifier()` (unicité email, changement mot de passe optionnel min 8 car.) + `supprimerDefinitivement()` (protection dernier ADMIN)
+  - `server-backend/.../auth/controller/UtilisateurController.java` — `PUT /{id}` + `DELETE /{id}/permanent`
+  - `client-frontend/src/services/utilisateurService.js` — `modifier()` PUT + `supprimer()` DELETE `/permanent`
+  - `client-frontend/src/hooks/useUtilisateurs.js` — `modifier()` + `supprimer()` ajoutés
+  - `client-frontend/src/pages/utilisateurs/UtilisateursPage.jsx` — `ModifierDialog` (formulaire pré-rempli + champ nouveau mdp optionnel), `ConfirmSupprimerDialog` (alerte irréversible), boutons Edit et DeleteForever sur chaque ligne
+- **Description :** Complétion du CRUD utilisateurs pour les administrateurs. Modification : dialog pré-rempli permettant de changer nom, prénom, email et optionnellement le mot de passe (vide = conserver l'actuel). Suppression définitive : dialog de confirmation avec alerte "irréversible", protection systématique contre la suppression du dernier ADMIN (409 CONFLICT). Les boutons modifier et supprimer sont désactivés sur la propre ligne de l'utilisateur connecté.

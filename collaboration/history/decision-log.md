@@ -79,6 +79,15 @@
 
 ---
 
+### ADR-010 · JPA Specifications (Criteria API) pour les Filtres Dynamiques Multi-Critères
+- **Statut** : Accepté — 2026-07-01 (révision ADR-007)
+- **Décision** : Utiliser `JpaSpecificationExecutor` + classe `PassageSpecification` (Criteria API) pour la requête de l'historique des passages, au lieu d'un `@Query` JPQL avec paramètres optionnels.
+- **Contexte** : ADR-007 avait rejeté les Specifications "overhead disproportionné pour 3-4 filtres simples". Ce jugement s'appliquait aux élèves (4 filtres, requête native possible). Pour les passages, le JPQL avec `(:param IS NULL OR ...)` a généré des 500 persistants en production : Hibernate 6 ne résout pas fiablement les types null pour les enums (`ResultatScan`) et les combinaisons LIKE+OR dans le pattern `(:search IS NULL OR LOWER(e.nom) LIKE ...)`. Deux versions corrigées ont échoué successivement (double ORDER BY, JOIN FETCH pagination). La Criteria API, elle, ajoute chaque prédicat conditionnellement en Java — Hibernate ne reçoit jamais de paramètre null ambigu.
+- **Règle résultante** : Utiliser `@Query` JPQL pour les requêtes à paramètres fixes ou peu optionnels. Utiliser `JpaSpecificationExecutor` + Specification dès qu'une requête a ≥ 3 filtres optionnels ou implique des enums/types complexes nullables.
+- **Conséquences** : `PassageRefectoireRepository` étend `JpaSpecificationExecutor<PassageRefectoire>`. Le sort Pageable est résolu nativement sans conflit ORDER BY. Performance identique — le SQL généré par Criteria est équivalent au JPQL corrigé.
+
+---
+
 ### ADR-009 · Construction Manuelle de l'URL JDBC sur Railway (Incompatibilité DATABASE_URL)
 - **Statut** : Accepté — 2026-07-01
 - **Décision** : Construire `SPRING_DATASOURCE_URL` manuellement via les variables atomiques du plugin PostgreSQL Railway : `jdbc:postgresql://${{Postgres.PGHOST}}:${{Postgres.PGPORT}}/${{Postgres.PGDATABASE}}`
