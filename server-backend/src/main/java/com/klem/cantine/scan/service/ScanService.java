@@ -5,7 +5,10 @@ import com.klem.cantine.eleve.entity.StatutAcces;
 import com.klem.cantine.eleve.repository.EleveRepository;
 import com.klem.cantine.notification.NotificationService;
 import com.klem.cantine.parametrage.service.ConfigurationService;
+import com.klem.cantine.actionlog.annotation.Traceable;
+import com.klem.cantine.actionlog.entity.TypeAction;
 import com.klem.cantine.scan.dto.CacheEntreeDTO;
+import com.klem.cantine.scan.dto.ModifierPassageRequestDTO;
 import com.klem.cantine.scan.dto.PassageResponseDTO;
 import com.klem.cantine.scan.dto.ScanResultDTO;
 import com.klem.cantine.scan.entity.MotifRefus;
@@ -140,6 +143,27 @@ public class ScanService {
         } catch (IllegalArgumentException e) {
             throw new EntityNotFoundException("Format QR code invalide");
         }
+    }
+
+    // ── Modification / Suppression administrateur ─────────────────────────────
+
+    @Traceable(action = TypeAction.UPDATE, entite = "PassageRefectoire")
+    @Transactional
+    public PassageResponseDTO modifierPassage(Long id, ModifierPassageRequestDTO dto) {
+        PassageRefectoire p = passageRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Passage introuvable : " + id));
+        if (dto.resultat() != null) p.setResultat(dto.resultat());
+        p.setMotifRefus(dto.motifRefus()); // null autorisé pour effacer le motif
+        return PassageResponseDTO.from(passageRepository.save(p));
+    }
+
+    @Traceable(action = TypeAction.DELETE, entite = "PassageRefectoire")
+    @Transactional
+    public void supprimerPassage(Long id) {
+        if (!passageRepository.existsById(id)) {
+            throw new EntityNotFoundException("Passage introuvable : " + id);
+        }
+        passageRepository.deleteById(id);
     }
 
     private BigDecimal parseTarif(String valeur) {

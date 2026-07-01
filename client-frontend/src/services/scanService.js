@@ -9,4 +9,10 @@ export const scanService = {
 
   getPassages: (params) =>
     apiClient.get('/passages', { params }).then((r) => r.data.data),
+
+  modifierPassage: (id, data) =>
+    apiClient.put(`/passages/${id}`, data).then((r) => r.data.data),
+
+  supprimerPassage: (id) =>
+    apiClient.delete(`/passages/${id}`).then((r) => r.data),
 }

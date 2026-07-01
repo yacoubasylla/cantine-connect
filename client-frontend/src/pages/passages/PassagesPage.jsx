@@ -1,16 +1,21 @@
+import { useState } from 'react'
 import {
   Box, Typography, Stack, TextField, MenuItem, Chip, Button,
   Paper, Table, TableHead, TableBody, TableRow, TableCell,
   TableContainer, TablePagination, Skeleton, Alert,
   IconButton, Tooltip, Divider,
+  Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions,
 } from '@mui/material'
 import RefreshIcon       from '@mui/icons-material/Refresh'
 import CheckCircleIcon   from '@mui/icons-material/CheckCircle'
 import CancelIcon        from '@mui/icons-material/Cancel'
 import FileDownloadIcon  from '@mui/icons-material/FileDownload'
 import HistoryIcon       from '@mui/icons-material/History'
+import EditIcon          from '@mui/icons-material/Edit'
+import DeleteIcon        from '@mui/icons-material/Delete'
 import { usePassages }         from '../../hooks/usePassages'
 import { useEtablissements }   from '../../hooks/useEtablissements'
+import { useAuth }             from '../../hooks/useAuth'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -19,7 +24,10 @@ const MOTIF_LABELS = {
   STATUT_EN_ATTENTE_PAIEMENT: 'Paiement en attente',
   DOUBLON_PASSAGE:            'Déjà passé aujourd\'hui',
   QR_CODE_INCONNU:            'QR Code non reconnu',
+  SOLDE_INSUFFISANT:          'Solde insuffisant',
 }
+
+const MOTIF_OPTIONS = Object.entries(MOTIF_LABELS)
 
 const formatDate  = (d)  => d  ? new Date(d).toLocaleDateString('fr-FR')  : '—'
 const formatHeure = (dt) => dt ? new Date(dt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : '—'
@@ -63,17 +71,98 @@ function SummaryBar({ passages, total, loading }) {
   )
 }
 
+// ── Dialog Modifier ───────────────────────────────────────────────────────────
+
+function ModifierDialog({ passage, onClose, onSave }) {
+  const [resultat,   setResultat]   = useState(passage?.resultat   ?? 'ACCORDE')
+  const [motifRefus, setMotifRefus] = useState(passage?.motifRefus ?? '')
+  const [saving, setSaving] = useState(false)
+
+  const handleSave = async () => {
+    setSaving(true)
+    try {
+      await onSave({
+        resultat,
+        motifRefus: motifRefus || null,
+      })
+      onClose()
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <Dialog open onClose={onClose} maxWidth="xs" fullWidth>
+      <DialogTitle>Modifier le passage</DialogTitle>
+      <DialogContent>
+        <Stack spacing={2} mt={1}>
+          <TextField
+            select
+            label="Résultat"
+            size="small"
+            value={resultat}
+            onChange={(e) => setResultat(e.target.value)}
+            fullWidth
+          >
+            <MenuItem value="ACCORDE">Accordé</MenuItem>
+            <MenuItem value="REFUSE">Refusé</MenuItem>
+          </TextField>
+
+          <TextField
+            select
+            label="Motif de refus"
+            size="small"
+            value={motifRefus}
+            onChange={(e) => setMotifRefus(e.target.value)}
+            fullWidth
+            helperText="Laisser vide si résultat = Accordé"
+          >
+            <MenuItem value="">Aucun</MenuItem>
+            {MOTIF_OPTIONS.map(([val, label]) => (
+              <MenuItem key={val} value={val}>{label}</MenuItem>
+            ))}
+          </TextField>
+        </Stack>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={onClose} disabled={saving}>Annuler</Button>
+        <Button onClick={handleSave} variant="contained" disabled={saving}>
+          {saving ? 'Enregistrement…' : 'Enregistrer'}
+        </Button>
+      </DialogActions>
+    </Dialog>
+  )
+}
+
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export default function PassagesPage() {
   const { etablissements } = useEtablissements()
+  const { user } = useAuth()
+  const isAdmin = user?.roles?.includes('ROLE_ADMIN')
 
   const {
     passages, total, page, rowsPerPage, loading, error,
     filtres, setFiltre,
     handlePageChange, handleRowsPerPageChange,
-    recharger,
+    recharger, modifier, supprimer,
   } = usePassages()
+
+  const [editTarget,   setEditTarget]   = useState(null)
+  const [deleteTarget, setDeleteTarget] = useState(null)
+
+  const handleSave = async (dto) => {
+    const id = editTarget.passageId ?? editTarget.id
+    await modifier(id, dto)
+  }
+
+  const handleConfirmDelete = async () => {
+    const id = deleteTarget.passageId ?? deleteTarget.id
+    await supprimer(id)
+    setDeleteTarget(null)
+  }
+
+  const colSpan = isAdmin ? 9 : 8
 
   return (
     <Box>
@@ -191,20 +280,21 @@ export default function PassagesPage() {
                 <TableCell>Établissement</TableCell>
                 <TableCell align="center">Résultat</TableCell>
                 <TableCell>Motif de refus</TableCell>
+                {isAdmin && <TableCell align="center">Actions</TableCell>}
               </TableRow>
             </TableHead>
             <TableBody>
               {loading ? (
                 Array.from({ length: rowsPerPage > 10 ? 8 : 5 }).map((_, i) => (
                   <TableRow key={i}>
-                    {Array.from({ length: 8 }).map((__, j) => (
+                    {Array.from({ length: colSpan }).map((__, j) => (
                       <TableCell key={j}><Skeleton /></TableCell>
                     ))}
                   </TableRow>
                 ))
               ) : passages.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={8} align="center" sx={{ py: 5, color: 'text.secondary' }}>
+                  <TableCell colSpan={colSpan} align="center" sx={{ py: 5, color: 'text.secondary' }}>
                     Aucun passage trouvé pour ces critères
                   </TableCell>
                 </TableRow>
@@ -254,6 +344,20 @@ export default function PassagesPage() {
                         : <Typography variant="body2" color="text.disabled">—</Typography>
                       }
                     </TableCell>
+                    {isAdmin && (
+                      <TableCell align="center" sx={{ whiteSpace: 'nowrap' }}>
+                        <Tooltip title="Modifier">
+                          <IconButton size="small" color="primary" onClick={() => setEditTarget(p)}>
+                            <EditIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                        <Tooltip title="Supprimer">
+                          <IconButton size="small" color="error" onClick={() => setDeleteTarget(p)}>
+                            <DeleteIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                      </TableCell>
+                    )}
                   </TableRow>
                 ))
               )}
@@ -274,6 +378,33 @@ export default function PassagesPage() {
           labelDisplayedRows={({ from, to, count }) => `${from}–${to} sur ${count}`}
         />
       </Paper>
+
+      {/* Dialog modifier */}
+      {editTarget && (
+        <ModifierDialog
+          passage={editTarget}
+          onClose={() => setEditTarget(null)}
+          onSave={handleSave}
+        />
+      )}
+
+      {/* Dialog supprimer */}
+      <Dialog open={!!deleteTarget} onClose={() => setDeleteTarget(null)} maxWidth="xs" fullWidth>
+        <DialogTitle>Confirmer la suppression</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Supprimer le passage de <strong>{deleteTarget?.eleveNomComplet}</strong> du{' '}
+            {deleteTarget ? formatDate(deleteTarget.datePassage) : ''} ?
+            Cette action est irréversible.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDeleteTarget(null)}>Annuler</Button>
+          <Button onClick={handleConfirmDelete} color="error" variant="contained">
+            Supprimer
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   )
 }

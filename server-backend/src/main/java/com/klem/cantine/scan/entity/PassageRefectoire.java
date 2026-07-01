@@ -14,7 +14,7 @@ import java.util.UUID;
     @Index(name = "idx_pr_date",        columnList = "date_passage"),
     @Index(name = "idx_pr_qr_token",    columnList = "qr_code_token")
 })
-@Getter @Builder @NoArgsConstructor @AllArgsConstructor
+@Getter @Setter @Builder @NoArgsConstructor @AllArgsConstructor
 public class PassageRefectoire {
 
     @Id

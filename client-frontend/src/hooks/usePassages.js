@@ -59,10 +59,23 @@ export function usePassages() {
     setPage(0)
   }
 
+  const modifier = async (id, dto) => {
+    const updated = await scanService.modifierPassage(id, dto)
+    setPassages((prev) => prev.map((p) => ((p.passageId ?? p.id) === id ? updated : p)))
+    return updated
+  }
+
+  const supprimer = async (id) => {
+    await scanService.supprimerPassage(id)
+    setPassages((prev) => prev.filter((p) => (p.passageId ?? p.id) !== id))
+    setTotal((prev) => prev - 1)
+  }
+
   return {
     passages, total, page, rowsPerPage, loading, error,
     filtres, setFiltre,
     handlePageChange, handleRowsPerPageChange,
     recharger: charger,
+    modifier, supprimer,
   }
 }

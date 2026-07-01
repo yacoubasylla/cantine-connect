@@ -2,6 +2,7 @@ package com.klem.cantine.scan.controller;
 
 import com.klem.cantine.common.ApiResponse;
 import com.klem.cantine.scan.dto.CacheEntreeDTO;
+import com.klem.cantine.scan.dto.ModifierPassageRequestDTO;
 import com.klem.cantine.scan.dto.PassageResponseDTO;
 import com.klem.cantine.scan.dto.ScanResultDTO;
 import com.klem.cantine.scan.entity.ResultatScan;
@@ -12,6 +13,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -67,5 +69,28 @@ public class ScanController {
         return ResponseEntity.ok(ApiResponse.ok(
                 scanService.listerPassages(date, dateDebut, dateFin,
                         etablissementId, resultat, search, pageable)));
+    }
+
+    /**
+     * Modifier un passage (résultat + motif) — ADMIN uniquement.
+     * PUT /api/v1/passages/{id}
+     */
+    @PutMapping("/api/v1/passages/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<PassageResponseDTO>> modifierPassage(
+            @PathVariable Long id,
+            @RequestBody ModifierPassageRequestDTO dto) {
+        return ResponseEntity.ok(ApiResponse.ok(scanService.modifierPassage(id, dto)));
+    }
+
+    /**
+     * Supprimer un passage — ADMIN uniquement.
+     * DELETE /api/v1/passages/{id}
+     */
+    @DeleteMapping("/api/v1/passages/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<Void>> supprimerPassage(@PathVariable Long id) {
+        scanService.supprimerPassage(id);
+        return ResponseEntity.ok(ApiResponse.ok("Passage supprimé", null));
     }
 }
