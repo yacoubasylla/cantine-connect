@@ -18,12 +18,13 @@ import { useAuth }          from '../../hooks/useAuth'
 
 // ── Constantes ────────────────────────────────────────────────────────────────
 
-const ROLES = ['ADMIN', 'GESTIONNAIRE', 'CAISSIER']
+const ROLES = ['ADMIN', 'GESTIONNAIRE', 'CAISSIER', 'PARENT']
 
 const ROLE_CONFIG = {
   ADMIN:        { label: 'Administrateur', color: 'error'   },
   GESTIONNAIRE: { label: 'Gestionnaire',   color: 'primary' },
   CAISSIER:     { label: 'Caissier',       color: 'default' },
+  PARENT:       { label: 'Parent',        color: 'secondary' },
 }
 
 const formatDate = (dt) =>
