@@ -17,6 +17,8 @@ COPY --from=builder /app/target/*.jar app.jar
 
 EXPOSE 8081
 
-# Spring Boot lit SPRING_PROFILES_ACTIVE depuis l'environnement Railway automatiquement
-# Shell form pour permettre l'expansion de $PORT par le shell
+# Laisse 45s au JVM/Spring pour démarrer avant de compter les échecs
+HEALTHCHECK --interval=10s --timeout=5s --start-period=45s --retries=3 \
+  CMD wget -qO- "http://localhost:${PORT:-8081}/actuator/health" || exit 1
+
 ENTRYPOINT ["java", "-jar", "app.jar"]
