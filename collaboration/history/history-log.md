@@ -559,3 +559,12 @@
   - `pages/parents/ParentsPage.jsx` — remplace les champs texte d'ID bruts par des `Autocomplete` MUI : sélection du compte PARENT (liste préchargée via `utilisateurService.lister({ role: 'PARENT' })`) et recherche multi-select d'élèves avec debounce 300ms (`eleveService.lister({ search })`) ; remplace `window.confirm` par un `Dialog` de confirmation de suppression
 - **Description :** Élimine la saisie manuelle d'identifiants numériques pour lier un compte parent à ses élèves, source d'erreurs pour les gestionnaires. Le filtre `role` sur `GET /utilisateurs` permet de ne présenter que les comptes PARENT dans le sélecteur. La recherche d'élèves réutilise l'endpoint existant `GET /eleves?search=`.
 - **Tests validés :** `./mvnw -q compile` ✅ · `npm run build` ✅ · Régression lint vérifiée (3 nouveaux avertissements `react-hooks/set-state-in-effect`, cohérents avec le pattern déjà présent 24 fois ailleurs dans le code, non bloquants)
+
+---
+
+### [2026-07-01] - Fix Utilisateurs : rôle PARENT manquant à la création
+- **Statut :** Livré / Opérationnel
+- **Fichiers Modifiés (Frontend) :**
+  - `pages/utilisateurs/UtilisateursPage.jsx` — ajout de `PARENT` dans `ROLES` et `ROLE_CONFIG` (dialog de création + sélecteur de rôle inline)
+- **Description :** Le rôle `PARENT` existait déjà côté backend (`Role.java`) et n'était bloqué par aucune validation de `creer()`, mais la liste `ROLES` du frontend ne proposait que `ADMIN`, `GESTIONNAIRE`, `CAISSIER`. Résultat : impossible de créer un compte PARENT depuis la gestion des utilisateurs, donc impossible de l'associer ensuite à des élèves sur la page Parents. Complète la fonctionnalité livrée dans la session précédente (sélection assistée par Autocomplete).
+- **Tests validés :** `npm run build` ✅
