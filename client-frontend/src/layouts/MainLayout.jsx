@@ -8,6 +8,7 @@ import {
 import DashboardIcon      from '@mui/icons-material/Dashboard'
 import SchoolIcon         from '@mui/icons-material/School'
 import PeopleIcon         from '@mui/icons-material/People'
+import FamilyRestroomIcon from '@mui/icons-material/FamilyRestroom'
 import RestaurantIcon     from '@mui/icons-material/Restaurant'
 import PaymentsIcon       from '@mui/icons-material/Payments'
 import QrCodeScannerIcon  from '@mui/icons-material/QrCodeScanner'
@@ -31,10 +32,11 @@ const NAV_ITEMS = [
   { label: 'Scan Réfectoire', icon: <QrCodeScannerIcon />,  path: '/scan',           roles: null },
   { label: 'Historique',      icon: <HistoryIcon />,        path: '/passages',       roles: null },
   { label: 'Utilisateurs',    icon: <ManageAccountsIcon />, path: '/utilisateurs',   roles: ['ADMIN'] },
+  { label: 'Parents',         icon: <FamilyRestroomIcon />, path: '/parents',        roles: ['ADMIN'] },
   { label: 'Configuration',   icon: <TuneIcon />,           path: '/configuration',  roles: ['ADMIN'] },
 ]
 
-const ROLE_LABELS = { ADMIN: 'Administrateur', GESTIONNAIRE: 'Gestionnaire', CAISSIER: 'Caissier' }
+const ROLE_LABELS = { ADMIN: 'Administrateur', GESTIONNAIRE: 'Gestionnaire', CAISSIER: 'Caissier', PARENT: 'Parent' }
 
 export default function MainLayout() {
   const navigate    = useNavigate()

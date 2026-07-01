@@ -10,6 +10,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -35,16 +36,19 @@ public class EleveController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<?>> creer(@Valid @RequestBody EleveRequestDTO dto) {
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.created(eleveService.creer(dto)));
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<?>> modifier(@PathVariable Long id, @Valid @RequestBody EleveRequestDTO dto) {
         return ResponseEntity.ok(ApiResponse.ok("Élève mis à jour", eleveService.modifier(id, dto)));
     }
 
     @PatchMapping("/{id}/statut")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('GESTIONNAIRE')")
     public ResponseEntity<ApiResponse<?>> changerStatut(
             @PathVariable Long id,
             @RequestParam StatutAcces statut) {
@@ -52,6 +56,7 @@ public class EleveController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> supprimer(@PathVariable Long id) {
         eleveService.supprimer(id);
         return ResponseEntity.noContent().build();

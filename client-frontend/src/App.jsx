@@ -12,6 +12,7 @@ import AdminRoute           from './components/AdminRoute'
 import ErrorBoundary        from './components/ErrorBoundary'
 import ConfigurationPage    from './pages/configuration/ConfigurationPage'
 import PassagesPage         from './pages/passages/PassagesPage'
+import ParentsPage          from './pages/parents/ParentsPage'
 
 export default function App() {
   return (
@@ -33,6 +34,7 @@ export default function App() {
         <Route path="scan"           element={<ErrorBoundary><ScanPage /></ErrorBoundary>} />
         <Route path="passages"       element={<ErrorBoundary><PassagesPage /></ErrorBoundary>} />
         <Route path="utilisateurs"   element={<ErrorBoundary><AdminRoute><UtilisateursPage /></AdminRoute></ErrorBoundary>} />
+        <Route path="parents"        element={<ErrorBoundary><AdminRoute><ParentsPage /></AdminRoute></ErrorBoundary>} />
         <Route path="configuration"  element={<ErrorBoundary><AdminRoute><ConfigurationPage /></AdminRoute></ErrorBoundary>} />
       </Route>
     </Routes>

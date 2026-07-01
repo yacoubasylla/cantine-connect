@@ -41,7 +41,8 @@ public class SecurityConfig {
             .csrf(AbstractHttpConfigurer::disable)
             .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/v1/auth/**", "/api/v1/webhooks/**", "/actuator/**").permitAll()
+                .requestMatchers("/api/v1/auth/**", "/api/v1/webhooks/**", "/actuator/**",
+                                 "/api/v1/configurations/FOND_ECRAN_LOGIN").permitAll()
                 .anyRequest().authenticated()
             )
             .authenticationProvider(authenticationProvider())

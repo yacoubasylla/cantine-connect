@@ -9,6 +9,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -19,6 +20,7 @@ public class EtablissementController {
     private final EtablissementService etablissementService;
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<?>> creer(@Valid @RequestBody EtablissementRequestDTO dto) {
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.created(etablissementService.creer(dto)));
     }
@@ -46,6 +48,7 @@ public class EtablissementController {
     }
 
     @PostMapping("/{id}/niveaux")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<?>> creerNiveau(
             @PathVariable Long id,
             @Valid @RequestBody NiveauRequestDTO dto) {
@@ -54,6 +57,7 @@ public class EtablissementController {
     }
 
     @PostMapping("/niveaux/{niveauId}/classes")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<?>> creerClasse(
             @PathVariable Long niveauId,
             @Valid @RequestBody ClasseRequestDTO dto) {
@@ -62,12 +66,14 @@ public class EtablissementController {
     }
 
     @DeleteMapping("/niveaux/{niveauId}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<?>> supprimerNiveau(@PathVariable Long niveauId) {
         etablissementService.supprimerNiveau(niveauId);
         return ResponseEntity.ok(ApiResponse.ok("Niveau supprimé"));
     }
 
     @DeleteMapping("/classes/{classeId}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<?>> supprimerClasse(@PathVariable Long classeId) {
         etablissementService.supprimerClasse(classeId);
         return ResponseEntity.ok(ApiResponse.ok("Classe supprimée"));

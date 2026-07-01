@@ -15,6 +15,7 @@ import ContentCopyIcon from '@mui/icons-material/ContentCopy'
 import { QRCodeSVG } from 'qrcode.react'
 import { useEleves } from '../../hooks/useEleves'
 import { useEtablissements } from '../../hooks/useEtablissements'
+import { useAuth } from '../../hooks/useAuth'
 import StatutBadge from '../../components/StatutBadge'
 import EleveFormDialog from './EleveFormDialog'
 
@@ -70,6 +71,9 @@ export default function ElevesPage() {
   const [eleveToEdit, setEleveToEdit] = useState(null)
   const [qrEleve,    setQrEleve]    = useState(null)
 
+  const { user } = useAuth()
+  const isAdmin = user?.role === 'ADMIN'
+
   const { etablissements } = useEtablissements()
   const {
     eleves, total, page, setPage, rowsPerPage, setRowsPerPage,
@@ -100,9 +104,11 @@ export default function ElevesPage() {
       {/* ── En-tête ─────────────────────────────────────── */}
       <Stack direction="row" justifyContent="space-between" alignItems="center" mb={3}>
         <Typography variant="h5">Élèves</Typography>
-        <Button variant="contained" startIcon={<AddIcon />} onClick={handleAdd}>
-          Ajouter
-        </Button>
+        {isAdmin && (
+          <Button variant="contained" startIcon={<AddIcon />} onClick={handleAdd}>
+            Ajouter
+          </Button>
+        )}
       </Stack>
 
       {/* ── Filtres ─────────────────────────────────────── */}
@@ -187,16 +193,20 @@ export default function ElevesPage() {
                     </Tooltip>
                   </TableCell>
                   <TableCell align="center">
-                    <Tooltip title="Modifier">
-                      <IconButton size="small" onClick={() => handleEdit(eleve)}>
-                        <EditIcon fontSize="small" />
-                      </IconButton>
-                    </Tooltip>
-                    <Tooltip title="Supprimer">
-                      <IconButton size="small" color="error" onClick={() => handleDelete(eleve.id, eleve.nom, eleve.prenom)}>
-                        <DeleteIcon fontSize="small" />
-                      </IconButton>
-                    </Tooltip>
+                    {isAdmin && (
+                      <>
+                        <Tooltip title="Modifier">
+                          <IconButton size="small" onClick={() => handleEdit(eleve)}>
+                            <EditIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                        <Tooltip title="Supprimer">
+                          <IconButton size="small" color="error" onClick={() => handleDelete(eleve.id, eleve.nom, eleve.prenom)}>
+                            <DeleteIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                      </>
+                    )}
                   </TableCell>
                 </TableRow>
               ))

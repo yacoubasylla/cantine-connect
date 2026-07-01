@@ -461,3 +461,58 @@
   - `client-frontend/src/layouts/MainLayout.jsx` — ThemeSwitcher dans AppBar, bouton À Propos en bas drawer
   - `client-frontend/package.json` — version `1.0.0-beta`
 - **Description :** Identité visuelle KLEM (bleu #1565C0, orange #FF6D00) déclinée en 3 thèmes persistés en localStorage. Corporatif : dark mode marine profond, premium et sobre. Moderne : fond blanc, gradients colorés, effets lift-on-hover, animations cubic-bezier. École Ivoirienne : orange primaire, vert secondaire, fond ivoire. Tous les composants MUI (boutons, Drawer, AppBar, TableCell, Tabs, Chips) respectent les couleurs primary/secondary du thème actif. Fenêtre À Propos avec téléphone +225 07 58 89 24 77, site www.klemtech.net, email infos@klemtech.net.
+
+---
+
+### [2026-07-01] - Feat : RBAC, Comptes Parents, Notifications, Crédits, Image Fond Login
+
+- **Statut :** Livré / Opérationnel
+- **Auteur :** Yacouba SYLLA / Claude Code
+
+#### Backend
+
+- **Fichiers Créés :**
+  - `server-backend/.../parent/entity/Parent.java` — entité liant `Utilisateur` (rôle PARENT) à `Set<Eleve>` via ManyToMany
+  - `server-backend/.../parent/repository/ParentRepository.java`
+  - `server-backend/.../parent/dto/ParentRequestDTO.java`, `ParentResponseDTO.java`
+  - `server-backend/.../parent/service/ParentService.java`
+  - `server-backend/.../parent/controller/ParentController.java` — CRUD ADMIN + `GET /parents/moi` (PARENT)
+  - `server-backend/.../notification/NotificationService.java` — envoi email async via `ObjectProvider<MailSender>`
+  - `server-backend/src/main/resources/db/migration/V3__parents_solde_config.sql`
+
+- **Fichiers Modifiés :**
+  - `auth/entity/Role.java` — ajout rôle `PARENT`
+  - `eleve/entity/Eleve.java` — ajout champ `solde DECIMAL(10,2)`
+  - `scan/entity/MotifRefus.java` — ajout `SOLDE_INSUFFISANT`
+  - `etablissement/controller/EtablissementController.java` — `@PreAuthorize("hasRole('ADMIN')")` sur POST/DELETE
+  - `eleve/controller/EleveController.java` — `@PreAuthorize` sur POST/PUT/DELETE/PATCH-statut
+  - `paiement/service/WebhookService.java` — crédit solde (mode CREDITS) + notification email parent
+  - `scan/service/ScanService.java` — débit solde (mode CREDITS) + notification email passage
+  - `common/SecurityConfig.java` — `FOND_ECRAN_LOGIN` config accessible sans auth
+  - `pom.xml` — `spring-boot-starter-mail`
+  - `application.yml` — config SMTP + `notification.from`
+
+#### Frontend
+
+- **Fichiers Créés :**
+  - `client-frontend/src/pages/parents/ParentsPage.jsx` — CRUD parents (ADMIN)
+  - `client-frontend/src/hooks/useParents.js`
+  - `client-frontend/src/services/parentService.js`
+
+- **Fichiers Modifiés :**
+  - `pages/eleves/ElevesPage.jsx` — boutons Ajouter/Modifier/Supprimer cachés pour non-ADMIN
+  - `pages/etablissements/EtablissementsPage.jsx` — bouton Ajouter caché pour non-ADMIN
+  - `pages/configuration/ConfigurationPage.jsx` — nouvelles sections Fonctionnalités (toggles), Mode Paiement (select), Tarif repas, Image fond login
+  - `pages/auth/LoginPage.jsx` — lecture `FOND_ECRAN_LOGIN` au montage → background-image dynamique
+  - `layouts/MainLayout.jsx` — nav "Parents" (FamilyRestroomIcon, ADMIN uniquement), ROLE_LABELS + PARENT
+  - `App.jsx` — route `/parents` wrappée dans `<AdminRoute>`
+
+#### Base de données (V3 migration)
+
+- `ALTER TABLE eleves ADD COLUMN solde DECIMAL(10,2) DEFAULT 0.00`
+- `CREATE TABLE parents (id, utilisateur_id unique FK)`
+- `CREATE TABLE parents_eleves (parent_id, eleve_id PK)`
+- 5 nouvelles clés : `NOTIFICATIONS_EMAIL_ENABLED`, `NOTIFICATIONS_SMS_ENABLED`, `MODE_PAIEMENT`, `TARIF_REPAS`, `FOND_ECRAN_LOGIN`
+
+- **Description :** 6 améliorations architecturales majeures. (1) RBAC : seul l'ADMIN peut créer/modifier/supprimer établissements, classes et élèves — les autres rôles sont en lecture seule. (2) Comptes parents : nouveau rôle PARENT lié à des élèves via ManyToMany ; CRUD ADMIN dans `/parents`. (3+4) Notifications : emails asynchrones aux parents via Spring Mail (optionnel, `ObjectProvider<MailSender>` pour tolérance gracieuse si SMTP non configuré). (5) Mode crédits : solde sur l'élève, crédité au paiement et débité au passage cantine (configurable via `MODE_PAIEMENT`). (6) Image de fond : URL configurée dans le panneau d'administration, appliquée dynamiquement sur la page de connexion.
+- **Tests validés :** 23 tests unitaires ✅ (`./mvnw test`)

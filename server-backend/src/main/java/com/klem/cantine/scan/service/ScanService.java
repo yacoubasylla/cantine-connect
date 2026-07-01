@@ -3,6 +3,8 @@ package com.klem.cantine.scan.service;
 import com.klem.cantine.eleve.entity.Eleve;
 import com.klem.cantine.eleve.entity.StatutAcces;
 import com.klem.cantine.eleve.repository.EleveRepository;
+import com.klem.cantine.notification.NotificationService;
+import com.klem.cantine.parametrage.service.ConfigurationService;
 import com.klem.cantine.scan.dto.CacheEntreeDTO;
 import com.klem.cantine.scan.dto.PassageResponseDTO;
 import com.klem.cantine.scan.dto.ScanResultDTO;
@@ -19,6 +21,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -32,6 +35,8 @@ public class ScanService {
 
     private final PassageRefectoireRepository passageRepository;
     private final EleveRepository eleveRepository;
+    private final NotificationService notificationService;
+    private final ConfigurationService configurationService;
 
     // ── Scan QR Code ─────────────────────────────────────────────────────────
 
@@ -61,7 +66,21 @@ public class ScanService {
             return enregistrer(eleve, qrCodeToken, ResultatScan.REFUSE, MotifRefus.DOUBLON_PASSAGE);
         }
 
-        return enregistrer(eleve, qrCodeToken, ResultatScan.ACCORDE, null);
+        // Mode CREDITS : vérifier et débiter le solde
+        if ("CREDITS".equalsIgnoreCase(configurationService.getValeur("MODE_PAIEMENT"))) {
+            BigDecimal tarif = parseTarif(configurationService.getValeur("TARIF_REPAS"));
+            if (eleve.getSolde().compareTo(tarif) < 0) {
+                return enregistrer(eleve, qrCodeToken, ResultatScan.REFUSE, MotifRefus.SOLDE_INSUFFISANT);
+            }
+            eleve.setSolde(eleve.getSolde().subtract(tarif));
+            eleveRepository.save(eleve);
+            log.info("Solde élève {} débité de {} FCFA → solde restant {}",
+                    eleve.getId(), tarif, eleve.getSolde());
+        }
+
+        ScanResultDTO resultat = enregistrer(eleve, qrCodeToken, ResultatScan.ACCORDE, null);
+        notificationService.notifierPassageCantine(eleve);
+        return resultat;
     }
 
     // ── Cache offline (téléchargeable par les appareils de scan) ─────────────
@@ -120,6 +139,14 @@ public class ScanService {
             return UUID.fromString(token);
         } catch (IllegalArgumentException e) {
             throw new EntityNotFoundException("Format QR code invalide");
+        }
+    }
+
+    private BigDecimal parseTarif(String valeur) {
+        try {
+            return new BigDecimal(valeur);
+        } catch (NumberFormatException e) {
+            return new BigDecimal("500");
         }
     }
 }

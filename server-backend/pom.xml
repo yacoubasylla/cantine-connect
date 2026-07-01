@@ -78,6 +78,12 @@
             <artifactId>spring-boot-starter-aop</artifactId>
         </dependency>
 
+        <!-- ── Notifications Email ───────────────────────── -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-mail</artifactId>
+        </dependency>
+
         <!-- ── Actuator (Health Check & Monitoring) ──────── -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

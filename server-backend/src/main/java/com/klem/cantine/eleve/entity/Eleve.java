@@ -82,6 +82,11 @@ public class Eleve {
     @Column(name = "notes_medicales", columnDefinition = "TEXT")
     private String notesMedicales;
 
+    // ── Solde (mode CREDITS) ──────────────────────────────
+    @Builder.Default
+    @Column(nullable = false, precision = 10, scale = 2)
+    private java.math.BigDecimal solde = java.math.BigDecimal.ZERO;
+
     // ── Métadonnées ───────────────────────────────────────
     @Builder.Default
     @Column(nullable = false)

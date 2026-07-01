@@ -5,6 +5,8 @@ import com.klem.cantine.eleve.entity.StatutAcces;
 import com.klem.cantine.eleve.repository.EleveRepository;
 import com.klem.cantine.etablissement.entity.Classe;
 import com.klem.cantine.etablissement.entity.Etablissement;
+import com.klem.cantine.notification.NotificationService;
+import com.klem.cantine.parametrage.service.ConfigurationService;
 import com.klem.cantine.scan.dto.ScanResultDTO;
 import com.klem.cantine.scan.entity.MotifRefus;
 import com.klem.cantine.scan.entity.PassageRefectoire;
@@ -35,6 +37,8 @@ class ScanServiceTest {
 
     @Mock private PassageRefectoireRepository passageRepository;
     @Mock private EleveRepository eleveRepository;
+    @Mock private NotificationService notificationService;
+    @Mock private ConfigurationService configurationService;
     @InjectMocks private ScanService scanService;
 
     // ── Helpers ───────────────────────────────────────────────

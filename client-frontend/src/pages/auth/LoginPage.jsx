@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Box, Card, CardContent, Typography, TextField,
@@ -11,15 +11,27 @@ import VisibilityOffIcon from '@mui/icons-material/VisibilityOff'
 import LockOutlinedIcon  from '@mui/icons-material/LockOutlined'
 import { useAuth } from '../../hooks/useAuth'
 import { authService } from '../../services/authService'
+import apiClient from '../../services/apiClient'
 
 export default function LoginPage() {
   const { login }  = useAuth()
   const navigate   = useNavigate()
 
-  const [form, setForm]       = useState({ email: '', motDePasse: '' })
-  const [showPwd, setShowPwd] = useState(false)
-  const [loading, setLoading] = useState(false)
-  const [error, setError]     = useState(null)
+  const [form, setForm]             = useState({ email: '', motDePasse: '' })
+  const [showPwd, setShowPwd]       = useState(false)
+  const [loading, setLoading]       = useState(false)
+  const [error, setError]           = useState(null)
+  const [bgImage, setBgImage]       = useState(null)
+
+  useEffect(() => {
+    // Fetch background image config without auth (public config endpoint)
+    apiClient.get('/configurations/FOND_ECRAN_LOGIN')
+      .then((res) => {
+        const url = res.data?.data?.valeur
+        if (url && url.trim()) setBgImage(url.trim())
+      })
+      .catch(() => {/* ignore — background is optional */})
+  }, [])
 
   const handleChange = (e) => setForm((p) => ({ ...p, [e.target.name]: e.target.value }))
 
@@ -45,8 +57,17 @@ export default function LoginPage() {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        background: (t) =>
-          `linear-gradient(160deg, ${alpha(t.palette.primary.main, 0.10)} 0%, ${t.palette.background.default} 55%, ${alpha(t.palette.secondary.main, 0.06)} 100%)`,
+        ...(bgImage
+          ? {
+              backgroundImage: `url(${bgImage})`,
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+              backgroundRepeat: 'no-repeat',
+            }
+          : {
+              background: (t) =>
+                `linear-gradient(160deg, ${alpha(t.palette.primary.main, 0.10)} 0%, ${t.palette.background.default} 55%, ${alpha(t.palette.secondary.main, 0.06)} 100%)`,
+            }),
         px: 2,
       }}
     >

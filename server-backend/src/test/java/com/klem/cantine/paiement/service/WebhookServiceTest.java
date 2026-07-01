@@ -6,12 +6,14 @@ import com.klem.cantine.eleve.entity.StatutAcces;
 import com.klem.cantine.eleve.repository.EleveRepository;
 import com.klem.cantine.etablissement.entity.Classe;
 import com.klem.cantine.etablissement.entity.Etablissement;
+import com.klem.cantine.notification.NotificationService;
 import com.klem.cantine.paiement.config.PaiementProperties;
 import com.klem.cantine.paiement.dto.WebhookCinetPayDTO;
 import com.klem.cantine.paiement.entity.OperateurMobileMoney;
 import com.klem.cantine.paiement.entity.StatutPaiement;
 import com.klem.cantine.paiement.entity.TransactionPaiement;
 import com.klem.cantine.paiement.repository.TransactionPaiementRepository;
+import com.klem.cantine.parametrage.service.ConfigurationService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -35,6 +37,8 @@ class WebhookServiceTest {
     @Mock private TransactionPaiementRepository transactionRepository;
     @Mock private EleveRepository eleveRepository;
     @Mock private ObjectMapper objectMapper;
+    @Mock private NotificationService notificationService;
+    @Mock private ConfigurationService configurationService;
 
     // Instance réelle (verifySignature = false par défaut)
     private final PaiementProperties paiementProperties = new PaiementProperties();
@@ -44,7 +48,8 @@ class WebhookServiceTest {
     @BeforeEach
     void setUp() {
         webhookService = new WebhookService(
-                transactionRepository, eleveRepository, paiementProperties, objectMapper);
+                transactionRepository, eleveRepository, paiementProperties,
+                objectMapper, notificationService, configurationService);
     }
 
     // ── Helpers ───────────────────────────────────────────────

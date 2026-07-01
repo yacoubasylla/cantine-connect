@@ -10,12 +10,15 @@ import LocationOnIcon from '@mui/icons-material/LocationOn'
 import PhoneIcon from '@mui/icons-material/Phone'
 import AccountTreeIcon from '@mui/icons-material/AccountTree'
 import { useEtablissements } from '../../hooks/useEtablissements'
+import { useAuth } from '../../hooks/useAuth'
 import GestionStructureDialog from './GestionStructureDialog'
 
 const FORM_INITIAL = { nom: '', adresse: '', ville: 'Abidjan', telephone: '' }
 
 export default function EtablissementsPage() {
   const { etablissements, loading, error, creer } = useEtablissements()
+  const { user } = useAuth()
+  const isAdmin = user?.role === 'ADMIN'
   const [open, setOpen] = useState(false)
   const [form, setForm] = useState(FORM_INITIAL)
   const [saving, setSaving] = useState(false)
@@ -49,9 +52,11 @@ export default function EtablissementsPage() {
     <Box>
       <Stack direction="row" justifyContent="space-between" alignItems="center" mb={3}>
         <Typography variant="h5">Établissements</Typography>
-        <Button variant="contained" startIcon={<AddIcon />} onClick={() => setOpen(true)}>
-          Ajouter
-        </Button>
+        {isAdmin && (
+          <Button variant="contained" startIcon={<AddIcon />} onClick={() => setOpen(true)}>
+            Ajouter
+          </Button>
+        )}
       </Stack>
 
       {loading && <CircularProgress />}

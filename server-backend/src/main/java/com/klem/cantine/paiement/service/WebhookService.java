@@ -3,18 +3,21 @@ package com.klem.cantine.paiement.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.klem.cantine.eleve.entity.StatutAcces;
 import com.klem.cantine.eleve.repository.EleveRepository;
+import com.klem.cantine.notification.NotificationService;
 import com.klem.cantine.paiement.config.PaiementProperties;
 import com.klem.cantine.paiement.dto.WebhookCinetPayDTO;
 import com.klem.cantine.paiement.dto.WebhookPayDunyaDTO;
 import com.klem.cantine.paiement.entity.StatutPaiement;
 import com.klem.cantine.paiement.entity.TransactionPaiement;
 import com.klem.cantine.paiement.repository.TransactionPaiementRepository;
+import com.klem.cantine.parametrage.service.ConfigurationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.time.LocalDateTime;
@@ -29,6 +32,8 @@ public class WebhookService {
     private final EleveRepository eleveRepository;
     private final PaiementProperties paiementProperties;
     private final ObjectMapper objectMapper;
+    private final NotificationService notificationService;
+    private final ConfigurationService configurationService;
 
     // ── CinetPay ──────────────────────────────────────────────────────────────
 
@@ -98,8 +103,20 @@ public class WebhookService {
         if (accepte) {
             var eleve = transaction.getEleve();
             eleve.setStatutAcces(StatutAcces.AUTORISE);
+
+            // Crédit du solde en mode CREDITS
+            if ("CREDITS".equalsIgnoreCase(configurationService.getValeur("MODE_PAIEMENT"))) {
+                BigDecimal montant = transaction.getMontant() != null
+                        ? transaction.getMontant() : BigDecimal.ZERO;
+                eleve.setSolde(eleve.getSolde().add(montant));
+                log.info("Solde élève {} crédité de {} FCFA → nouveau solde {}",
+                        eleve.getId(), montant, eleve.getSolde());
+            }
+
             eleveRepository.save(eleve);
             log.info("Élève {} → AUTORISE après paiement accepté", eleve.getId());
+            notificationService.notifierPaiementAccepte(eleve,
+                    transaction.getMontant() != null ? transaction.getMontant() : BigDecimal.ZERO);
         }
     }
 
