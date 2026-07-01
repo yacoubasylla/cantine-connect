@@ -711,3 +711,16 @@
   - `collaboration/history/adr/2026-07-01-fix-memoire-conteneur-railway.md` (ADR-015) — mis à jour en place plutôt qu'une nouvelle ADR, la précédente n'ayant pas encore franchi sa case « à confirmer après déploiement »
 - **Description :** Les valeurs absolues éliminent toute dépendance à la détection cgroup, plus prévisible que la variante en pourcentage sur ce conteneur.
 - **Tests validés :** Démarrage local réussi avec les nouveaux flags. **Nouvelle mesure `railway metrics` après ce second déploiement à confirmer.**
+
+---
+
+### [2026-07-01] - Latence Production : Incident Clôturé — Confirmation Finale
+- **Statut :** Livré / Opérationnel — incident résolu et confirmé
+- **Mesure finale (`railway metrics --since 2026-07-01T22:04:22`) :**
+  - Mémoire max : 436-508 Mo, contre une limite conteneur de 1024 Mo (~45-50 % d'utilisation) — auparavant 1099-1168 Mo, au-dessus de la limite.
+  - Latence HTTP P50 : 12-21 ms — auparavant ~13 857 ms de façon uniforme sur tous les percentiles (P50=P90=P95=P99).
+  - Un résidu P90/P95 (~2,2s) observé dans les premières minutes suivant chaque déploiement, cohérent avec un échauffement JIT/pool de connexions normal, sans rapport avec la cause initiale.
+- **Fichiers Modifiés :**
+  - `collaboration/history/adr/2026-07-01-fix-memoire-conteneur-railway.md` (ADR-015) — case de suivi finale cochée, conclusion ajoutée
+- **Description :** Clôture de la chaîne d'incidents de latence de la journée (ADR-013 500 JPQL, ADR-014 logging TRACE, ADR-015 dépassement mémoire). Cause dominante confirmée et corrigée : dimensionnement mémoire JVM/Tomcat/HikariCP jamais borné explicitement pour un conteneur Railway à ~1 Go. Aucune mise à niveau de plan Railway nécessaire dans l'immédiat.
+- **Tests validés :** `railway metrics` confirmé à deux reprises sur des fenêtres temporelles distinctes après le déploiement final ; `./mvnw test` (24/24) ✅ ; `npm run build` ✅.

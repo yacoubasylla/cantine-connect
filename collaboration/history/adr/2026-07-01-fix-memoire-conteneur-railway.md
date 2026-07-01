@@ -57,5 +57,6 @@ Bornes mémoire explicites, dimensionnées pour un conteneur ~1 Go :
 - [x] `./mvnw test` (24/24) toujours vert.
 - [x] Première itération (`-XX:MaxRAMPercentage=60.0`) déployée et mesurée : latence P50 excellente (17ms) mais mémoire max toujours au-dessus de la limite (1168 Mo / 1024 Mo) — détection cgroup non fiable sur ce conteneur.
 - [x] Corrigé avec des valeurs absolues (`-Xmx400m -Xms256m -XX:MaxMetaspaceSize=160m`), redéployé.
-- [ ] **À confirmer après ce second déploiement** : `railway metrics --since <heure du déploiement>` doit montrer `memory.max_mb` durablement sous `memory.limit_mb`, et les P90/P95 HTTP sous la seconde.
+- [x] **Confirmé** — `railway metrics --since 2026-07-01T22:04:22` : `memory.max_mb` = 436-508 Mo, durablement sous `memory.limit_mb` (1024 Mo, ~45-50 % d'utilisation) ; `http.p50_ms` = 12-21 ms (contre ~13 857 ms uniforme avant correctif). Un P90/P95 résiduel (~2,2s) subsiste dans les toutes premières minutes suivant un déploiement (échauffement JIT / pool de connexions), sans rapport avec le problème initial.
+- **Conclusion** : incident résolu. Aucune mise à niveau du plan Railway n'est nécessaire dans l'immédiat — l'application tient largement dans son allocation actuelle une fois correctement bornée. À réévaluer si l'usage réel croît significativement (plusieurs établissements, forte concurrence).
 - Complète l'ADR-014 : le logging `TRACE` était un vrai problème (corrigé), mais pas la cause dominante de la latence observée après son correctif — la cause dominante est documentée ici.
