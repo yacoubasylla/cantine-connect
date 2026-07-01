@@ -9,7 +9,7 @@ import com.klem.cantine.scan.dto.ScanResultDTO;
 import com.klem.cantine.scan.entity.MotifRefus;
 import com.klem.cantine.scan.entity.PassageRefectoire;
 import com.klem.cantine.scan.entity.ResultatScan;
-import org.springframework.lang.Nullable;
+import com.klem.cantine.scan.repository.PassageSpecification;
 import com.klem.cantine.scan.repository.PassageRefectoireRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -92,9 +92,8 @@ public class ScanService {
 
         String searchParam = (search != null && !search.isBlank()) ? search.trim() : null;
 
-        return passageRepository
-                .findWithFilters(debut, fin, etablissementId, resultat, searchParam, pageable)
-                .map(PassageResponseDTO::from);
+        var spec = PassageSpecification.withFilters(debut, fin, etablissementId, resultat, searchParam);
+        return passageRepository.findAll(spec, pageable).map(PassageResponseDTO::from);
     }
 
     // ── Logique d'enregistrement ──────────────────────────────────────────────
