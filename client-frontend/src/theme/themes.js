@@ -420,7 +420,7 @@ export const THEME_META = {
     emoji: '✨',
   },
   ivoirien: {
-    label: 'École Ivoirienne',
+    label: 'Ivoire',
     description: 'Orange • Blanc • Vert',
     colors: ['#E65100', '#2E7D32', '#FFFDF7'],
     emoji: '🇨🇮',
