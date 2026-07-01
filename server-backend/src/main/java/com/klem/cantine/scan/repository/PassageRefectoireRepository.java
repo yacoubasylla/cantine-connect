@@ -15,22 +15,26 @@ public interface PassageRefectoireRepository extends JpaRepository<PassageRefect
     // Vérification doublon : l'élève a-t-il déjà eu un passage ACCORDÉ aujourd'hui ?
     boolean existsByEleveIdAndDatePassageAndResultat(Long eleveId, LocalDate datePassage, ResultatScan resultat);
 
-    // Recherche multi-critères avec plage de dates, établissement, résultat, texte libre
+    // Recherche multi-critères : JOIN simple (pas de FETCH JOIN pour éviter le conflit
+    // Hibernate 6 + pagination en mémoire). Les associations sont chargées en batch
+    // via hibernate.default_batch_fetch_size configuré dans application.yml.
+    // Pas de ORDER BY dans la requête : Pageable l'applique (évite le double ORDER BY).
     @Query(value = "SELECT p FROM PassageRefectoire p " +
-           "JOIN FETCH p.eleve e JOIN FETCH e.classe JOIN FETCH e.etablissement " +
+           "JOIN p.eleve e " +
+           "JOIN e.etablissement et " +
            "WHERE p.datePassage BETWEEN :dateDebut AND :dateFin " +
-           "AND (:etablissementId IS NULL OR e.etablissement.id = :etablissementId) " +
+           "AND (:etablissementId IS NULL OR et.id = :etablissementId) " +
            "AND (:resultat IS NULL OR p.resultat = :resultat) " +
            "AND (:search IS NULL OR (" +
            "  LOWER(e.nom) LIKE LOWER(CONCAT('%', :search, '%')) " +
            "  OR LOWER(e.prenom) LIKE LOWER(CONCAT('%', :search, '%')) " +
            "  OR LOWER(e.matricule) LIKE LOWER(CONCAT('%', :search, '%'))" +
-           ")) " +
-           "ORDER BY p.heurePassage DESC",
+           "))",
            countQuery = "SELECT COUNT(p) FROM PassageRefectoire p " +
            "JOIN p.eleve e " +
+           "JOIN e.etablissement et " +
            "WHERE p.datePassage BETWEEN :dateDebut AND :dateFin " +
-           "AND (:etablissementId IS NULL OR e.etablissement.id = :etablissementId) " +
+           "AND (:etablissementId IS NULL OR et.id = :etablissementId) " +
            "AND (:resultat IS NULL OR p.resultat = :resultat) " +
            "AND (:search IS NULL OR (" +
            "  LOWER(e.nom) LIKE LOWER(CONCAT('%', :search, '%')) " +
