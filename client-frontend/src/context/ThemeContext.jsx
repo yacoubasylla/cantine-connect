@@ -3,7 +3,7 @@ import { createContext, useContext, useState } from 'react'
 const ThemeModeContext = createContext(null)
 
 const STORAGE_KEY = 'klem-theme'
-const DEFAULT_THEME = 'modern'
+const DEFAULT_THEME = 'ivoirien'
 const VALID_THEMES = ['corporate', 'modern', 'ivoirien']
 
 export function ThemeModeProvider({ children }) {
