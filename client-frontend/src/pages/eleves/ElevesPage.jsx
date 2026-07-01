@@ -127,12 +127,12 @@ export default function ElevesPage() {
   return (
     <Box>
       {/* ── En-tête ─────────────────────────────────────── */}
-      <Stack direction="row" alignItems="center" justifyContent="space-between" mb={3} flexWrap="wrap" gap={1}>
+      <Stack direction={{ xs: 'column', sm: 'row' }} alignItems={{ xs: 'stretch', sm: 'center' }} justifyContent="space-between" mb={3} gap={1}>
         <Stack direction="row" alignItems="center" spacing={1.5}>
           <PeopleIcon color="primary" />
           <Typography variant="h5" fontWeight={600}>Élèves</Typography>
         </Stack>
-        <Stack direction="row" spacing={1}>
+        <Stack direction="row" spacing={1} flexWrap="wrap">
           <Tooltip title="Exporter CSV (page courante)">
             <span>
               <Button
@@ -152,7 +152,7 @@ export default function ElevesPage() {
             </IconButton>
           </Tooltip>
           {isAdmin && (
-            <Button variant="contained" startIcon={<AddIcon />} onClick={handleAdd}>
+            <Button variant="contained" startIcon={<AddIcon />} onClick={handleAdd} sx={{ flex: { xs: 1, sm: '0 0 auto' } }}>
               Ajouter
             </Button>
           )}
@@ -161,18 +161,18 @@ export default function ElevesPage() {
 
       {/* ── Filtres ─────────────────────────────────────── */}
       <Paper variant="outlined" sx={{ p: 2, mb: 2 }}>
-        <Stack direction="row" spacing={2} flexWrap="wrap" gap={1.5} alignItems="flex-end">
+        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} flexWrap="wrap" gap={1.5} alignItems={{ xs: 'stretch', sm: 'flex-end' }}>
           <TextField
             size="small" label="Recherche" placeholder="Nom, prénom, matricule…"
             value={filtres.search}
             onChange={(e) => setFiltre('search', e.target.value)}
-            sx={{ minWidth: 220, flex: 1 }}
+            sx={{ minWidth: { xs: '100%', sm: 220 }, flex: 1 }}
           />
           <TextField
             select size="small" label="Établissement"
             value={filtres.etablissementId}
             onChange={(e) => setFiltre('etablissementId', e.target.value)}
-            sx={{ minWidth: 200 }}
+            sx={{ minWidth: { xs: '100%', sm: 200 } }}
           >
             <MenuItem value="">Tous</MenuItem>
             {etablissements.map((e) => (
@@ -183,7 +183,7 @@ export default function ElevesPage() {
             select size="small" label="Statut"
             value={filtres.statut}
             onChange={(e) => setFiltre('statut', e.target.value)}
-            sx={{ minWidth: 180 }}
+            sx={{ minWidth: { xs: '100%', sm: 180 } }}
           >
             {STATUTS_FILTRE.map((s) => (
               <MenuItem key={s.value} value={s.value}>{s.label}</MenuItem>

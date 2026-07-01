@@ -6,7 +6,9 @@ import {
   Dialog, DialogTitle, DialogContent, DialogActions,
   TextField, Select, MenuItem, FormControl, InputLabel,
   Autocomplete, CircularProgress, Link,
+  useMediaQuery,
 } from '@mui/material'
+import { useTheme } from '@mui/material/styles'
 import AddIcon          from '@mui/icons-material/Add'
 import RefreshIcon      from '@mui/icons-material/Refresh'
 import OpenInNewIcon    from '@mui/icons-material/OpenInNew'
@@ -78,6 +80,8 @@ function exportCsv(paiements) {
 // ── Dialogue : Initier un paiement ────────────────────────────────────────────
 
 function InitierDialog({ open, onClose, onSubmit, isParent }) {
+  const theme = useTheme()
+  const fullScreen = useMediaQuery(theme.breakpoints.down('sm'))
   const FORM_INIT = { eleve: null, operateur: '', montant: '', telephonePayeur: '' }
   const [form,    setForm]    = useState(FORM_INIT)
   const [submitting, setSub]  = useState(false)
@@ -147,7 +151,7 @@ function InitierDialog({ open, onClose, onSubmit, isParent }) {
   }
 
   return (
-    <Dialog open={open} onClose={paymentUrl ? onClose : undefined} maxWidth="sm" fullWidth>
+    <Dialog open={open} onClose={paymentUrl ? onClose : undefined} maxWidth="sm" fullWidth fullScreen={fullScreen}>
       <DialogTitle>Initier un paiement Mobile Money</DialogTitle>
       <DialogContent>
         <Stack spacing={2.5} mt={1}>
@@ -369,12 +373,12 @@ export default function PaiementsPage() {
   return (
     <Box>
       {/* ── En-tête ─────────────────────────────────────── */}
-      <Stack direction="row" alignItems="center" justifyContent="space-between" mb={2} flexWrap="wrap" gap={1}>
+      <Stack direction={{ xs: 'column', sm: 'row' }} alignItems={{ xs: 'stretch', sm: 'center' }} justifyContent="space-between" mb={2} gap={1}>
         <Stack direction="row" alignItems="center" spacing={1.5}>
           <PaymentsIcon color="primary" />
           <Typography variant="h5" fontWeight={600}>Paiements Mobile Money</Typography>
         </Stack>
-        <Stack direction="row" spacing={1}>
+        <Stack direction="row" spacing={1} flexWrap="wrap">
           <Tooltip title="Exporter CSV (page courante)">
             <span>
               <Button
@@ -393,7 +397,7 @@ export default function PaiementsPage() {
               <RefreshIcon />
             </IconButton>
           </Tooltip>
-          <Button variant="contained" startIcon={<AddIcon />} onClick={() => setDialogOpen(true)}>
+          <Button variant="contained" startIcon={<AddIcon />} onClick={() => setDialogOpen(true)} sx={{ flex: { xs: 1, sm: '0 0 auto' } }}>
             Initier un paiement
           </Button>
         </Stack>
@@ -401,14 +405,14 @@ export default function PaiementsPage() {
 
       {/* ── Filtres ─────────────────────────────────────── */}
       <Paper variant="outlined" sx={{ p: 2, mb: 2 }}>
-        <Stack direction="row" spacing={2} flexWrap="wrap" gap={1.5} alignItems="center">
+        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} flexWrap="wrap" gap={1.5} alignItems={{ xs: 'stretch', sm: 'center' }}>
           <TextField
             size="small"
             label="Recherche élève"
             placeholder="Nom, prénom, matricule…"
             value={searchFiltre}
             onChange={(e) => { setSearchFiltre(e.target.value); setPage(0) }}
-            sx={{ minWidth: 220, flex: 1 }}
+            sx={{ minWidth: { xs: '100%', sm: 220 }, flex: 1 }}
           />
           <Stack direction="row" spacing={1} flexWrap="wrap">
             {STATUTS.map((s) => (

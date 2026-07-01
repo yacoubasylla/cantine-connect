@@ -735,3 +735,16 @@
   - `client-frontend/src/context/ThemeContext.jsx` — `DEFAULT_THEME` passé de `'modern'` à `'ivoirien'`
 - **Description :** Le nouveau thème par défaut ne s'applique qu'aux utilisateurs sans préférence déjà enregistrée dans `localStorage` (`klem-theme`) — ceux ayant déjà choisi un thème conservent leur choix.
 - **Tests validés :** `npm run build` ✅.
+
+---
+
+### [2026-07-01] - Responsive : Formulaires Élèves/Paiements et Filtres Élèves/Paiements/Historique
+- **Statut :** Livré / Opérationnel
+- **Fichiers Modifiés :**
+  - `pages/eleves/EleveFormDialog.jsx` — dialogue plein écran sur mobile (`useMediaQuery` + `fullScreen`), champs Nom/Prénom empilés verticalement sous `sm`, onglets `scrollable` avec boutons de défilement mobiles
+  - `pages/eleves/ElevesPage.jsx` — filtres (Recherche/Établissement/Statut) empilés pleine largeur sous `sm` ; en-tête (titre + boutons) empilé verticalement sous `sm`
+  - `pages/paiements/PaiementsPage.jsx` — dialogue « Initier un paiement » plein écran sur mobile ; filtres (recherche + statuts) empilés ; en-tête empilé verticalement
+  - `pages/passages/PassagesPage.jsx` — filtres (dates, établissement, résultat, recherche) empilés pleine largeur sous `sm` ; en-tête empilé verticalement
+- **Bug découvert et corrigé en cours de route :** sur `PaiementsPage`, le titre « Paiements Mobile Money » et le bouton « Initier un paiement » ne tenaient pas sur une seule ligne à 375px de large — le bouton débordait hors écran au lieu de passer à la ligne, malgré `flexWrap="wrap"` sur le conteneur. Corrigé en rendant la direction de la Stack d'en-tête responsive (`column` sous `sm`) plutôt que de compter uniquement sur le retour à la ligne flexbox.
+- **Description :** Vérifié visuellement via Playwright (Chromium headless, viewports 375×812 et 1280×900) contre l'application réelle (dev server + backend local) — captures avant/après confirmant l'absence de régression desktop et la correction du débordement mobile.
+- **Tests validés :** `./mvnw test` (24/24) ✅ · `npm run build` ✅ · lint sans régression (30 problèmes, identique à la référence) · vérification visuelle Playwright sur Élèves (formulaire + filtres), Paiements (dialogue + filtres), Historique des Passages (filtres) en mobile et desktop

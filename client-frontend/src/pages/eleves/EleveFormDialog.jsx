@@ -3,7 +3,9 @@ import {
   Dialog, DialogTitle, DialogContent, DialogActions,
   Tabs, Tab, Box, Stack, TextField, Button,
   MenuItem, FormControlLabel, Checkbox, Alert, CircularProgress,
+  useMediaQuery,
 } from '@mui/material'
+import { useTheme } from '@mui/material/styles'
 import { useClasses } from '../../hooks/useClasses'
 
 const STATUTS = [
@@ -38,6 +40,8 @@ function TabPanel({ children, value, index }) {
 
 export default function EleveFormDialog({ open, onClose, onSuccess, eleveToEdit, etablissements }) {
   const isEdit = Boolean(eleveToEdit)
+  const theme = useTheme()
+  const fullScreen = useMediaQuery(theme.breakpoints.down('sm'))
   const [tab, setTab] = useState(0)
   const [form, setForm] = useState(FORM_INITIAL)
   const [saving, setSaving] = useState(false)
@@ -108,11 +112,11 @@ export default function EleveFormDialog({ open, onClose, onSuccess, eleveToEdit,
   }
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth fullScreen={fullScreen}>
       <DialogTitle>{isEdit ? 'Modifier l\'élève' : 'Nouvel élève'}</DialogTitle>
 
-      <Box sx={{ borderBottom: 1, borderColor: 'divider', px: 3 }}>
-        <Tabs value={tab} onChange={(_, v) => setTab(v)}>
+      <Box sx={{ borderBottom: 1, borderColor: 'divider', px: { xs: 1, sm: 3 } }}>
+        <Tabs value={tab} onChange={(_, v) => setTab(v)} variant="scrollable" allowScrollButtonsMobile scrollButtons="auto">
           <Tab label="Général" />
           <Tab label="Cantine / Affectation" />
           <Tab label="Contacts / Allergies" />
@@ -126,7 +130,7 @@ export default function EleveFormDialog({ open, onClose, onSuccess, eleveToEdit,
         <TabPanel value={tab} index={0}>
           <Stack spacing={2}>
             <TextField label="Matricule *" name="matricule" value={form.matricule} onChange={handleChange} fullWidth />
-            <Stack direction="row" spacing={2}>
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
               <TextField label="Nom *" name="nom" value={form.nom} onChange={handleChange} fullWidth />
               <TextField label="Prénom *" name="prenom" value={form.prenom} onChange={handleChange} fullWidth />
             </Stack>

@@ -168,12 +168,12 @@ export default function PassagesPage() {
   return (
     <Box>
       {/* En-tête */}
-      <Stack direction="row" alignItems="center" justifyContent="space-between" mb={3} flexWrap="wrap" gap={1}>
+      <Stack direction={{ xs: 'column', sm: 'row' }} alignItems={{ xs: 'stretch', sm: 'center' }} justifyContent="space-between" mb={3} gap={1}>
         <Stack direction="row" alignItems="center" spacing={1.5}>
           <HistoryIcon color="primary" />
           <Typography variant="h5" fontWeight={600}>Historique des Passages</Typography>
         </Stack>
-        <Stack direction="row" spacing={1}>
+        <Stack direction="row" spacing={1} flexWrap="wrap">
           <Tooltip title="Exporter CSV (page courante)">
             <span>
               <Button
@@ -197,7 +197,7 @@ export default function PassagesPage() {
 
       {/* Filtres */}
       <Paper variant="outlined" sx={{ p: 2, mb: 2 }}>
-        <Stack direction="row" spacing={2} flexWrap="wrap" gap={1.5} alignItems="flex-end">
+        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} flexWrap="wrap" gap={1.5} alignItems={{ xs: 'stretch', sm: 'flex-end' }}>
 
           <TextField
             label="Date début"
@@ -206,7 +206,7 @@ export default function PassagesPage() {
             value={filtres.dateDebut}
             onChange={(e) => setFiltre('dateDebut', e.target.value)}
             slotProps={{ inputLabel: { shrink: true } }}
-            sx={{ minWidth: 160 }}
+            sx={{ minWidth: { xs: '100%', sm: 160 } }}
           />
 
           <TextField
@@ -216,7 +216,7 @@ export default function PassagesPage() {
             value={filtres.dateFin}
             onChange={(e) => setFiltre('dateFin', e.target.value)}
             slotProps={{ inputLabel: { shrink: true } }}
-            sx={{ minWidth: 160 }}
+            sx={{ minWidth: { xs: '100%', sm: 160 } }}
           />
 
           {!isParent && (
@@ -226,7 +226,7 @@ export default function PassagesPage() {
               size="small"
               value={filtres.etablissementId}
               onChange={(e) => setFiltre('etablissementId', e.target.value)}
-              sx={{ minWidth: 200 }}
+              sx={{ minWidth: { xs: '100%', sm: 200 } }}
             >
               <MenuItem value="">Tous les établissements</MenuItem>
               {etablissements.map((e) => (
@@ -241,7 +241,7 @@ export default function PassagesPage() {
             size="small"
             value={filtres.resultat}
             onChange={(e) => setFiltre('resultat', e.target.value)}
-            sx={{ minWidth: 150 }}
+            sx={{ minWidth: { xs: '100%', sm: 150 } }}
           >
             <MenuItem value="">Tous</MenuItem>
             <MenuItem value="ACCORDE">Accordé</MenuItem>
@@ -254,7 +254,7 @@ export default function PassagesPage() {
             size="small"
             value={filtres.search}
             onChange={(e) => setFiltre('search', e.target.value)}
-            sx={{ minWidth: 220, flex: 1 }}
+            sx={{ minWidth: { xs: '100%', sm: 220 }, flex: 1 }}
           />
 
         </Stack>
