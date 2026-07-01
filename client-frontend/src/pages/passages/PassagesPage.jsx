@@ -272,17 +272,17 @@ export default function PassagesPage() {
       {/* Table */}
       <Paper variant="outlined">
         <TableContainer>
-          <Table size="small">
+          <Table size="small" sx={{ '& .MuiTableCell-root': { px: { xs: 0.75, sm: 2 } } }}>
             <TableHead>
               <TableRow sx={{ bgcolor: 'action.hover' }}>
-                <TableCell sx={{ whiteSpace: 'nowrap' }}>Date</TableCell>
-                <TableCell sx={{ whiteSpace: 'nowrap' }}>Heure</TableCell>
-                <TableCell>Matricule</TableCell>
+                <TableCell sx={{ whiteSpace: 'nowrap', display: { xs: 'none', sm: 'table-cell' } }}>Date</TableCell>
+                <TableCell sx={{ whiteSpace: 'nowrap', display: { xs: 'none', sm: 'table-cell' } }}>Heure</TableCell>
+                <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>Matricule</TableCell>
                 <TableCell>Élève</TableCell>
-                <TableCell>Classe</TableCell>
-                <TableCell>Établissement</TableCell>
+                <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>Classe</TableCell>
+                <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>Établissement</TableCell>
                 <TableCell align="center">Résultat</TableCell>
-                <TableCell>Motif de refus</TableCell>
+                <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>Motif de refus</TableCell>
                 {isAdmin && <TableCell align="center">Actions</TableCell>}
               </TableRow>
             </TableHead>
@@ -304,26 +304,29 @@ export default function PassagesPage() {
               ) : (
                 passages.map((p) => (
                   <TableRow key={p.passageId ?? p.id} hover>
-                    <TableCell sx={{ whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' }}>
+                    <TableCell sx={{ whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums', display: { xs: 'none', sm: 'table-cell' } }}>
                       {formatDate(p.datePassage)}
                     </TableCell>
-                    <TableCell sx={{ whiteSpace: 'nowrap', fontFamily: 'monospace', fontSize: 13 }}>
+                    <TableCell sx={{ whiteSpace: 'nowrap', fontFamily: 'monospace', fontSize: 13, display: { xs: 'none', sm: 'table-cell' } }}>
                       {formatHeure(p.heurePassage)}
                     </TableCell>
-                    <TableCell sx={{ fontFamily: 'monospace', fontSize: 13 }}>
+                    <TableCell sx={{ fontFamily: 'monospace', fontSize: 13, display: { xs: 'none', sm: 'table-cell' } }}>
                       {p.eleveMatricule ?? '—'}
                     </TableCell>
                     <TableCell>
                       <Typography variant="body2" fontWeight={500}>
                         {p.eleveNomComplet}
                       </Typography>
+                      <Typography variant="caption" color="text.secondary" sx={{ display: { xs: 'block', sm: 'none' } }}>
+                        {formatDate(p.datePassage)} {formatHeure(p.heurePassage)} · {p.eleveMatricule ?? '—'} · {p.classeNom ?? '—'}
+                      </Typography>
                     </TableCell>
-                    <TableCell>
+                    <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>
                       <Typography variant="body2" color="text.secondary">
                         {p.classeNom ?? '—'}
                       </Typography>
                     </TableCell>
-                    <TableCell>
+                    <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>
                       <Typography variant="body2" color="text.secondary">
                         {p.etablissementNom ?? '—'}
                       </Typography>
@@ -333,8 +336,17 @@ export default function PassagesPage() {
                         ? <CheckCircleIcon color="success" fontSize="small" />
                         : <CancelIcon color="error" fontSize="small" />
                       }
+                      {p.motifRefus && (
+                        <Chip
+                          label={MOTIF_LABELS[p.motifRefus] ?? p.motifRefus.replace(/_/g, ' ')}
+                          size="small"
+                          color="error"
+                          variant="outlined"
+                          sx={{ display: { xs: 'flex', sm: 'none' }, mt: 0.5 }}
+                        />
+                      )}
                     </TableCell>
-                    <TableCell>
+                    <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>
                       {p.motifRefus
                         ? (
                           <Chip

@@ -748,3 +748,16 @@
 - **Bug découvert et corrigé en cours de route :** sur `PaiementsPage`, le titre « Paiements Mobile Money » et le bouton « Initier un paiement » ne tenaient pas sur une seule ligne à 375px de large — le bouton débordait hors écran au lieu de passer à la ligne, malgré `flexWrap="wrap"` sur le conteneur. Corrigé en rendant la direction de la Stack d'en-tête responsive (`column` sous `sm`) plutôt que de compter uniquement sur le retour à la ligne flexbox.
 - **Description :** Vérifié visuellement via Playwright (Chromium headless, viewports 375×812 et 1280×900) contre l'application réelle (dev server + backend local) — captures avant/après confirmant l'absence de régression desktop et la correction du débordement mobile.
 - **Tests validés :** `./mvnw test` (24/24) ✅ · `npm run build` ✅ · lint sans régression (30 problèmes, identique à la référence) · vérification visuelle Playwright sur Élèves (formulaire + filtres), Paiements (dialogue + filtres), Historique des Passages (filtres) en mobile et desktop
+
+---
+
+### [2026-07-01] - Responsive (Suite) : Suppression du Défilement Horizontal sur les Tableaux Élèves/Paiements/Historique
+- **Statut :** Livré / Opérationnel
+- **Signalement :** Après le premier passage responsive, l'utilisateur signale qu'il faut toujours défiler horizontalement pour voir certains composants/champs sur les listes.
+- **Diagnostic :** Vérification Playwright par mesure `scrollWidth` vs `clientWidth` du `TableContainer` à 375px : Élèves déjà correct après le formulaire/filtres du tour précédent, mais Paiements (418px vs 341px) et Historique des Passages (455px vs 341px) débordaient toujours — les colonnes secondaires n'avaient pas encore été traitées, seuls les filtres et dialogues l'avaient été.
+- **Fichiers Modifiés :**
+  - `pages/eleves/ElevesPage.jsx` — colonnes Matricule/Établissement/Classe masquées sous `sm`, repliées en sous-titre dans la cellule Nom/Prénom ; QR fusionné dans la colonne Actions (une colonne de moins)
+  - `pages/paiements/PaiementsPage.jsx` — colonnes Date/Référence masquées sous `sm`, Opérateur/Téléphone masquées sous `md`, repliées en sous-titre dans la cellule Élève ; padding des cellules resserré sous `xs`
+  - `pages/passages/PassagesPage.jsx` — colonnes Date/Heure/Matricule masquées sous `sm`, Classe/Établissement masquées sous `md`, Motif de refus replié en Chip sous l'icône Résultat sur mobile ; padding des cellules resserré sous `xs`
+- **Description :** Les informations masquées ne sont pas perdues : elles réapparaissent en sous-titre compact dans la cellule principale (Nom/Prénom, Élève) sur mobile, et restent en colonnes normales à partir de `sm`/`md`. Le premier essai de resserrement (colonnes masquées seules) laissait encore la colonne Actions déborder de 77px sur Paiements/Historique — résolu en resserrant le padding des cellules (`px: 0.75` au lieu de la valeur par défaut) sous `xs`.
+- **Tests validés :** Mesure Playwright confirmée à trois largeurs : 375px (mobile, aucun défilement sur les 3 tableaux, avec données réelles), 800px (tablette, colonnes `md` cachées comme attendu), 1280px (desktop, aucune régression — toutes les colonnes visibles comme avant) ; `npm run build` ✅ · lint sans régression (30 problèmes, identique à la référence).

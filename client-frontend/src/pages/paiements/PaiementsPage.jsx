@@ -434,16 +434,16 @@ export default function PaiementsPage() {
       {/* ── Table ───────────────────────────────────────── */}
       <Paper variant="outlined">
         <TableContainer>
-          <Table size="small">
+          <Table size="small" sx={{ '& .MuiTableCell-root': { px: { xs: 0.75, sm: 2 } } }}>
             <TableHead>
               <TableRow sx={{ bgcolor: 'action.hover' }}>
-                <TableCell>Date</TableCell>
+                <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>Date</TableCell>
                 <TableCell>Élève</TableCell>
-                <TableCell>Opérateur</TableCell>
+                <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>Opérateur</TableCell>
                 <TableCell align="right">Montant</TableCell>
-                <TableCell>Téléphone</TableCell>
+                <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>Téléphone</TableCell>
                 <TableCell>Statut</TableCell>
-                <TableCell>Référence</TableCell>
+                <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>Référence</TableCell>
                 {isAdmin && <TableCell align="center">Actions</TableCell>}
               </TableRow>
             </TableHead>
@@ -467,18 +467,23 @@ export default function PaiementsPage() {
                   )
                   : paiements.map((p) => (
                     <TableRow key={p.id} hover>
-                      <TableCell sx={{ whiteSpace: 'nowrap' }}>{formatDate(p.dateCreation)}</TableCell>
-                      <TableCell>{p.eleveNomComplet}</TableCell>
+                      <TableCell sx={{ whiteSpace: 'nowrap', display: { xs: 'none', sm: 'table-cell' } }}>{formatDate(p.dateCreation)}</TableCell>
                       <TableCell>
+                        {p.eleveNomComplet}
+                        <Typography variant="caption" color="text.secondary" sx={{ display: { xs: 'block', sm: 'none' } }}>
+                          {formatDate(p.dateCreation)} · {operateurLabel(p.operateur)}
+                        </Typography>
+                      </TableCell>
+                      <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>
                         <Stack direction="row" alignItems="center" spacing={0.75}>
                           <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: operateurColor(p.operateur), flexShrink: 0 }} />
                           <Typography variant="caption">{operateurLabel(p.operateur)}</Typography>
                         </Stack>
                       </TableCell>
-                      <TableCell align="right" sx={{ fontWeight: 600 }}>
+                      <TableCell align="right" sx={{ fontWeight: 600, whiteSpace: 'nowrap' }}>
                         {formatMontant(p.montant)}
                       </TableCell>
-                      <TableCell>{p.telephonePayeur ?? '—'}</TableCell>
+                      <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>{p.telephonePayeur ?? '—'}</TableCell>
                       <TableCell>
                         <Chip
                           label={STATUTS.find((s) => s.value === p.statut)?.label ?? p.statut}
@@ -487,7 +492,7 @@ export default function PaiementsPage() {
                           variant="outlined"
                         />
                       </TableCell>
-                      <TableCell>
+                      <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>
                         <Typography
                           variant="caption"
                           fontFamily="monospace"
@@ -497,7 +502,7 @@ export default function PaiementsPage() {
                         </Typography>
                       </TableCell>
                       {isAdmin && (
-                        <TableCell align="center">
+                        <TableCell align="center" sx={{ whiteSpace: 'nowrap' }}>
                           <Tooltip title="Modifier">
                             <IconButton size="small" onClick={() => setEditTarget(p)}>
                               <EditIcon fontSize="small" />

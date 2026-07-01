@@ -195,54 +195,58 @@ export default function ElevesPage() {
       {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
 
       {/* ── Tableau ─────────────────────────────────────── */}
+      {/* Colonnes secondaires (Matricule/Établissement/Classe) masquées sous sm — repliées
+          en sous-titre dans la cellule Nom/Prénom pour éviter le défilement horizontal. */}
       <TableContainer component={Paper} sx={{ boxShadow: 1 }}>
         <Table size="small">
           <TableHead>
             <TableRow>
-              <TableCell>Matricule</TableCell>
+              <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>Matricule</TableCell>
               <TableCell>Nom / Prénom</TableCell>
-              <TableCell>Établissement</TableCell>
-              <TableCell>Classe</TableCell>
+              <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>Établissement</TableCell>
+              <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>Classe</TableCell>
               <TableCell>Statut</TableCell>
-              <TableCell align="center">QR</TableCell>
               <TableCell align="center">Actions</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {loading ? (
               <TableRow>
-                <TableCell colSpan={7} align="center" sx={{ py: 4 }}>
+                <TableCell colSpan={6} align="center" sx={{ py: 4 }}>
                   <CircularProgress size={28} />
                 </TableCell>
               </TableRow>
             ) : eleves.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} align="center" sx={{ py: 4, color: 'text.secondary' }}>
+                <TableCell colSpan={6} align="center" sx={{ py: 4, color: 'text.secondary' }}>
                   Aucun élève trouvé
                 </TableCell>
               </TableRow>
             ) : (
               eleves.map((eleve) => (
                 <TableRow key={eleve.id} hover>
-                  <TableCell sx={{ fontFamily: 'monospace', fontSize: 13 }}>{eleve.matricule}</TableCell>
+                  <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' }, fontFamily: 'monospace', fontSize: 13 }}>
+                    {eleve.matricule}
+                  </TableCell>
                   <TableCell>
                     <Typography variant="body2" fontWeight={600}>{eleve.nom} {eleve.prenom}</Typography>
+                    <Typography variant="caption" color="text.secondary" sx={{ display: { xs: 'block', sm: 'none' } }}>
+                      {eleve.matricule} · {eleve.classeLibelle} · {eleve.etablissementNom}
+                    </Typography>
                   </TableCell>
-                  <TableCell>
+                  <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>
                     <Typography variant="body2" color="text.secondary">{eleve.etablissementNom}</Typography>
                   </TableCell>
-                  <TableCell>
+                  <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>
                     <Typography variant="body2">{eleve.classeLibelle}</Typography>
                   </TableCell>
                   <TableCell><StatutBadge statut={eleve.statutAcces} /></TableCell>
-                  <TableCell align="center">
+                  <TableCell align="center" sx={{ whiteSpace: 'nowrap' }}>
                     <Tooltip title="Afficher le QR Code">
                       <IconButton size="small" onClick={() => setQrEleve(eleve)}>
                         <QrCode2Icon fontSize="small" color="action" />
                       </IconButton>
                     </Tooltip>
-                  </TableCell>
-                  <TableCell align="center">
                     {isAdmin && (
                       <>
                         <Tooltip title="Modifier">
