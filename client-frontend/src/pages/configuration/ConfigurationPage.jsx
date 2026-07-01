@@ -9,6 +9,7 @@ import EmailIcon          from '@mui/icons-material/Email'
 import SmsIcon            from '@mui/icons-material/Sms'
 import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet'
 import WallpaperIcon      from '@mui/icons-material/Wallpaper'
+import CloudSyncIcon      from '@mui/icons-material/CloudSync'
 import { useConfigurations } from '../../hooks/useConfig'
 
 // Configurations booléennes (toggle Switch)
@@ -17,6 +18,12 @@ const TOGGLE_META = {
     label:       'Scanner Caméra Réfectoire',
     description: 'Activer la caméra du téléphone pour scanner les QR Codes directement depuis la page de contrôle accès.',
     icon:        <QrCodeScannerIcon />,
+    category:    'Scan & Accès',
+  },
+  SCAN_CACHE_AUTO_REFRESH: {
+    label:       'Rafraîchissement automatique du cache hors-ligne',
+    description: 'Télécharger automatiquement le cache de secours (24h) à l\'ouverture de la page Scan Réfectoire, si une connexion est disponible. Désactivé : le téléchargement reste possible manuellement via le bouton dédié.',
+    icon:        <CloudSyncIcon />,
     category:    'Scan & Accès',
   },
   NOTIFICATIONS_EMAIL_ENABLED: {

@@ -172,12 +172,24 @@ export default function ScanPage() {
   const inputRef = useRef(null)
 
   const { valeur: cameraEnabled } = useConfigValeur('SCAN_CAMERA_ENABLED', 'false')
+  const { valeur: cacheAutoRefresh, loading: loadingAutoRefreshCfg } = useConfigValeur('SCAN_CACHE_AUTO_REFRESH', 'true')
+  const autoRefreshDone = useRef(false)
 
   const {
     result, scanning, error,
     isOnline, cache, refreshingCache,
     scanner, rafraichirCache, reinitialiser,
   } = useScan()
+
+  // Rafraîchit automatiquement le cache offline à l'ouverture de la page,
+  // une seule fois, si activé en configuration et si une connexion est disponible.
+  useEffect(() => {
+    if (autoRefreshDone.current || loadingAutoRefreshCfg) return
+    if (cacheAutoRefresh === 'true' && isOnline) {
+      autoRefreshDone.current = true
+      rafraichirCache()
+    }
+  }, [cacheAutoRefresh, loadingAutoRefreshCfg, isOnline, rafraichirCache])
 
   const chargerPassages = useCallback(async () => {
     setLoadingP(true)

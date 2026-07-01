@@ -83,7 +83,9 @@ Vue d'ensemble : nombre d'élèves, répartition par statut d'accès, paiements 
 ## 7. Scan Réfectoire (ADMIN / GESTIONNAIRE / CAISSIER)
 
 - Validation du QR Code d'un élève en moins d'une seconde : ✅ accordé / ❌ refusé (motif affiché).
-- Fonctionne hors-ligne via un cache local de 24h, resynchronisé à la reconnexion.
+- Fonctionne hors-ligne via un cache local de 24h (liste des élèves actifs + statut d'accès), resynchronisé à la reconnexion.
+- Barre de statut : indicateur « En ligne »/« Hors ligne », état du cache (« Cache absent » ou « Cache : X élèves · âge »), bouton de téléchargement manuel du cache.
+- **Rafraîchissement automatique du cache** : si activé (réglage par défaut, voir § Configuration), le cache est téléchargé silencieusement à l'ouverture de la page si une connexion est disponible — pas besoin de cliquer manuellement. Désactivable pour repasser en téléchargement manuel uniquement.
 - Non accessible au rôle PARENT.
 
 ---
@@ -116,6 +118,7 @@ Vue d'ensemble : nombre d'élèves, répartition par statut d'accès, paiements 
 ## 11. Configuration (ADMIN uniquement)
 
 - Activation/désactivation des notifications email et SMS.
+- Activation/désactivation du rafraîchissement automatique du cache hors-ligne (Scan Réfectoire) — activé par défaut.
 - Mode de paiement : `ABONNEMENT` (accès annuel) ou `CREDITS` (débit par repas, avec tarif configurable).
 - Image de fond personnalisée pour l'écran de connexion.
 

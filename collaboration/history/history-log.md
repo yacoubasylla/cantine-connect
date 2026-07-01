@@ -761,3 +761,17 @@
   - `pages/passages/PassagesPage.jsx` — colonnes Date/Heure/Matricule masquées sous `sm`, Classe/Établissement masquées sous `md`, Motif de refus replié en Chip sous l'icône Résultat sur mobile ; padding des cellules resserré sous `xs`
 - **Description :** Les informations masquées ne sont pas perdues : elles réapparaissent en sous-titre compact dans la cellule principale (Nom/Prénom, Élève) sur mobile, et restent en colonnes normales à partir de `sm`/`md`. Le premier essai de resserrement (colonnes masquées seules) laissait encore la colonne Actions déborder de 77px sur Paiements/Historique — résolu en resserrant le padding des cellules (`px: 0.75` au lieu de la valeur par défaut) sous `xs`.
 - **Tests validés :** Mesure Playwright confirmée à trois largeurs : 375px (mobile, aucun défilement sur les 3 tableaux, avec données réelles), 800px (tablette, colonnes `md` cachées comme attendu), 1280px (desktop, aucune régression — toutes les colonnes visibles comme avant) ; `npm run build` ✅ · lint sans régression (30 problèmes, identique à la référence).
+
+---
+
+### [2026-07-01] - Feat Scan Réfectoire : Rafraîchissement Automatique du Cache Hors-Ligne (Configurable)
+- **Statut :** Livré / Opérationnel
+- **Contexte :** Suite à une question de l'utilisateur sur les indicateurs « En ligne »/« Cache absent » de Scan Réfectoire, discussion sur l'opportunité de rafraîchir automatiquement le cache de secours (24h) à l'ouverture de la page plutôt que de compter sur un clic manuel — ce qui correspond à l'intention déjà documentée dans `CONTEXT.md` (« cache mis à jour à chaque connexion ») mais jamais implémentée. Accepté avec un interrupteur de configuration pour garder le contrôle.
+- **Fichiers Créés :**
+  - `server-backend/.../db/migration/V7__add_scan_cache_auto_refresh_config.sql` — clé `SCAN_CACHE_AUTO_REFRESH`, valeur par défaut `true`
+- **Fichiers Modifiés :**
+  - `pages/scan/ScanPage.jsx` — lit `SCAN_CACHE_AUTO_REFRESH` via `useConfigValeur` ; effet déclenchant `rafraichirCache()` une seule fois à l'ouverture de la page si activé et si en ligne (guardé par une `ref`, attend la fin du chargement de la config avant de décider)
+  - `pages/configuration/ConfigurationPage.jsx` — nouveau toggle « Rafraîchissement automatique du cache hors-ligne » dans la catégorie « Scan & Accès »
+  - `collaboration/doc/manuel-utilisateur.md` (+ `.docx` régénéré) — sections Scan Réfectoire et Configuration mises à jour
+- **Description :** Le téléchargement manuel via le bouton ☁️⬇️ reste disponible dans tous les cas ; le nouveau réglage ne fait qu'automatiser le premier téléchargement de la session si une connexion est disponible, réduisant le risque d'oubli avant une coupure réseau.
+- **Tests validés :** `./mvnw test` (24/24) ✅ · migration V7 appliquée et vérifiée (`GET /configurations/SCAN_CACHE_AUTO_REFRESH` → `valeur: "true"`) · `npm run build` ✅ · lint sans régression · vérification Playwright bout-en-bout : cache vidé + réglage activé → téléchargement automatique confirmé (« Cache : 2 élèves · à l'instant ») ; réglage désactivé via la page Configuration + cache vidé → reste « Cache absent » (pas de téléchargement automatique), confirmant que l'interrupteur fonctionne dans les deux sens.
