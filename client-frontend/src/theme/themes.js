@@ -9,19 +9,19 @@ const baseTypography = {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 🏢  CORPORATIF — Dark mode, marine profond, sobre et premium
+// 🏢  CORPORATIF — Dark mode ardoise, gris clair et sobre
 // ─────────────────────────────────────────────────────────────────────────────
 const corporate = createTheme({
   palette: {
     mode: 'dark',
     primary:    { main: '#60A5FA', light: '#93C5FD', dark: '#2563EB' },
     secondary:  { main: '#FB923C', light: '#FCA5A5', dark: '#EA580C' },
-    background: { default: '#0F172A', paper: '#1E293B' },
-    divider:    'rgba(148,163,184,0.12)',
+    background: { default: '#252D3B', paper: '#303C4E' },
+    divider:    'rgba(148,163,184,0.18)',
     text: {
       primary:   '#F1F5F9',
-      secondary: '#94A3B8',
-      disabled:  '#475569',
+      secondary: '#B0BEC5',
+      disabled:  '#607080',
     },
   },
   typography: baseTypography,
@@ -40,9 +40,9 @@ const corporate = createTheme({
     MuiCard: {
       styleOverrides: {
         root: {
-          backgroundColor: '#1E293B',
-          boxShadow: '0 4px 24px rgba(0,0,0,0.40)',
-          border: '1px solid rgba(148,163,184,0.10)',
+          backgroundColor: '#303C4E',
+          boxShadow: '0 4px 24px rgba(0,0,0,0.25)',
+          border: '1px solid rgba(148,163,184,0.15)',
           borderRadius: 10,
         },
       },
@@ -51,27 +51,27 @@ const corporate = createTheme({
       styleOverrides: {
         head: {
           fontWeight: 700,
-          backgroundColor: '#0F172A',
+          backgroundColor: '#1E2636',
           color: '#60A5FA',
           borderBottom: '2px solid #2563EB',
         },
         body: {
-          borderBottom: '1px solid rgba(148,163,184,0.08)',
+          borderBottom: '1px solid rgba(148,163,184,0.12)',
         },
       },
     },
     MuiTableRow: {
       styleOverrides: {
         root: {
-          '&:hover': { backgroundColor: 'rgba(96,165,250,0.05)' },
+          '&:hover': { backgroundColor: 'rgba(96,165,250,0.07)' },
         },
       },
     },
     MuiAppBar: {
       styleOverrides: {
         root: {
-          backgroundColor: '#0A1628',
-          borderBottom: '1px solid rgba(148,163,184,0.12)',
+          backgroundColor: '#1E2636',
+          borderBottom: '1px solid rgba(148,163,184,0.15)',
           boxShadow: 'none',
         },
       },
@@ -79,8 +79,8 @@ const corporate = createTheme({
     MuiDrawer: {
       styleOverrides: {
         paper: {
-          backgroundColor: '#0F172A',
-          borderRight: '1px solid rgba(148,163,184,0.10)',
+          backgroundColor: '#252D3B',
+          borderRight: '1px solid rgba(148,163,184,0.15)',
         },
       },
     },
@@ -88,12 +88,12 @@ const corporate = createTheme({
       styleOverrides: {
         root: {
           '&.Mui-selected': {
-            backgroundColor: 'rgba(96,165,250,0.12)',
+            backgroundColor: 'rgba(96,165,250,0.14)',
             borderLeft: '3px solid #60A5FA',
             '& .MuiListItemIcon-root': { color: '#60A5FA' },
             '& .MuiListItemText-primary': { fontWeight: 700, color: '#60A5FA' },
           },
-          '&.Mui-selected:hover': { backgroundColor: 'rgba(96,165,250,0.18)' },
+          '&.Mui-selected:hover': { backgroundColor: 'rgba(96,165,250,0.20)' },
         },
       },
     },
@@ -116,7 +116,7 @@ const corporate = createTheme({
       },
     },
     MuiDivider: {
-      styleOverrides: { root: { borderColor: 'rgba(148,163,184,0.12)' } },
+      styleOverrides: { root: { borderColor: 'rgba(148,163,184,0.18)' } },
     },
     MuiPaper: {
       styleOverrides: { root: { backgroundImage: 'none' } },
@@ -124,8 +124,8 @@ const corporate = createTheme({
     MuiOutlinedInput: {
       styleOverrides: {
         root: {
-          '& fieldset': { borderColor: 'rgba(148,163,184,0.25)' },
-          '&:hover fieldset': { borderColor: 'rgba(148,163,184,0.50)' },
+          '& fieldset': { borderColor: 'rgba(148,163,184,0.30)' },
+          '&:hover fieldset': { borderColor: 'rgba(148,163,184,0.55)' },
         },
       },
     },
@@ -409,8 +409,8 @@ export const THEMES = { corporate, modern, ivoirien }
 export const THEME_META = {
   corporate: {
     label: 'Corporatif',
-    description: 'Dark mode — marine profond',
-    colors: ['#0F172A', '#1E293B', '#60A5FA'],
+    description: 'Dark mode — ardoise gris',
+    colors: ['#252D3B', '#303C4E', '#60A5FA'],
     emoji: '🏢',
   },
   modern: {
