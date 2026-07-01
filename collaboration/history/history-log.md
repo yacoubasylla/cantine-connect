@@ -568,3 +568,30 @@
   - `pages/utilisateurs/UtilisateursPage.jsx` — ajout de `PARENT` dans `ROLES` et `ROLE_CONFIG` (dialog de création + sélecteur de rôle inline)
 - **Description :** Le rôle `PARENT` existait déjà côté backend (`Role.java`) et n'était bloqué par aucune validation de `creer()`, mais la liste `ROLES` du frontend ne proposait que `ADMIN`, `GESTIONNAIRE`, `CAISSIER`. Résultat : impossible de créer un compte PARENT depuis la gestion des utilisateurs, donc impossible de l'associer ensuite à des élèves sur la page Parents. Complète la fonctionnalité livrée dans la session précédente (sélection assistée par Autocomplete).
 - **Tests validés :** `npm run build` ✅
+
+---
+
+### [2026-07-01] - Feat Rôle PARENT : périmètre restreint (paiements et historique propres, accès masqué)
+- **Statut :** Livré / Opérationnel
+- **Bug critique découvert et corrigé :** la contrainte `CHECK` PostgreSQL héritée du schéma initial (`utilisateurs_role_check`) n'autorisait que `ADMIN`/`GESTIONNAIRE`/`CAISSIER` — la migration V3 (comptes parents) avait ajouté le rôle `PARENT` côté application sans jamais mettre à jour cette contrainte. Toute tentative de création d'un compte PARENT échouait donc silencieusement au niveau base de données (violation de contrainte), y compris après le fix frontend de la session précédente. Nouvelle migration `V4__fix_utilisateurs_role_check_add_parent.sql` corrigeant la contrainte.
+- **Fichiers Créés :**
+  - `server-backend/.../db/migration/V4__fix_utilisateurs_role_check_add_parent.sql`
+  - `client-frontend/src/components/StaffRoute.jsx` — garde de route bloquant le rôle PARENT (redirection `/dashboard`)
+- **Fichiers Modifiés (Backend) :**
+  - `parent/repository/ParentRepository.java` — `findEnfantIdsByUtilisateurId()`
+  - `paiement/repository/TransactionPaiementRepository.java` — `findAllWithFiltersForEleves()` (restriction par liste d'élèves)
+  - `paiement/service/PaiementService.java` — `initierPaiement`, `lister`, `getById` prennent désormais l'`Utilisateur` connecté ; si rôle PARENT, restriction stricte aux enfants du parent (403 `AccessDeniedException` si élève non possédé, 404 si accès à la transaction d'un tiers)
+  - `paiement/controller/PaiementController.java` — injection du principal via `@AuthenticationPrincipal`
+  - `scan/repository/PassageSpecification.java` — filtre optionnel `eleveIdsRestriction`
+  - `scan/service/ScanService.java` — `listerPassages` restreint aux enfants si PARENT
+  - `scan/controller/ScanController.java` — `scanner()` et `cache()` bloqués pour PARENT (`@PreAuthorize("!hasRole('PARENT')")`)
+  - `eleve/controller/EleveController.java`, `etablissement/controller/EtablissementController.java` — GET (liste + détail) bloqués pour PARENT
+- **Fichiers Modifiés (Frontend) :**
+  - `layouts/MainLayout.jsx` — items de nav Établissements/Élèves/Scan Réfectoire réservés à `['ADMIN','GESTIONNAIRE','CAISSIER']`
+  - `App.jsx` — routes `/etablissements`, `/eleves`, `/scan` enveloppées dans `StaffRoute`
+  - `services/parentService.js` — `getMoi()`
+  - `hooks/useEtablissements.js` — paramètre `enabled` pour ne pas appeler l'endpoint bloqué quand PARENT
+  - `pages/passages/PassagesPage.jsx` — filtre Établissement masqué pour PARENT ; fix bonus : `isAdmin` utilisait `user?.roles?.includes('ROLE_ADMIN')` (toujours faux) au lieu de `user?.role === 'ADMIN'`, ce qui masquait les actions Modifier/Supprimer à l'ADMIN
+  - `pages/paiements/PaiementsPage.jsx` — dialogue d'initiation : pour PARENT, sélecteur d'élève limité à ses propres enfants (`parentService.getMoi()`) au lieu de la recherche libre sur `/eleves`
+- **Description :** Le parent connecté ne voit et n'initie que ses propres paiements, ne consulte que l'historique de passage de ses propres enfants, et n'a plus accès aux fonctionnalités Établissements / Élèves / Scan Réfectoire (masquées côté nav+routes, bloquées côté API). Toutes les restrictions sont appliquées côté serveur (pas seulement UI) : un parent qui forge une requête directe reste bloqué.
+- **Tests validés :** `./mvnw -q compile` ✅ · `./mvnw test` (23/23) ✅ · `npm run build` ✅ · lint sans régression (31 problèmes pré-existants, aucun nouveau) · vérification manuelle bout-en-bout via API réelle (compte PARENT de test créé/lié/supprimé en DB dev) : `/eleves`, `/etablissements`, `/scan/cache` → 403 ; `/parents/moi` → 200 ; `/paiements` et `/passages` → restreints aux enfants du parent ; `initier` paiement pour un élève non possédé → 403 ; `getById` sur une transaction d'un tiers → 404
