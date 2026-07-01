@@ -1,19 +1,167 @@
-# Cantine Connect - Système Intégré de Gestion de Cantine Scolaire Multi-Établissements
+# 🍽️ Cantine Connect — Système de Gestion de Cantine Scolaire Multi-Établissements
 
-Cantine Connect est une plateforme digitale complète conçue pour automatiser l'inscription, la gestion des élèves, le suivi des paiements par Mobile Money et le contrôle d'accès en temps réel au sein des réfectoires scolaires. Adaptée aux réalités structurelles et de connectivité de la Côte d'Ivoire.
-
-## 🚀 Fonctionnalités Principales
-- **Gestion Multi-Établissements & Classes** : Enregistrement structuré des élèves et affectations.
-- **Moteur de Paiement Mobile Money** : Suivi des transactions via Orange Money, MTN, Moov, et Wave avec rapprochement automatique.
-- **Contrôle d'Accès Temps Réel** : Validation des passages au réfectoire par scan de QR Code (vitesse < 1s).
-- **Interface à Onglets Optimisée** : Expérience utilisateur condensée et performante sur écran unique.
-- **Traçabilité & Audit (Log System)** : Table de trace exhaustive pour l'historique complet des actions (Ajout, Modification, Suppression).
-
-## 🛠️ Stack Technique
-- **Front-end** : React.js (Vite, JavaScript, HTML5, CSS3, Material UI - MUI)
-- **Back-end** : Spring Boot 3.x, Spring Data JPA, REST API, Spring Security
-- **Base de Données** : PostgreSQL / MySQL
-- **Outils de Dév & Déploiement** : Claude Code, GitHub, Vercel (Front-end)
+> **KLEM Technologies & Services** | Version 1.0.0-beta | MVP Opérationnel — Juillet 2026
 
 ---
-*Document confidentiel — Projet Cantine 2026.*
+
+## 🎯 Présentation
+
+**Cantine Connect** est une plateforme digitale cloud-native conçue pour automatiser la gestion complète de la restauration scolaire multi-établissements en Côte d'Ivoire :
+
+- 📋 Inscription et gestion centralisée des élèves par établissement et classe
+- 💳 Paiement Mobile Money (Orange, MTN, Moov, Wave) via CinetPay / PayDunya
+- 📷 Contrôle d'accès réfectoire en temps réel par scan de QR Code (< 1 seconde)
+- 📊 Tableau de bord de pilotage avec statistiques globales
+- 🔒 Traçabilité exhaustive de toutes les opérations (table `action_logs`)
+
+---
+
+## 🚀 Déploiement Production
+
+| Service | Plateforme | URL |
+|---------|-----------|-----|
+| **Frontend (React)** | Vercel | _(URL Vercel du projet)_ |
+| **Backend (Spring Boot)** | Railway | _(URL Railway du projet)_ |
+| **Base de données** | Railway PostgreSQL | Managée automatiquement |
+
+---
+
+## 🛠️ Stack Technique
+
+### Frontend
+- **React.js 18** propulsé par **Vite** (JavaScript pur)
+- **Material UI (MUI) v9** — Design System unique
+- **Axios** — Client HTTP avec intercepteurs JWT
+- **React Router v6** — Navigation SPA
+- **3 thèmes switchables** : 🏢 Corporatif (dark) / ✨ Moderne (bling) / 🇨🇮 École Ivoirienne
+
+### Backend
+- **Java 17 + Spring Boot 3.x** — Architecture en couches
+- **Spring Security + JWT Stateless** (HMAC-SHA512)
+- **Spring Data JPA** (Hibernate 6) + **JPA Specifications** (Criteria API)
+- **PostgreSQL** — Moteur de base de données
+
+---
+
+## 📁 Structure du Projet
+
+```
+cantine-connect/
+├── client-frontend/          # Application React (Vite)
+│   ├── src/
+│   │   ├── components/       # Composants réutilisables (AProposDialog, ThemeSwitcher…)
+│   │   ├── context/          # Contextes React (Auth, Theme)
+│   │   ├── hooks/            # Custom hooks (useDashboard, useEleves, usePassages…)
+│   │   ├── layouts/          # MainLayout (Drawer responsive)
+│   │   ├── pages/            # Pages par module fonctionnel
+│   │   ├── services/         # Clients API Axios
+│   │   └── theme/            # Thèmes MUI (themes.js)
+│   ├── vercel.json           # Config Vercel (rewrites SPA)
+│   └── package.json
+│
+├── server-backend/           # API Spring Boot
+│   ├── src/main/java/com/klem/cantine/
+│   │   ├── auth/             # Authentification JWT
+│   │   ├── dashboard/        # Statistiques globales
+│   │   ├── eleve/            # Gestion des élèves
+│   │   ├── etablissement/    # Établissements & Classes
+│   │   ├── paiement/         # Transactions Mobile Money
+│   │   ├── scan/             # Passages réfectoire + QR Code
+│   │   └── common/           # ApiResponse, GlobalExceptionHandler
+│   ├── Dockerfile            # Multi-stage (JDK→JRE alpine)
+│   └── railway.toml          # Config healthcheck Railway
+│
+├── collaboration/
+│   ├── context/CONTEXT.md    # Vision produit & enjeux métier
+│   ├── doc/                  # Architecture, specs, workflows
+│   └── history/              # Logs de livraisons et ADR
+│
+└── documentations/           # Manuels et cahier de recette (PDF)
+```
+
+---
+
+## ⚙️ Installation & Lancement Local
+
+### Prérequis
+- Java 17+
+- Node.js 20+
+- PostgreSQL 15+ (ou Docker)
+
+### Backend
+```bash
+cd server-backend
+
+# Créer la base de données
+createdb cantine_connect
+
+# Configurer src/main/resources/application.yml
+# (SPRING_DATASOURCE_URL, USERNAME, PASSWORD)
+
+# Lancer
+./mvnw spring-boot:run
+# → http://localhost:8081
+```
+
+### Frontend
+```bash
+cd client-frontend
+
+# Installer les dépendances
+npm install
+
+# Créer .env.local
+echo "VITE_API_BASE_URL=http://localhost:8081/api/v1" > .env.local
+
+# Lancer
+npm run dev
+# → http://localhost:5173
+```
+
+---
+
+## 👤 Compte par Défaut (Développement)
+
+| Champ | Valeur |
+|-------|--------|
+| Email | `admin@cantine.connect` |
+| Mot de passe | `Admin123!` |
+| Rôle | `ADMIN` |
+
+---
+
+## 📦 Modules Fonctionnels (MVP v1.0.0-beta)
+
+| Module | Statut | Description |
+|--------|--------|-------------|
+| 🏫 Établissements | ✅ Livré | CRUD établissements, niveaux, classes |
+| 👨‍🎓 Élèves | ✅ Livré | CRUD + formulaire 3 onglets + QR Code + pagination |
+| 💳 Paiements | ✅ Livré | Transactions Mobile Money + webhooks CinetPay |
+| 📷 Scan Réfectoire | ✅ Livré | Validation QR Code temps réel + cache offline 24h |
+| 📋 Historique | ✅ Livré | Passages filtrés (date, établissement, résultat) + export CSV |
+| 📊 Dashboard | ✅ Livré | KPIs globaux + tendance 7 jours + statistiques paiements |
+| 👥 Utilisateurs | ✅ Livré | CRUD complet (ADMIN) + protection dernier admin |
+| ⚙️ Configuration | ✅ Livré | Paramètres tarifs et période de grâce |
+| 🎨 Thèmes UI | ✅ Livré | 3 thèmes switchables persistés en localStorage |
+
+---
+
+## 🔐 Sécurité
+
+- JWT Stateless HMAC-SHA512 via en-tête `Authorization: Bearer`
+- `GlobalExceptionHandler` (`@ControllerAdvice`) — erreurs standardisées JSON
+- Interdiction de supprimer le dernier administrateur
+- QR Code UUID v4 unique et inaltérable par élève
+
+---
+
+## 📞 Contact & Support
+
+**KLEM Technologies & Services**
+- 📞 +225 07 58 89 24 77
+- 🌐 [www.klemtech.net](https://www.klemtech.net)
+- 📧 infos@klemtech.net
+
+---
+
+*© 2026 KLEM Technologies & Services. Document confidentiel — Projet Cantine Connect.*
