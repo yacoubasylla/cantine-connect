@@ -724,3 +724,14 @@
   - `collaboration/history/adr/2026-07-01-fix-memoire-conteneur-railway.md` (ADR-015) — case de suivi finale cochée, conclusion ajoutée
 - **Description :** Clôture de la chaîne d'incidents de latence de la journée (ADR-013 500 JPQL, ADR-014 logging TRACE, ADR-015 dépassement mémoire). Cause dominante confirmée et corrigée : dimensionnement mémoire JVM/Tomcat/HikariCP jamais borné explicitement pour un conteneur Railway à ~1 Go. Aucune mise à niveau de plan Railway nécessaire dans l'immédiat.
 - **Tests validés :** `railway metrics` confirmé à deux reprises sur des fenêtres temporelles distinctes après le déploiement final ; `./mvnw test` (24/24) ✅ ; `npm run build` ✅.
+
+---
+
+### [2026-07-01] - Thème "Ivoire" : Renommage et Passage en Thème par Défaut
+- **Statut :** Livré / Opérationnel
+- **Commits :** `e16569a`, `6a0cef0`
+- **Fichiers Modifiés :**
+  - `client-frontend/src/theme/themes.js` — libellé du thème `ivoirien` renommé de « École Ivoirienne » à « Ivoire »
+  - `client-frontend/src/context/ThemeContext.jsx` — `DEFAULT_THEME` passé de `'modern'` à `'ivoirien'`
+- **Description :** Le nouveau thème par défaut ne s'applique qu'aux utilisateurs sans préférence déjà enregistrée dans `localStorage` (`klem-theme`) — ceux ayant déjà choisi un thème conservent leur choix.
+- **Tests validés :** `npm run build` ✅.
