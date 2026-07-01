@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom'
 import {
   Box, Card, CardContent, Typography, TextField,
   Button, Stack, Alert, CircularProgress, InputAdornment, IconButton,
-  Divider,
 } from '@mui/material'
 import { alpha } from '@mui/material/styles'
 import VisibilityIcon    from '@mui/icons-material/Visibility'
@@ -160,11 +159,6 @@ export default function LoginPage() {
                 </Button>
               </Stack>
             </form>
-
-            <Divider sx={{ my: 2.5 }} />
-            <Typography variant="caption" color="text.disabled" display="block" textAlign="center">
-              Compte par défaut : admin@cantine.connect / Admin123!
-            </Typography>
           </CardContent>
         </Card>
 
