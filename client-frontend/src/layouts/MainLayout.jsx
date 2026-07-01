@@ -24,12 +24,14 @@ import ThemeSwitcher     from '../components/ThemeSwitcher'
 
 const DRAWER_WIDTH = 240
 
+const STAFF_ROLES = ['ADMIN', 'GESTIONNAIRE', 'CAISSIER']
+
 const NAV_ITEMS = [
   { label: 'Tableau de bord', icon: <DashboardIcon />,      path: '/dashboard',      roles: null },
-  { label: 'Établissements',  icon: <SchoolIcon />,         path: '/etablissements', roles: null },
-  { label: 'Élèves',          icon: <PeopleIcon />,         path: '/eleves',         roles: null },
+  { label: 'Établissements',  icon: <SchoolIcon />,         path: '/etablissements', roles: STAFF_ROLES },
+  { label: 'Élèves',          icon: <PeopleIcon />,         path: '/eleves',         roles: STAFF_ROLES },
   { label: 'Paiements',       icon: <PaymentsIcon />,       path: '/paiements',      roles: null },
-  { label: 'Scan Réfectoire', icon: <QrCodeScannerIcon />,  path: '/scan',           roles: null },
+  { label: 'Scan Réfectoire', icon: <QrCodeScannerIcon />,  path: '/scan',           roles: STAFF_ROLES },
   { label: 'Historique',      icon: <HistoryIcon />,        path: '/passages',       roles: null },
   { label: 'Utilisateurs',    icon: <ManageAccountsIcon />, path: '/utilisateurs',   roles: ['ADMIN'] },
   { label: 'Parents',         icon: <FamilyRestroomIcon />, path: '/parents',        roles: ['ADMIN'] },

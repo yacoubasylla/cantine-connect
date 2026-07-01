@@ -9,6 +9,7 @@ import ScanPage           from './pages/scan/ScanPage'
 import UtilisateursPage   from './pages/utilisateurs/UtilisateursPage'
 import ProtectedRoute       from './components/ProtectedRoute'
 import AdminRoute           from './components/AdminRoute'
+import StaffRoute           from './components/StaffRoute'
 import ErrorBoundary        from './components/ErrorBoundary'
 import ConfigurationPage    from './pages/configuration/ConfigurationPage'
 import PassagesPage         from './pages/passages/PassagesPage'
@@ -28,10 +29,10 @@ export default function App() {
       >
         <Route index element={<Navigate to="/dashboard" replace />} />
         <Route path="dashboard"      element={<ErrorBoundary><DashboardPage /></ErrorBoundary>} />
-        <Route path="etablissements" element={<ErrorBoundary><EtablissementsPage /></ErrorBoundary>} />
-        <Route path="eleves"         element={<ErrorBoundary><ElevesPage /></ErrorBoundary>} />
+        <Route path="etablissements" element={<ErrorBoundary><StaffRoute><EtablissementsPage /></StaffRoute></ErrorBoundary>} />
+        <Route path="eleves"         element={<ErrorBoundary><StaffRoute><ElevesPage /></StaffRoute></ErrorBoundary>} />
         <Route path="paiements"      element={<ErrorBoundary><PaiementsPage /></ErrorBoundary>} />
-        <Route path="scan"           element={<ErrorBoundary><ScanPage /></ErrorBoundary>} />
+        <Route path="scan"           element={<ErrorBoundary><StaffRoute><ScanPage /></StaffRoute></ErrorBoundary>} />
         <Route path="passages"       element={<ErrorBoundary><PassagesPage /></ErrorBoundary>} />
         <Route path="utilisateurs"   element={<ErrorBoundary><AdminRoute><UtilisateursPage /></AdminRoute></ErrorBoundary>} />
         <Route path="parents"        element={<ErrorBoundary><AdminRoute><ParentsPage /></AdminRoute></ErrorBoundary>} />

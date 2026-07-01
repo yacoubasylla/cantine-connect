@@ -21,6 +21,7 @@ public class EleveController {
     private final EleveService eleveService;
 
     @GetMapping
+    @PreAuthorize("!hasRole('PARENT')")
     public ResponseEntity<ApiResponse<?>> lister(
             @RequestParam(required = false) Long etablissementId,
             @RequestParam(required = false) Long classeId,
@@ -31,6 +32,7 @@ public class EleveController {
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("!hasRole('PARENT')")
     public ResponseEntity<ApiResponse<?>> getById(@PathVariable Long id) {
         return ResponseEntity.ok(ApiResponse.ok(eleveService.getById(id)));
     }

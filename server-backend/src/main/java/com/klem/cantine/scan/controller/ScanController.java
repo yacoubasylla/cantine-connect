@@ -1,5 +1,6 @@
 package com.klem.cantine.scan.controller;
 
+import com.klem.cantine.auth.entity.Utilisateur;
 import com.klem.cantine.common.ApiResponse;
 import com.klem.cantine.scan.dto.CacheEntreeDTO;
 import com.klem.cantine.scan.dto.ModifierPassageRequestDTO;
@@ -14,6 +15,7 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -30,6 +32,7 @@ public class ScanController {
      * POST /api/v1/scan/{qrCodeToken}
      */
     @PostMapping("/api/v1/scan/{qrCodeToken}")
+    @PreAuthorize("!hasRole('PARENT')")
     public ResponseEntity<ApiResponse<ScanResultDTO>> scanner(
             @PathVariable String qrCodeToken) {
         ScanResultDTO result = scanService.scanner(qrCodeToken);
@@ -41,6 +44,7 @@ public class ScanController {
      * GET /api/v1/scan/cache
      */
     @GetMapping("/api/v1/scan/cache")
+    @PreAuthorize("!hasRole('PARENT')")
     public ResponseEntity<ApiResponse<List<CacheEntreeDTO>>> cache() {
         List<CacheEntreeDTO> cache = scanService.getCacheOffline();
         return ResponseEntity.ok(ApiResponse.ok(
@@ -65,10 +69,11 @@ public class ScanController {
             @RequestParam(required = false) Long etablissementId,
             @RequestParam(required = false) ResultatScan resultat,
             @RequestParam(required = false) String search,
-            @PageableDefault(size = 50, sort = "heurePassage") Pageable pageable) {
+            @PageableDefault(size = 50, sort = "heurePassage") Pageable pageable,
+            @AuthenticationPrincipal Utilisateur principal) {
         return ResponseEntity.ok(ApiResponse.ok(
                 scanService.listerPassages(date, dateDebut, dateFin,
-                        etablissementId, resultat, search, pageable)));
+                        etablissementId, resultat, search, pageable, principal)));
     }
 
     /**

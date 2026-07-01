@@ -1,5 +1,7 @@
 package com.klem.cantine.scan.service;
 
+import com.klem.cantine.auth.entity.Role;
+import com.klem.cantine.auth.entity.Utilisateur;
 import com.klem.cantine.eleve.entity.Eleve;
 import com.klem.cantine.eleve.entity.StatutAcces;
 import com.klem.cantine.eleve.repository.EleveRepository;
@@ -7,6 +9,7 @@ import com.klem.cantine.notification.NotificationService;
 import com.klem.cantine.parametrage.service.ConfigurationService;
 import com.klem.cantine.actionlog.annotation.Traceable;
 import com.klem.cantine.actionlog.entity.TypeAction;
+import com.klem.cantine.parent.repository.ParentRepository;
 import com.klem.cantine.scan.dto.CacheEntreeDTO;
 import com.klem.cantine.scan.dto.ModifierPassageRequestDTO;
 import com.klem.cantine.scan.dto.PassageResponseDTO;
@@ -38,6 +41,7 @@ public class ScanService {
 
     private final PassageRefectoireRepository passageRepository;
     private final EleveRepository eleveRepository;
+    private final ParentRepository parentRepository;
     private final NotificationService notificationService;
     private final ConfigurationService configurationService;
 
@@ -100,7 +104,7 @@ public class ScanService {
     public Page<PassageResponseDTO> listerPassages(
             LocalDate date, LocalDate dateDebut, LocalDate dateFin,
             Long etablissementId, ResultatScan resultat, String search,
-            Pageable pageable) {
+            Pageable pageable, Utilisateur principal) {
 
         LocalDate debut, fin;
         if (dateDebut != null && dateFin != null) {
@@ -114,7 +118,15 @@ public class ScanService {
 
         String searchParam = (search != null && !search.isBlank()) ? search.trim() : null;
 
-        var spec = PassageSpecification.withFilters(debut, fin, etablissementId, resultat, searchParam);
+        List<Long> eleveIdsRestriction = null;
+        if (principal.getRole() == Role.PARENT) {
+            eleveIdsRestriction = parentRepository.findEnfantIdsByUtilisateurId(principal.getId());
+            if (eleveIdsRestriction.isEmpty()) {
+                return Page.empty(pageable);
+            }
+        }
+
+        var spec = PassageSpecification.withFilters(debut, fin, etablissementId, resultat, searchParam, eleveIdsRestriction);
         return passageRepository.findAll(spec, pageable).map(PassageResponseDTO::from);
     }
 

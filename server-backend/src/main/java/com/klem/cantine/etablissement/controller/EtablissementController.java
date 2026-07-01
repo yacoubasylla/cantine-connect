@@ -26,16 +26,19 @@ public class EtablissementController {
     }
 
     @GetMapping
+    @PreAuthorize("!hasRole('PARENT')")
     public ResponseEntity<ApiResponse<?>> lister() {
         return ResponseEntity.ok(ApiResponse.ok(etablissementService.listerActifs()));
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("!hasRole('PARENT')")
     public ResponseEntity<ApiResponse<?>> getById(@PathVariable Long id) {
         return ResponseEntity.ok(ApiResponse.ok(etablissementService.getById(id)));
     }
 
     @GetMapping("/{id}/classes")
+    @PreAuthorize("!hasRole('PARENT')")
     public ResponseEntity<ApiResponse<?>> getClasses(
             @PathVariable Long id,
             @RequestParam(defaultValue = "2025-2026") String anneeScolaire) {
@@ -43,6 +46,7 @@ public class EtablissementController {
     }
 
     @GetMapping("/{id}/niveaux")
+    @PreAuthorize("!hasRole('PARENT')")
     public ResponseEntity<ApiResponse<?>> getNiveaux(@PathVariable Long id) {
         return ResponseEntity.ok(ApiResponse.ok(etablissementService.getNiveauxAvecClasses(id)));
     }

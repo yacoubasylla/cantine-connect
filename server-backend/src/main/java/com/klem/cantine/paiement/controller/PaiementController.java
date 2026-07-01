@@ -1,5 +1,6 @@
 package com.klem.cantine.paiement.controller;
 
+import com.klem.cantine.auth.entity.Utilisateur;
 import com.klem.cantine.common.ApiResponse;
 import com.klem.cantine.paiement.dto.InitierPaiementRequestDTO;
 import com.klem.cantine.paiement.dto.ModifierPaiementRequestDTO;
@@ -14,6 +15,7 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -25,8 +27,9 @@ public class PaiementController {
 
     @PostMapping("/initier")
     public ResponseEntity<ApiResponse<PaiementResponseDTO>> initier(
-            @Valid @RequestBody InitierPaiementRequestDTO dto) {
-        PaiementResponseDTO response = paiementService.initierPaiement(dto);
+            @Valid @RequestBody InitierPaiementRequestDTO dto,
+            @AuthenticationPrincipal Utilisateur principal) {
+        PaiementResponseDTO response = paiementService.initierPaiement(dto, principal);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.created(response));
     }
@@ -35,13 +38,16 @@ public class PaiementController {
     public ResponseEntity<ApiResponse<Page<PaiementResponseDTO>>> lister(
             @RequestParam(required = false) Long eleveId,
             @RequestParam(required = false) StatutPaiement statut,
-            @PageableDefault(size = 20, sort = "dateCreation") Pageable pageable) {
-        return ResponseEntity.ok(ApiResponse.ok(paiementService.lister(eleveId, statut, pageable)));
+            @PageableDefault(size = 20, sort = "dateCreation") Pageable pageable,
+            @AuthenticationPrincipal Utilisateur principal) {
+        return ResponseEntity.ok(ApiResponse.ok(paiementService.lister(eleveId, statut, pageable, principal)));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<PaiementResponseDTO>> getById(@PathVariable Long id) {
-        return ResponseEntity.ok(ApiResponse.ok(paiementService.getById(id)));
+    public ResponseEntity<ApiResponse<PaiementResponseDTO>> getById(
+            @PathVariable Long id,
+            @AuthenticationPrincipal Utilisateur principal) {
+        return ResponseEntity.ok(ApiResponse.ok(paiementService.getById(id, principal)));
     }
 
     @PutMapping("/{id}")

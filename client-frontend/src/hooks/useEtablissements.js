@@ -1,12 +1,13 @@
 import { useState, useEffect, useCallback } from 'react'
 import { etablissementService } from '../services/etablissementService'
 
-export function useEtablissements() {
+export function useEtablissements(enabled = true) {
   const [etablissements, setEtablissements] = useState([])
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(enabled)
   const [error, setError] = useState(null)
 
   const charger = useCallback(async () => {
+    if (!enabled) return
     setLoading(true)
     setError(null)
     try {
@@ -17,7 +18,7 @@ export function useEtablissements() {
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [enabled])
 
   useEffect(() => { charger() }, [charger])
 

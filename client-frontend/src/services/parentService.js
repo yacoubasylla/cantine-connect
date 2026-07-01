@@ -4,6 +4,9 @@ export const parentService = {
   lister: (params) =>
     apiClient.get('/parents', { params }).then((r) => r.data.data),
 
+  getMoi: () =>
+    apiClient.get('/parents/moi').then((r) => r.data.data),
+
   getById: (id) =>
     apiClient.get(`/parents/${id}`).then((r) => r.data.data),
 

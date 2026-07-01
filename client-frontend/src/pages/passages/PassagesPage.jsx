@@ -137,9 +137,10 @@ function ModifierDialog({ passage, onClose, onSave }) {
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export default function PassagesPage() {
-  const { etablissements } = useEtablissements()
   const { user } = useAuth()
-  const isAdmin = user?.roles?.includes('ROLE_ADMIN')
+  const isAdmin  = user?.role === 'ADMIN'
+  const isParent = user?.role === 'PARENT'
+  const { etablissements } = useEtablissements(!isParent)
 
   const {
     passages, total, page, rowsPerPage, loading, error,
@@ -218,19 +219,21 @@ export default function PassagesPage() {
             sx={{ minWidth: 160 }}
           />
 
-          <TextField
-            select
-            label="Établissement"
-            size="small"
-            value={filtres.etablissementId}
-            onChange={(e) => setFiltre('etablissementId', e.target.value)}
-            sx={{ minWidth: 200 }}
-          >
-            <MenuItem value="">Tous les établissements</MenuItem>
-            {etablissements.map((e) => (
-              <MenuItem key={e.id} value={String(e.id)}>{e.nom}</MenuItem>
-            ))}
-          </TextField>
+          {!isParent && (
+            <TextField
+              select
+              label="Établissement"
+              size="small"
+              value={filtres.etablissementId}
+              onChange={(e) => setFiltre('etablissementId', e.target.value)}
+              sx={{ minWidth: 200 }}
+            >
+              <MenuItem value="">Tous les établissements</MenuItem>
+              {etablissements.map((e) => (
+                <MenuItem key={e.id} value={String(e.id)}>{e.nom}</MenuItem>
+              ))}
+            </TextField>
+          )}
 
           <TextField
             select

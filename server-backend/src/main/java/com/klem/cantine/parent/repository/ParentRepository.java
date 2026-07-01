@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface ParentRepository extends JpaRepository<Parent, Long> {
@@ -18,4 +19,7 @@ public interface ParentRepository extends JpaRepository<Parent, Long> {
     Page<Parent> findAllWithDetails(Pageable pageable);
 
     boolean existsByUtilisateurId(Long utilisateurId);
+
+    @Query("SELECT e.id FROM Parent p JOIN p.enfants e WHERE p.utilisateur.id = :utilisateurId")
+    List<Long> findEnfantIdsByUtilisateurId(@Param("utilisateurId") Long utilisateurId);
 }

@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 public interface TransactionPaiementRepository extends JpaRepository<TransactionPaiement, Long> {
@@ -24,6 +25,14 @@ public interface TransactionPaiementRepository extends JpaRepository<Transaction
            "(:statut IS NULL OR t.statut = :statut) " +
            "ORDER BY t.dateCreation DESC")
     Page<TransactionPaiement> findAllWithFilters(Long eleveId, StatutPaiement statut, Pageable pageable);
+
+    @Query("SELECT t FROM TransactionPaiement t WHERE " +
+           "t.eleve.id IN :eleveIds AND " +
+           "(:eleveId IS NULL OR t.eleve.id = :eleveId) AND " +
+           "(:statut IS NULL OR t.statut = :statut) " +
+           "ORDER BY t.dateCreation DESC")
+    Page<TransactionPaiement> findAllWithFiltersForEleves(
+            List<Long> eleveIds, Long eleveId, StatutPaiement statut, Pageable pageable);
 
     long countByStatut(StatutPaiement statut);
 

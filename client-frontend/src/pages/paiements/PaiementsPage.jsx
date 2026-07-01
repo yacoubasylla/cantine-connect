@@ -12,9 +12,10 @@ import RefreshIcon   from '@mui/icons-material/Refresh'
 import OpenInNewIcon from '@mui/icons-material/OpenInNew'
 import EditIcon      from '@mui/icons-material/Edit'
 import DeleteIcon    from '@mui/icons-material/Delete'
-import { usePaiements } from '../../hooks/usePaiements'
-import { eleveService }  from '../../services/eleveService'
-import { useAuth }       from '../../hooks/useAuth'
+import { usePaiements }     from '../../hooks/usePaiements'
+import { eleveService }     from '../../services/eleveService'
+import { parentService }    from '../../services/parentService'
+import { useAuth }          from '../../hooks/useAuth'
 
 // ── Constantes ────────────────────────────────────────────────────────────────
 
@@ -51,7 +52,7 @@ const formatDate = (dt) =>
 
 // ── Dialogue : Initier un paiement ────────────────────────────────────────────
 
-function InitierDialog({ open, onClose, onSubmit }) {
+function InitierDialog({ open, onClose, onSubmit, isParent }) {
   const FORM_INIT = { eleve: null, operateur: '', montant: '', telephonePayeur: '' }
   const [form,    setForm]    = useState(FORM_INIT)
   const [submitting, setSub]  = useState(false)
@@ -64,11 +65,21 @@ function InitierDialog({ open, onClose, onSubmit }) {
   const [loadingEleves, setLdEleves]  = useState(false)
 
   useEffect(() => {
-    if (!open) { setForm(FORM_INIT); setFErr(null); setUrl(null); setInputEleve(''); setOptEleves([]) }
+    if (!open) { setForm(FORM_INIT); setFErr(null); setUrl(null); setInputEleve(''); setOptEleves([]); return }
+    if (isParent) {
+      setLdEleves(true)
+      parentService.getMoi()
+        .then((moi) => setOptEleves(
+          (moi?.enfants ?? []).map((e) => ({ id: e.id, label: `${e.prenom} ${e.nom} — ${e.matricule}` }))
+        ))
+        .catch(() => setOptEleves([]))
+        .finally(() => setLdEleves(false))
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open])
+  }, [open, isParent])
 
   useEffect(() => {
+    if (isParent) return
     if (inputEleve.length < 2) { setOptEleves([]); return }
     const timer = setTimeout(async () => {
       setLdEleves(true)
@@ -84,7 +95,7 @@ function InitierDialog({ open, onClose, onSubmit }) {
       finally  { setLdEleves(false) }
     }, 300)
     return () => clearTimeout(timer)
-  }, [inputEleve])
+  }, [inputEleve, isParent])
 
   const field = (k) => (v) => setForm((f) => ({ ...f, [k]: v }))
 
@@ -140,11 +151,15 @@ function InitierDialog({ open, onClose, onSubmit }) {
                 inputValue={inputEleve}
                 onInputChange={(_, v) => setInputEleve(v)}
                 isOptionEqualToValue={(o, v) => o.id === v?.id}
-                noOptionsText={inputEleve.length < 2 ? 'Saisir au moins 2 caractères' : 'Aucun résultat'}
+                noOptionsText={
+                  isParent
+                    ? 'Aucun enfant associé à votre compte'
+                    : (inputEleve.length < 2 ? 'Saisir au moins 2 caractères' : 'Aucun résultat')
+                }
                 renderInput={(params) => (
                   <TextField
                     {...params}
-                    label="Élève *"
+                    label={isParent ? 'Votre enfant *' : 'Élève *'}
                     size="small"
                     slotProps={{
                       ...params.slotProps,
@@ -307,7 +322,8 @@ export default function PaiementsPage() {
   const [deleting,     setDeleting]     = useState(false)
 
   const { user } = useAuth()
-  const isAdmin = user?.role === 'ADMIN'
+  const isAdmin  = user?.role === 'ADMIN'
+  const isParent = user?.role === 'PARENT'
 
   const {
     paiements, total, page, setPage, rowsPerPage, setRowsPerPage,
@@ -457,6 +473,7 @@ export default function PaiementsPage() {
         open={dialogOpen}
         onClose={() => setDialogOpen(false)}
         onSubmit={initier}
+        isParent={isParent}
       />
 
       {/* ── Dialogue modifier ───────────────────────────── */}

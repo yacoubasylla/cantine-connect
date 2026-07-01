@@ -2,6 +2,8 @@ package com.klem.cantine.paiement.service;
 
 import com.klem.cantine.actionlog.annotation.Traceable;
 import com.klem.cantine.actionlog.entity.TypeAction;
+import com.klem.cantine.auth.entity.Role;
+import com.klem.cantine.auth.entity.Utilisateur;
 import com.klem.cantine.eleve.repository.EleveRepository;
 import com.klem.cantine.paiement.config.PaiementProperties;
 import com.klem.cantine.paiement.dto.InitierPaiementRequestDTO;
@@ -10,14 +12,17 @@ import com.klem.cantine.paiement.dto.PaiementResponseDTO;
 import com.klem.cantine.paiement.entity.StatutPaiement;
 import com.klem.cantine.paiement.entity.TransactionPaiement;
 import com.klem.cantine.paiement.repository.TransactionPaiementRepository;
+import com.klem.cantine.parent.repository.ParentRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -28,11 +33,16 @@ public class PaiementService {
 
     private final TransactionPaiementRepository transactionRepository;
     private final EleveRepository eleveRepository;
+    private final ParentRepository parentRepository;
     private final PaiementProperties paiementProperties;
 
     @Traceable(action = TypeAction.CREATE, entite = "TransactionPaiement")
     @Transactional
-    public PaiementResponseDTO initierPaiement(InitierPaiementRequestDTO dto) {
+    public PaiementResponseDTO initierPaiement(InitierPaiementRequestDTO dto, Utilisateur principal) {
+        if (principal.getRole() == Role.PARENT && !enfantIds(principal).contains(dto.eleveId())) {
+            throw new AccessDeniedException("Vous ne pouvez initier un paiement que pour vos propres enfants");
+        }
+
         var eleve = eleveRepository.findByIdActive(dto.eleveId())
                 .orElseThrow(() -> new EntityNotFoundException("Élève introuvable : " + dto.eleveId()));
 
@@ -56,15 +66,33 @@ public class PaiementService {
         return PaiementResponseDTO.from(transaction, paymentUrl);
     }
 
-    public Page<PaiementResponseDTO> lister(Long eleveId, StatutPaiement statut, Pageable pageable) {
+    public Page<PaiementResponseDTO> lister(Long eleveId, StatutPaiement statut, Pageable pageable, Utilisateur principal) {
+        if (principal.getRole() == Role.PARENT) {
+            List<Long> enfantIds = enfantIds(principal);
+            if (eleveId != null && !enfantIds.contains(eleveId)) {
+                throw new AccessDeniedException("Accès refusé à cet élève");
+            }
+            if (enfantIds.isEmpty()) {
+                return Page.empty(pageable);
+            }
+            return transactionRepository.findAllWithFiltersForEleves(enfantIds, eleveId, statut, pageable)
+                    .map(PaiementResponseDTO::from);
+        }
         return transactionRepository.findAllWithFilters(eleveId, statut, pageable)
                 .map(PaiementResponseDTO::from);
     }
 
-    public PaiementResponseDTO getById(Long id) {
-        return transactionRepository.findById(id)
-                .map(PaiementResponseDTO::from)
+    public PaiementResponseDTO getById(Long id, Utilisateur principal) {
+        TransactionPaiement t = transactionRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Transaction introuvable : " + id));
+        if (principal.getRole() == Role.PARENT && !enfantIds(principal).contains(t.getEleve().getId())) {
+            throw new EntityNotFoundException("Transaction introuvable : " + id);
+        }
+        return PaiementResponseDTO.from(t);
+    }
+
+    private List<Long> enfantIds(Utilisateur principal) {
+        return parentRepository.findEnfantIdsByUtilisateurId(principal.getId());
     }
 
     @Traceable(action = TypeAction.UPDATE, entite = "TransactionPaiement")
