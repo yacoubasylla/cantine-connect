@@ -62,3 +62,25 @@
 - **Décision** : `@Query(value="...", nativeQuery=true)` avec `CAST(:param AS varchar)` pour les filtres optionnels (nullables) de la liste des élèves.
 - **Contexte** : Hibernate 6 + driver PostgreSQL échouent à inférer le type SQL d'un paramètre JPQL `null`, générant l'erreur `operator does not exist: lower(bytea)`. Bug connu Hibernate 6.
 - **Alternative rejetée** : Specification API JPA — overhead architectural disproportionné pour 3-4 filtres simples.
+
+---
+
+### ADR-008 · Stratégie de Déploiement Production : Vercel (Frontend) + Railway (Backend)
+- **Statut** : Accepté — 2026-07-01
+- **Décision** : Déploiement découplé — frontend React/Vite sur Vercel, backend Spring Boot + PostgreSQL sur Railway.
+- **Contexte** : Architecture SPA (Single Page App) + API REST. Vercel est optimisé pour les assets statiques avec CDN global. Railway simplifie le déploiement Docker + base de données managée sans gestion d'infrastructure.
+- **Configurations clés** :
+  - `client-frontend/vercel.json` — rewrites `/(.*) → /index.html` pour React Router
+  - `server-backend/Dockerfile` — multi-stage `eclipse-temurin:17-jdk-alpine` → `eclipse-temurin:17-jre-alpine`
+  - `server-backend/railway.toml` — `healthcheckPath: /actuator/health`, `healthcheckTimeout: 120`
+  - `server.port: ${PORT:8081}` — Railway injecte `$PORT` dynamiquement
+- **Alternatives rejetées** : Render.com (cold start 30s sur tier gratuit), Fly.io (complexité réseau VPN), Heroku (coût).
+- **Fichier ADR** : `adr/2026-07-01-strategie-deploiement-production.md`
+
+---
+
+### ADR-009 · Construction Manuelle de l'URL JDBC sur Railway (Incompatibilité DATABASE_URL)
+- **Statut** : Accepté — 2026-07-01
+- **Décision** : Construire `SPRING_DATASOURCE_URL` manuellement via les variables atomiques du plugin PostgreSQL Railway : `jdbc:postgresql://${{Postgres.PGHOST}}:${{Postgres.PGPORT}}/${{Postgres.PGDATABASE}}`
+- **Contexte** : Railway fournit `${{Postgres.DATABASE_URL}}` au format `postgresql://...` (standard PostgreSQL). Spring Boot / HikariCP exige le format JDBC : `jdbc:postgresql://...`. L'erreur `IllegalArgumentException: URL must start with 'jdbc'` se produit au démarrage si on utilise `DATABASE_URL` directement. Railway ne fournit pas de variable `JDBC_URL` prête à l'emploi.
+- **Conséquence** : `SPRING_DATASOURCE_USERNAME` = `${{Postgres.PGUSER}}` et `SPRING_DATASOURCE_PASSWORD` = `${{Postgres.PGPASSWORD}}` doivent être définis séparément.

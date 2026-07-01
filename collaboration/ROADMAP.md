@@ -293,6 +293,13 @@
 |---|-------------|--------|
 | P1 | Tests unitaires JUnit 5 (23 tests — ScanService, UtilisateurService, EleveService, WebhookService) | ✅ Livré |
 | P2 | Flyway migrations versionnées — V1__init_schema.sql + ddl-auto validate | ✅ Livré |
-| P3 | Dockerfiles multi-stage (backend + frontend) + docker-compose prod | 🔲 À faire |
+| P3 | Dockerfiles multi-stage (backend + frontend) + déploiement prod | ✅ Livré |
 | P4 | CI/CD GitHub Actions (build + test + lint) | 🔲 À faire |
 | P5 | Documentation API Swagger/OpenAPI | 🔲 À faire |
+
+### Déploiement Production
+| Composant | Plateforme | Statut |
+|-----------|-----------|--------|
+| Frontend React/Vite | Vercel | ✅ Online |
+| Backend Spring Boot | Railway | ✅ Online |
+| Base de données | Railway PostgreSQL | ✅ Online |

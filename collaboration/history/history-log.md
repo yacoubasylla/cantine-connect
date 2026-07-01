@@ -282,3 +282,18 @@
   - `server-backend/src/test/.../paiement/service/WebhookServiceTest.java` — 3 tests
 - **Description :** Première suite de tests automatisés du projet. Stratégie `@ExtendWith(MockitoExtension.class)` sans contexte Spring ni base de données, exécution en 1,4s. Cas critiques couverts : scan ACCORDÉ/REFUSÉ (statut + doublon du jour), protection dernier ADMIN (→ 409), webhook CinetPay accepté → élève AUTORISE, webhook refusé → élève inchangé, soft-delete, matricule dupliqué.
 - **Tests validés :** `./mvnw test` → **23/23 ✅ BUILD SUCCESS**
+
+---
+
+### [2026-07-01] - Amélioration P3 : Déploiement production Vercel + Railway
+- **Statut :** Livré / Opérationnel
+- **Fichiers Créés/Modifiés :**
+  - `client-frontend/src/services/apiClient.js` — `baseURL` via `import.meta.env.VITE_API_URL` (fallback `localhost:8081`)
+  - `client-frontend/vercel.json` — build Vite + rewrites SPA React Router (`/(.*) → /index.html`)
+  - `client-frontend/.env.example` — template variables d'environnement
+  - `server-backend/Dockerfile` — multi-stage `eclipse-temurin:17-jdk-alpine` (build) → `eclipse-temurin:17-jre-alpine` (runtime)
+  - `server-backend/railway.toml` — builder Dockerfile + healthcheck `/actuator/health`, timeout 120s
+  - `server-backend/src/main/resources/application.yml` — `server.port: ${PORT:8081}` (Railway injecte `$PORT` dynamiquement)
+- **Description :** Infrastructure de déploiement production opérationnelle. Frontend React/Vite déployé sur Vercel avec routing SPA. Backend Spring Boot containerisé via Dockerfile multi-stage déployé sur Railway avec PostgreSQL managée. 3 bugs corrigés en séquence : (1) port hardcodé → `${PORT:8081}`, (2) ENTRYPOINT shell expansion supprimée (Spring Boot lit `SPRING_PROFILES_ACTIVE` nativement), (3) `SPRING_DATASOURCE_URL` construite via variables atomiques PGHOST/PGPORT/PGDATABASE car Railway ne fournit pas de `JDBC_URL` (le `DATABASE_URL` natif est au format `postgresql://` incompatible avec HikariCP). Voir ADR-008 + ADR-009.
+- **Architecture prod :** Frontend (Vercel) → Backend (Railway) → PostgreSQL (Railway managed)
+- **Statuts finaux :** Vercel ✅ Online · Railway ✅ Online · PostgreSQL ✅ Online
