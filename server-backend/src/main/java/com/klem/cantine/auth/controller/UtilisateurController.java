@@ -28,8 +28,9 @@ public class UtilisateurController {
     @GetMapping
     public ResponseEntity<ApiResponse<Page<UtilisateurResponseDTO>>> lister(
             @RequestParam(required = false) Role role,
+            @RequestParam(required = false) String search,
             @PageableDefault(size = 20, sort = "nom") Pageable pageable) {
-        return ResponseEntity.ok(ApiResponse.ok(utilisateurService.lister(role, pageable)));
+        return ResponseEntity.ok(ApiResponse.ok(utilisateurService.lister(role, search, pageable)));
     }
 
     @GetMapping("/{id}")

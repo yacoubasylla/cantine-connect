@@ -23,12 +23,13 @@ public class UtilisateurService {
     private final UtilisateurRepository utilisateurRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public Page<UtilisateurResponseDTO> lister(Role role, Pageable pageable) {
+    public Page<UtilisateurResponseDTO> lister(Role role, String search, Pageable pageable) {
+        String searchParam = (search != null && !search.isBlank()) ? search.trim() : null;
         if (role != null) {
-            return utilisateurRepository.findByRoleAndActifTrue(role, pageable)
+            return utilisateurRepository.findByRoleAndActifTrueWithSearch(role, searchParam, pageable)
                     .map(UtilisateurResponseDTO::from);
         }
-        return utilisateurRepository.findAll(pageable)
+        return utilisateurRepository.findAllWithSearch(searchParam, pageable)
                 .map(UtilisateurResponseDTO::from);
     }
 
@@ -43,10 +44,14 @@ public class UtilisateurService {
         if (utilisateurRepository.existsByEmail(dto.email())) {
             throw new IllegalArgumentException("Un compte existe déjà avec l'email : " + dto.email());
         }
+        if (utilisateurRepository.existsByTelephone(dto.telephone())) {
+            throw new IllegalArgumentException("Un compte existe déjà avec le numéro : " + dto.telephone());
+        }
         Utilisateur u = Utilisateur.builder()
                 .nom(dto.nom())
                 .prenom(dto.prenom())
                 .email(dto.email())
+                .telephone(dto.telephone())
                 .motDePasse(passwordEncoder.encode(dto.motDePasse()))
                 .role(dto.role())
                 .build();
@@ -62,9 +67,15 @@ public class UtilisateurService {
                 && utilisateurRepository.existsByEmail(dto.email())) {
             throw new IllegalArgumentException("Un compte existe déjà avec l'email : " + dto.email());
         }
+        // Téléphone uniqueness check (seulement si le numéro change)
+        if (!u.getTelephone().equals(dto.telephone())
+                && utilisateurRepository.existsByTelephone(dto.telephone())) {
+            throw new IllegalArgumentException("Un compte existe déjà avec le numéro : " + dto.telephone());
+        }
         u.setNom(dto.nom());
         u.setPrenom(dto.prenom());
         u.setEmail(dto.email());
+        u.setTelephone(dto.telephone());
         if (dto.nouveauMotDePasse() != null && !dto.nouveauMotDePasse().isBlank()) {
             if (dto.nouveauMotDePasse().length() < 8) {
                 throw new IllegalArgumentException("Le mot de passe doit contenir au moins 8 caractères.");

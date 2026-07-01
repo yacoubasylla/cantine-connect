@@ -10,13 +10,14 @@ public record UtilisateurResponseDTO(
         String nom,
         String prenom,
         String email,
+        String telephone,
         Role role,
         Boolean actif,
         LocalDateTime createdAt
 ) {
     public static UtilisateurResponseDTO from(Utilisateur u) {
         return new UtilisateurResponseDTO(
-                u.getId(), u.getNom(), u.getPrenom(), u.getEmail(),
+                u.getId(), u.getNom(), u.getPrenom(), u.getEmail(), u.getTelephone(),
                 u.getRole(), u.getActif(), u.getCreatedAt()
         );
     }

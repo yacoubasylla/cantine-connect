@@ -38,6 +38,7 @@ class UtilisateurServiceTest {
                 .nom("Sylla")
                 .prenom("Yacouba")
                 .email("user" + id + "@cantine.test")
+                .telephone("070000000" + id)
                 .motDePasse("encoded")
                 .role(role)
                 .actif(actif)
@@ -49,10 +50,11 @@ class UtilisateurServiceTest {
     @Test
     void creer_creeCompte_quandEmailDisponible() {
         CreerUtilisateurRequestDTO dto = new CreerUtilisateurRequestDTO(
-                "Koné", "Awa", "awa@cantine.test", "Mdp12345!", Role.GESTIONNAIRE);
+                "Koné", "Awa", "awa@cantine.test", "0700000000", "Mdp12345!", Role.GESTIONNAIRE);
         Utilisateur saved = utilisateur(1L, Role.GESTIONNAIRE, true);
 
         when(utilisateurRepository.existsByEmail("awa@cantine.test")).thenReturn(false);
+        when(utilisateurRepository.existsByTelephone("0700000000")).thenReturn(false);
         when(passwordEncoder.encode("Mdp12345!")).thenReturn("encoded");
         when(utilisateurRepository.save(any())).thenReturn(saved);
 
@@ -66,12 +68,24 @@ class UtilisateurServiceTest {
     @Test
     void creer_leveException_quandEmailDejaUtilise() {
         CreerUtilisateurRequestDTO dto = new CreerUtilisateurRequestDTO(
-                "Koné", "Awa", "awa@cantine.test", "Mdp12345!", Role.GESTIONNAIRE);
+                "Koné", "Awa", "awa@cantine.test", "0700000000", "Mdp12345!", Role.GESTIONNAIRE);
         when(utilisateurRepository.existsByEmail("awa@cantine.test")).thenReturn(true);
 
         assertThatThrownBy(() -> utilisateurService.creer(dto))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("awa@cantine.test");
+    }
+
+    @Test
+    void creer_leveException_quandTelephoneDejaUtilise() {
+        CreerUtilisateurRequestDTO dto = new CreerUtilisateurRequestDTO(
+                "Koné", "Awa", "awa@cantine.test", "0700000000", "Mdp12345!", Role.GESTIONNAIRE);
+        when(utilisateurRepository.existsByEmail("awa@cantine.test")).thenReturn(false);
+        when(utilisateurRepository.existsByTelephone("0700000000")).thenReturn(true);
+
+        assertThatThrownBy(() -> utilisateurService.creer(dto))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("0700000000");
     }
 
     // ── Tests desactiver ─────────────────────────────────────
