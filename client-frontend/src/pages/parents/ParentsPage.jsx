@@ -1,34 +1,88 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
   Box, Typography, Button, Stack, Alert, CircularProgress,
   Table, TableHead, TableBody, TableRow, TableCell, TableContainer,
   TablePagination, Paper, IconButton, Tooltip, Chip,
-  Dialog, DialogTitle, DialogContent, DialogActions, TextField,
+  Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions,
+  TextField, Autocomplete,
 } from '@mui/material'
-import AddIcon        from '@mui/icons-material/Add'
-import EditIcon       from '@mui/icons-material/Edit'
-import DeleteIcon     from '@mui/icons-material/Delete'
+import AddIcon            from '@mui/icons-material/Add'
+import EditIcon           from '@mui/icons-material/Edit'
+import DeleteIcon         from '@mui/icons-material/Delete'
 import FamilyRestroomIcon from '@mui/icons-material/FamilyRestroom'
-import { useParents } from '../../hooks/useParents'
+import { useParents }          from '../../hooks/useParents'
+import { utilisateurService }  from '../../services/utilisateurService'
+import { eleveService }        from '../../services/eleveService'
+
+// ── helpers ───────────────────────────────────────────────────────────────────
+
+const eleveLabel = (e) =>
+  e?.matricule ? `${e.matricule} — ${e.prenom} ${e.nom}` : `${e?.prenom ?? ''} ${e?.nom ?? ''}`
+
+// ── Dialog création / modification ───────────────────────────────────────────
 
 function ParentFormDialog({ open, onClose, onSuccess, editTarget }) {
   const isEdit = Boolean(editTarget)
-  const [utilisateurId, setUtilisateurId] = useState(editTarget ? String(editTarget.utilisateurId) : '')
-  const [eleveIds, setEleveIds]           = useState(
-    editTarget ? (editTarget.enfants ?? []).map((e) => String(e.id)).join(', ') : ''
-  )
+
+  // Compte parent (création uniquement)
+  const [selectedParent, setSelectedParent] = useState(null)
+  const [parentOptions, setParentOptions]   = useState([])
+  const [parentLoading, setParentLoading]   = useState(false)
+
+  // Élèves associés
+  const [selectedEleves, setSelectedEleves] = useState([])
+  const [eleveOptions, setEleveOptions]     = useState([])
+  const [eleveLoading, setEleveLoading]     = useState(false)
+  const [eleveInput, setEleveInput]         = useState('')
+
   const [saving, setSaving] = useState(false)
   const [err, setErr]       = useState(null)
 
+  // Chargement des comptes PARENT une seule fois à l'ouverture (création)
+  useEffect(() => {
+    if (!open || isEdit) return
+    setParentLoading(true)
+    utilisateurService.lister({ role: 'PARENT', size: 100, sort: 'nom' })
+      .then((r) => setParentOptions(r?.content ?? []))
+      .catch(() => {})
+      .finally(() => setParentLoading(false))
+  }, [open, isEdit])
+
+  // Remise à zéro à chaque ouverture
+  useEffect(() => {
+    if (open) {
+      setSelectedParent(null)
+      setSelectedEleves(editTarget ? (editTarget.enfants ?? []) : [])
+      setEleveInput('')
+      setEleveOptions([])
+      setErr(null)
+    }
+  }, [open, editTarget])
+
+  // Recherche d'élèves avec debounce 300ms
+  useEffect(() => {
+    const q = eleveInput?.trim()
+    if (!q) { setEleveOptions([]); return }
+    let active = true
+    const timer = setTimeout(() => {
+      setEleveLoading(true)
+      eleveService.lister({ search: q, size: 10 })
+        .then((r) => { if (active) setEleveOptions(r?.content ?? []) })
+        .catch(() => {})
+        .finally(() => { if (active) setEleveLoading(false) })
+    }, 300)
+    return () => { active = false; clearTimeout(timer) }
+  }, [eleveInput])
+
   const handleSubmit = async () => {
-    if (!isEdit && !utilisateurId.trim()) { setErr('ID utilisateur obligatoire'); return }
+    if (!isEdit && !selectedParent) { setErr('Sélectionnez un compte parent'); return }
     setSaving(true); setErr(null)
-    const ids = eleveIds.split(',').map((s) => Number(s.trim())).filter(Boolean)
+    const ids = selectedEleves.map((e) => e.id)
     try {
       if (isEdit) {
         await onSuccess(editTarget.id, ids)
       } else {
-        await onSuccess({ utilisateurId: Number(utilisateurId), eleveIds: ids })
+        await onSuccess({ utilisateurId: selectedParent.id, eleveIds: ids })
       }
       onClose()
     } catch (e) {
@@ -40,32 +94,96 @@ function ParentFormDialog({ open, onClose, onSuccess, editTarget }) {
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle>{isEdit ? 'Modifier les enfants' : 'Nouveau compte parent'}</DialogTitle>
+      <DialogTitle>{isEdit ? 'Modifier les enfants associés' : 'Nouveau compte parent'}</DialogTitle>
       <DialogContent>
         <Stack spacing={2.5} mt={1}>
           {err && <Alert severity="error">{err}</Alert>}
-          {!isEdit && (
-            <TextField
-              label="ID utilisateur (rôle PARENT)"
-              type="number"
-              value={utilisateurId}
-              onChange={(e) => setUtilisateurId(e.target.value)}
-              fullWidth
-              helperText="L'utilisateur doit déjà exister avec le rôle PARENT dans la gestion des utilisateurs."
+
+          {/* Sélection du compte parent — création uniquement */}
+          {!isEdit ? (
+            <Autocomplete
+              options={parentOptions}
+              loading={parentLoading}
+              loadingText="Chargement des comptes PARENT…"
+              noOptionsText="Aucun compte avec le rôle PARENT. Créez-en un dans Utilisateurs d'abord."
+              value={selectedParent}
+              onChange={(_, v) => setSelectedParent(v)}
+              getOptionLabel={(u) => `${u.prenom} ${u.nom} — ${u.email}`}
+              isOptionEqualToValue={(a, b) => a.id === b.id}
+              renderOption={(props, u) => (
+                <li {...props} key={u.id}>
+                  <Stack>
+                    <Typography variant="body2" fontWeight={600}>
+                      {u.prenom} {u.nom}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">{u.email}</Typography>
+                  </Stack>
+                </li>
+              )}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="Compte parent"
+                  placeholder="Rechercher par nom ou email…"
+                  helperText="Seuls les comptes avec le rôle PARENT sont listés ici."
+                />
+              )}
             />
+          ) : (
+            <Alert severity="info" sx={{ py: 0.5 }}>
+              Modification des enfants de <strong>{editTarget.prenom} {editTarget.nom}</strong>
+            </Alert>
           )}
-          <TextField
-            label="IDs des élèves associés"
-            value={eleveIds}
-            onChange={(e) => setEleveIds(e.target.value)}
-            fullWidth
-            placeholder="ex : 1, 2, 5"
-            helperText="Saisissez les identifiants numériques des élèves séparés par des virgules."
+
+          {/* Sélection des élèves */}
+          <Autocomplete
+            multiple
+            filterOptions={(x) => x}
+            options={eleveOptions}
+            loading={eleveLoading}
+            loadingText="Recherche en cours…"
+            noOptionsText={eleveInput?.trim() ? 'Aucun élève trouvé' : 'Tapez un matricule ou un nom…'}
+            value={selectedEleves}
+            onChange={(_, v) => setSelectedEleves(v)}
+            onInputChange={(_, v) => setEleveInput(v)}
+            getOptionLabel={eleveLabel}
+            isOptionEqualToValue={(a, b) => a.id === b.id}
+            renderOption={(props, e) => (
+              <li {...props} key={e.id}>
+                <Stack direction="row" spacing={1} alignItems="center">
+                  <Chip label={e.matricule} size="small" variant="outlined" sx={{ fontFamily: 'monospace', fontSize: 11 }} />
+                  <Typography variant="body2">{e.prenom} {e.nom}</Typography>
+                  {e.classeLibelle && (
+                    <Typography variant="caption" color="text.secondary">· {e.classeLibelle}</Typography>
+                  )}
+                </Stack>
+              </li>
+            )}
+            renderTags={(value, getTagProps) =>
+              value.map((e, i) => (
+                <Chip
+                  key={e.id}
+                  label={eleveLabel(e)}
+                  size="small"
+                  variant="filled"
+                  color="primary"
+                  {...getTagProps({ index: i })}
+                />
+              ))
+            }
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                label="Élèves associés"
+                placeholder="Tapez un matricule ou un nom…"
+                helperText="Recherchez et sélectionnez plusieurs élèves."
+              />
+            )}
           />
         </Stack>
       </DialogContent>
       <DialogActions sx={{ px: 3, pb: 2 }}>
-        <Button onClick={onClose}>Annuler</Button>
+        <Button onClick={onClose} disabled={saving}>Annuler</Button>
         <Button variant="contained" onClick={handleSubmit} disabled={saving}>
           {saving ? <CircularProgress size={20} color="inherit" /> : (isEdit ? 'Enregistrer' : 'Créer')}
         </Button>
@@ -74,16 +192,19 @@ function ParentFormDialog({ open, onClose, onSuccess, editTarget }) {
   )
 }
 
+// ── Page principale ───────────────────────────────────────────────────────────
+
 export default function ParentsPage() {
   const {
     parents, total, page, setPage, rowsPerPage, setRowsPerPage,
     loading, error, creer, modifierEnfants, supprimer,
   } = useParents()
 
-  const [formOpen, setFormOpen]     = useState(false)
-  const [editTarget, setEditTarget] = useState(null)
+  const [formOpen, setFormOpen]         = useState(false)
+  const [editTarget, setEditTarget]     = useState(null)
+  const [deleteTarget, setDeleteTarget] = useState(null)
 
-  const handleAdd = () => { setEditTarget(null); setFormOpen(true) }
+  const handleAdd  = () => { setEditTarget(null); setFormOpen(true) }
   const handleEdit = (parent) => { setEditTarget(parent); setFormOpen(true) }
 
   const handleSuccess = async (payloadOrId, eleveIds) => {
@@ -94,9 +215,14 @@ export default function ParentsPage() {
     }
   }
 
-  const handleDelete = async (id, nom) => {
-    if (!window.confirm(`Supprimer le compte parent de ${nom} ?`)) return
-    try { await supprimer(id) } catch (e) { alert(e.message) }
+  const handleConfirmDelete = async () => {
+    try {
+      await supprimer(deleteTarget.id)
+    } catch (e) {
+      alert(e.message)
+    } finally {
+      setDeleteTarget(null)
+    }
   }
 
   return (
@@ -148,29 +274,29 @@ export default function ParentsPage() {
                     <Typography variant="body2" color="text.secondary">{p.email}</Typography>
                   </TableCell>
                   <TableCell>
-                    <Stack direction="row" spacing={0.5} flexWrap="wrap">
+                    <Stack direction="row" spacing={0.5} flexWrap="wrap" gap={0.5}>
                       {(p.enfants ?? []).length === 0
                         ? <Typography variant="caption" color="text.disabled">Aucun</Typography>
                         : (p.enfants ?? []).map((e) => (
                             <Chip
                               key={e.id}
-                              label={`${e.prenom} ${e.nom}`}
+                              label={eleveLabel(e)}
                               size="small"
                               variant="outlined"
-                              sx={{ fontSize: '0.7rem' }}
+                              sx={{ fontFamily: 'monospace', fontSize: '0.7rem' }}
                             />
                           ))
                       }
                     </Stack>
                   </TableCell>
-                  <TableCell align="center">
+                  <TableCell align="center" sx={{ whiteSpace: 'nowrap' }}>
                     <Tooltip title="Modifier les enfants">
-                      <IconButton size="small" onClick={() => handleEdit(p)}>
+                      <IconButton size="small" color="primary" onClick={() => handleEdit(p)}>
                         <EditIcon fontSize="small" />
                       </IconButton>
                     </Tooltip>
                     <Tooltip title="Supprimer">
-                      <IconButton size="small" color="error" onClick={() => handleDelete(p.id, `${p.prenom} ${p.nom}`)}>
+                      <IconButton size="small" color="error" onClick={() => setDeleteTarget(p)}>
                         <DeleteIcon fontSize="small" />
                       </IconButton>
                     </Tooltip>
@@ -199,6 +325,21 @@ export default function ParentsPage() {
         onSuccess={handleSuccess}
         editTarget={editTarget}
       />
+
+      {/* Dialog suppression */}
+      <Dialog open={!!deleteTarget} onClose={() => setDeleteTarget(null)} maxWidth="xs" fullWidth>
+        <DialogTitle>Confirmer la suppression</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Supprimer le compte parent de <strong>{deleteTarget?.prenom} {deleteTarget?.nom}</strong> ?
+            Les élèves associés ne seront pas supprimés.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDeleteTarget(null)}>Annuler</Button>
+          <Button onClick={handleConfirmDelete} color="error" variant="contained">Supprimer</Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   )
 }

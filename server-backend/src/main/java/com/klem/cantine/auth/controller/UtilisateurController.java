@@ -4,6 +4,7 @@ import com.klem.cantine.auth.dto.ChangerRoleRequestDTO;
 import com.klem.cantine.auth.dto.CreerUtilisateurRequestDTO;
 import com.klem.cantine.auth.dto.ModifierUtilisateurRequestDTO;
 import com.klem.cantine.auth.dto.UtilisateurResponseDTO;
+import com.klem.cantine.auth.entity.Role;
 import com.klem.cantine.auth.service.UtilisateurService;
 import com.klem.cantine.common.ApiResponse;
 import jakarta.validation.Valid;
@@ -26,8 +27,9 @@ public class UtilisateurController {
 
     @GetMapping
     public ResponseEntity<ApiResponse<Page<UtilisateurResponseDTO>>> lister(
+            @RequestParam(required = false) Role role,
             @PageableDefault(size = 20, sort = "nom") Pageable pageable) {
-        return ResponseEntity.ok(ApiResponse.ok(utilisateurService.lister(pageable)));
+        return ResponseEntity.ok(ApiResponse.ok(utilisateurService.lister(role, pageable)));
     }
 
     @GetMapping("/{id}")

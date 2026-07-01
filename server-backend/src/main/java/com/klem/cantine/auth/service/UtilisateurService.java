@@ -23,7 +23,11 @@ public class UtilisateurService {
     private final UtilisateurRepository utilisateurRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public Page<UtilisateurResponseDTO> lister(Pageable pageable) {
+    public Page<UtilisateurResponseDTO> lister(Role role, Pageable pageable) {
+        if (role != null) {
+            return utilisateurRepository.findByRoleAndActifTrue(role, pageable)
+                    .map(UtilisateurResponseDTO::from);
+        }
         return utilisateurRepository.findAll(pageable)
                 .map(UtilisateurResponseDTO::from);
     }
