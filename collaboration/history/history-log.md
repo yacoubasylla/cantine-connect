@@ -669,3 +669,18 @@
   - `collaboration/history/decision-log.md` — entrée ADR-013
 - **Description :** Incident critique en production : 3 endpoints centraux (Utilisateurs, Paiements, Dashboard) renvoyaient systématiquement 500 dès qu'ils étaient appelés sans filtre — c'est-à-dire au chargement normal de chaque page. Corrigé en suivant scrupuleusement le pattern déjà validé par l'ADR-007 (requête native + CAST) plutôt qu'en réinventant une solution. Leçon retenue : tout futur endpoint de recherche doit être testé manuellement dans son état par défaut (sans filtre), pas seulement avec un terme de recherche renseigné.
 - **Tests validés :** Reproduction locale confirmée (même erreur `lower(bytea)` que production) → correctif appliqué → `./mvnw test` (24/24) ✅ → vérification manuelle contre PostgreSQL réel : `/utilisateurs` (avec et sans filtre) → 200 ; `/utilisateurs?role=PARENT&search=...` → 200 ; `/paiements` (sans filtre, avec recherche, avec statut, trié par date) → 200 ; `/dashboard/stats` → 200 ; `/eleves` (non-régression) → 200 ; restriction PARENT re-vérifiée bout-en-bout après modification de `PaiementService` (paiements limités aux enfants du parent)
+
+---
+
+### [2026-07-01] - Latence Production Anormale : Logging TRACE Hibernate Actif en Prod (Correctif)
+- **Statut :** Livré / Opérationnel
+- **Signalement :** L'utilisateur signale que la page Utilisateurs affichait les données puis les a vues disparaître après actualisation, et suppose un problème de requêtes non optimisées côté « chargement des données ».
+- **Diagnostic :** Installation du CLI Railway (`npm install -g @railway/cli`, déjà authentifié via `~/.railway/config.json`) pour inspecter la production directement. Mesures `curl` avec détail des phases (DNS/connect/TLS/TTFB) : `/actuator/health` (endpoint sans logique métier) répondait en 4 à 24 secondes selon les tentatives, `/api/v1/dashboard/stats` jusqu'à 44 secondes. La variabilité et la lenteur d'un endpoint trivial ont écarté l'hypothèse d'une requête SQL mal optimisée. `railway logs --deployment` a révélé un flot continu de lignes `TRACE ... org.hibernate.orm.jdbc.bind : binding parameter (...)`, une par paramètre lié sur chaque requête SQL de chaque requête HTTP.
+- **Cause racine :** `application.yml` active `org.hibernate.orm.jdbc.bind: TRACE` dans son bloc de configuration de base (hors profil), utile en développement local. Le profil `prod` ne surchargeait que `com.klem.cantine` et `org.hibernate.SQL` — jamais ce logger spécifique, qui restait donc actif à `TRACE` en production malgré `SPRING_PROFILES_ACTIVE=prod` (confirmé actif via `railway variables`). Le volume d'I/O de logging synchrone induit dégradait la latence de tous les endpoints de façon uniforme, y compris ceux sans lien avec les correctifs de la session précédente.
+- **Fichiers Créés :**
+  - `collaboration/history/adr/2026-07-01-fix-latence-production-trace-logging.md` (ADR-014)
+- **Fichiers Modifiés :**
+  - `server-backend/src/main/resources/application.yml` — ajout de `org.hibernate.orm.jdbc.bind: WARN` dans le bloc `logging.level` du profil `prod`
+  - `collaboration/history/decision-log.md` — entrée ADR-014
+- **Description :** Le ralentissement perçu par l'utilisateur n'était pas un problème de requêtes non optimisées mais une erreur de configuration de logging : une clé présente dans le bloc de base n'avait pas été explicitement surchargée dans le profil de production. Correctif limité à la configuration, sans impact sur la logique métier.
+- **Tests validés :** `./mvnw test` (24/24) ✅ — changement de configuration pure. **Mesure de latence post-déploiement à confirmer.**

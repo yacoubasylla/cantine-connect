@@ -120,3 +120,12 @@
 - **Contexte** : Les endpoints `GET /api/v1/utilisateurs`, `GET /api/v1/paiements` et `GET /api/v1/dashboard/stats` renvoyaient 500 en production — écran Utilisateurs vide alors que les 4 comptes de la V6 existaient réellement en base. La règle de l'ADR-007 (CAST explicite pour paramètre JPQL nullable) n'avait pas été appliquée aux nouvelles requêtes de recherche ajoutées dans la session précédente.
 - **Leçon retenue** : tout test manuel d'un endpoint de recherche doit couvrir explicitement le cas sans filtre (`search=null`), pas seulement le cas filtré — c'est le chemin le plus emprunté et celui qui a échappé à la vérification précédente.
 - **Fichier ADR** : `adr/2026-07-01-incident-jpql-null-bytea-paiements-utilisateurs.md`
+
+---
+
+### ADR-014 · Latence Production Anormale — Logging TRACE Hibernate Non Désactivé en Profil `prod`
+- **Statut** : Accepté — 2026-07-01
+- **Décision** : Ajout de `org.hibernate.orm.jdbc.bind: WARN` dans le bloc `logging.level` du profil `prod` de `application.yml`.
+- **Contexte** : Le bloc de configuration de base active `org.hibernate.orm.jdbc.bind: TRACE` (utile en dev), mais le profil `prod` ne le surchargeait pas (il ne surchargeait que `com.klem.cantine` et `org.hibernate.SQL`). Résultat : chaque requête HTTP en production écrivait une ligne de log par paramètre SQL lié, sur un conteneur Railway aux ressources limitées — mesuré via `railway logs` + `curl` : `/actuator/health` (aucune logique métier) mettait jusqu'à 24s à répondre, `/dashboard/stats` jusqu'à 44s. Ce n'était donc pas un problème de requêtes non optimisées, mais un volume d'I/O de logging excessif dégradant tous les endpoints uniformément.
+- **Alternative rejetée** : Retirer `TRACE` du bloc de base — resterait utile en dev local (a permis de diagnostiquer l'ADR-007/013) ; le vrai problème était l'absence de surcharge en prod, pas la présence en dev.
+- **Fichier ADR** : `adr/2026-07-01-fix-latence-production-trace-logging.md`
