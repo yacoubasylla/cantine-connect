@@ -546,3 +546,16 @@
   - `pages/passages/PassagesPage.jsx` — colonne Actions (ADMIN) + ModifierDialog (résultat + motifRefus) + dialog confirmation
 - **Description :** CRUD complet sur les 5 entités modifiables. Pattern uniforme : `@Traceable` AOP sur chaque méthode d'écriture, `@PreAuthorize("hasRole('ADMIN')")` sur chaque endpoint, mise à jour optimiste du state React (pas de rechargement réseau inutile). Établissements : suppression logique (`actif = false`). Passages : le champ `motifRefus` peut être mis à null pour effacer un motif erroné. Élèves : déjà entièrement implémenté depuis la session précédente.
 - **Tests validés :** `./mvnw clean package -DskipTests` ✅ · `npm run build` ✅ · Déploiement Railway ✅
+
+---
+
+### [2026-07-01] - Feat Parents : Sélection assistée par Autocomplete (compte parent + élèves) + Filtre rôle
+- **Statut :** Livré / Opérationnel
+- **Fichiers Modifiés (Backend) :**
+  - `auth/controller/UtilisateurController.java` — `GET /utilisateurs` accepte un paramètre optionnel `role`
+  - `auth/service/UtilisateurService.java` — `lister(Role role, Pageable pageable)` filtre via le repository si `role` est fourni
+  - `auth/repository/UtilisateurRepository.java` — nouvelle requête dérivée `findByRoleAndActifTrue(Role, Pageable)`
+- **Fichiers Modifiés (Frontend) :**
+  - `pages/parents/ParentsPage.jsx` — remplace les champs texte d'ID bruts par des `Autocomplete` MUI : sélection du compte PARENT (liste préchargée via `utilisateurService.lister({ role: 'PARENT' })`) et recherche multi-select d'élèves avec debounce 300ms (`eleveService.lister({ search })`) ; remplace `window.confirm` par un `Dialog` de confirmation de suppression
+- **Description :** Élimine la saisie manuelle d'identifiants numériques pour lier un compte parent à ses élèves, source d'erreurs pour les gestionnaires. Le filtre `role` sur `GET /utilisateurs` permet de ne présenter que les comptes PARENT dans le sélecteur. La recherche d'élèves réutilise l'endpoint existant `GET /eleves?search=`.
+- **Tests validés :** `./mvnw -q compile` ✅ · `npm run build` ✅ · Régression lint vérifiée (3 nouveaux avertissements `react-hooks/set-state-in-effect`, cohérents avec le pattern déjà présent 24 fois ailleurs dans le code, non bloquants)
