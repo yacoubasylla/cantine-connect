@@ -649,3 +649,23 @@
   - `README.md` — comptes de référence (un par rôle) à jour, module Parents ajouté au tableau, pointeurs vers le manuel utilisateur et le cahier de recette
 - **Description :** Mise à jour de l'ensemble de la documentation de gouvernance suite à la clôture du chantier RBAC PARENT + téléphone obligatoire + recherche/export CSV + réinitialisation des comptes. Objectif : qu'aucun document de référence n'affiche des identifiants, un rôle ou un composant (`DataInitializer`) qui n'existent plus dans le code.
 - **Tests validés :** Relecture croisée code ↔ documentation (identifiants, rôles, endpoints, composants mentionnés vérifiés contre l'état actuel du dépôt)
+
+---
+
+### [2026-07-01] - Incident Production : 500 sur Utilisateurs/Paiements/Dashboard (Correctif Urgent)
+- **Statut :** Livré / Opérationnel — incident corrigé
+- **Signalement :** Capture d'écran utilisateur — écran « Gestion des Utilisateurs » vide (« Aucun utilisateur »), bannière « Une erreur interne est survenue », console navigateur montrant des `500` sur `/utilisateurs`, `/paiements` et `/dashboard/stats`. Diagnostic initial erroné côté utilisateur (« tu n'as pas créé les utilisateurs ») — **les 4 comptes de la migration V6 existaient bel et bien en base**, seul l'endpoint de liste était cassé.
+- **Cause racine :** Récidive du bug documenté dans l'ADR-007 (`ERROR: function lower(bytea) does not exist`) — les nouvelles requêtes de recherche `UtilisateurRepository`/`TransactionPaiementRepository` de la session précédente utilisaient le motif JPQL `(:param IS NULL OR LOWER(...) LIKE ...)` sans `CAST` explicite, alors que la règle avait déjà été établie et documentée. Deux bugs additionnels découverts en corrigeant : `TransactionPaiementRepository.statsAcceptesPeriode` provoquait un `ClassCastException` dans `DashboardService` (retour `Object[]` mal déclaré, bug pré-existant non lié à cette session) ; les nouvelles requêtes natives avec `ORDER BY` explicite entraient en conflit avec le tri automatique ajouté par Spring Data à partir du `Pageable` (`t.dateCreation` au lieu de `t.date_creation`).
+- **Fichiers Créés :**
+  - `collaboration/history/adr/2026-07-01-incident-jpql-null-bytea-paiements-utilisateurs.md` (ADR-013)
+- **Fichiers Modifiés (Backend) :**
+  - `auth/repository/UtilisateurRepository.java` — requêtes de recherche converties en `@Query(nativeQuery = true)` + `CAST`, suppression de `findByRoleAndActifTrue` devenue morte
+  - `auth/service/UtilisateurService.java` — passe `role.name()` (String) au lieu de l'enum au repository natif
+  - `paiement/repository/TransactionPaiementRepository.java` — même conversion native + CAST ; `statsAcceptesPeriode` retourne `List<Object[]>` au lieu d'`Object[]`
+  - `paiement/service/PaiementService.java` — passe `statut.name()` ; construit un `Pageable` sans `Sort` avant d'appeler les requêtes natives (qui embarquent déjà leur `ORDER BY`)
+  - `dashboard/service/DashboardService.java` — dépile `List<Object[]>` au lieu de caster directement
+  - `common/GlobalExceptionHandler.java` — `handleGeneric` journalise désormais la stack trace complète (`log.error`) avant de renvoyer le 500 générique — auparavant aucune trace n'était loggée pour les erreurs 500 génériques
+- **Fichiers Modifiés (Documentation) :**
+  - `collaboration/history/decision-log.md` — entrée ADR-013
+- **Description :** Incident critique en production : 3 endpoints centraux (Utilisateurs, Paiements, Dashboard) renvoyaient systématiquement 500 dès qu'ils étaient appelés sans filtre — c'est-à-dire au chargement normal de chaque page. Corrigé en suivant scrupuleusement le pattern déjà validé par l'ADR-007 (requête native + CAST) plutôt qu'en réinventant une solution. Leçon retenue : tout futur endpoint de recherche doit être testé manuellement dans son état par défaut (sans filtre), pas seulement avec un terme de recherche renseigné.
+- **Tests validés :** Reproduction locale confirmée (même erreur `lower(bytea)` que production) → correctif appliqué → `./mvnw test` (24/24) ✅ → vérification manuelle contre PostgreSQL réel : `/utilisateurs` (avec et sans filtre) → 200 ; `/utilisateurs?role=PARENT&search=...` → 200 ; `/paiements` (sans filtre, avec recherche, avec statut, trié par date) → 200 ; `/dashboard/stats` → 200 ; `/eleves` (non-régression) → 200 ; restriction PARENT re-vérifiée bout-en-bout après modification de `PaiementService` (paiements limités aux enfants du parent)

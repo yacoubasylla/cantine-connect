@@ -111,3 +111,12 @@
 - **Contexte** : Le champ `telephone` obligatoire/unique (V5) et la demande de réinitialisation des comptes (un par rôle) rendaient `DataInitializer` incompatible (pas de téléphone renseigné) et son garde-fou `count()==0` définitivement mort une fois V6 appliquée.
 - **Alternative rejetée** : Mettre à jour `DataInitializer` en parallèle de la migration — risque de divergence silencieuse entre deux mécanismes de seed pour un code qui ne s'exécuterait de toute façon plus jamais.
 - **Fichier ADR** : `adr/2026-07-01-migrations-source-unique-comptes-seed.md`
+
+---
+
+### ADR-013 · Incident Production — Récidive du Bug JPQL Nullable + LIKE (ADR-007) sur Paiements/Utilisateurs
+- **Statut** : Accepté — 2026-07-01
+- **Décision** : Conversion des requêtes de recherche `UtilisateurRepository`/`TransactionPaiementRepository` en `@Query(nativeQuery = true)` + `CAST(:param AS ...)`, comme déjà établi par l'ADR-007. Correction en cascade de `statsAcceptesPeriode` (`Object[]` → `List<Object[]>`, `ClassCastException` dans `DashboardService`) et d'un double `ORDER BY` introduit par le `Sort` du `Pageable` sur les nouvelles requêtes natives. `GlobalExceptionHandler.handleGeneric` journalise désormais la stack trace complète.
+- **Contexte** : Les endpoints `GET /api/v1/utilisateurs`, `GET /api/v1/paiements` et `GET /api/v1/dashboard/stats` renvoyaient 500 en production — écran Utilisateurs vide alors que les 4 comptes de la V6 existaient réellement en base. La règle de l'ADR-007 (CAST explicite pour paramètre JPQL nullable) n'avait pas été appliquée aux nouvelles requêtes de recherche ajoutées dans la session précédente.
+- **Leçon retenue** : tout test manuel d'un endpoint de recherche doit couvrir explicitement le cas sans filtre (`search=null`), pas seulement le cas filtré — c'est le chemin le plus emprunté et celui qui a échappé à la vérification précédente.
+- **Fichier ADR** : `adr/2026-07-01-incident-jpql-null-bytea-paiements-utilisateurs.md`
