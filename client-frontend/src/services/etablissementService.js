@@ -32,4 +32,7 @@ export const etablissementService = {
 
   supprimer: (id) =>
     apiClient.delete(`/etablissements/${id}`).then((r) => r.data),
+
+  modifierClasse: (classeId, data) =>
+    apiClient.put(`/etablissements/classes/${classeId}`, data).then((r) => r.data.data),
 };

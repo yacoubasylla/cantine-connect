@@ -87,6 +87,14 @@ public class EtablissementController {
         return ResponseEntity.ok(ApiResponse.ok("Niveau supprimé"));
     }
 
+    @PutMapping("/classes/{classeId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<?>> modifierClasse(
+            @PathVariable Long classeId,
+            @Valid @RequestBody ClasseRequestDTO dto) {
+        return ResponseEntity.ok(ApiResponse.ok(etablissementService.modifierClasse(classeId, dto)));
+    }
+
     @DeleteMapping("/classes/{classeId}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<?>> supprimerClasse(@PathVariable Long classeId) {

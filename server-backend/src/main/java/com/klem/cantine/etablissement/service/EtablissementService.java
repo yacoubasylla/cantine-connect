@@ -113,6 +113,16 @@ public class EtablissementService {
         niveauRepository.deleteById(niveauId);
     }
 
+    @Traceable(action = TypeAction.UPDATE, entite = "Classe")
+    @Transactional
+    public ClasseResponseDTO modifierClasse(Long classeId, ClasseRequestDTO dto) {
+        Classe classe = classeRepository.findById(classeId)
+                .orElseThrow(() -> new EntityNotFoundException("Classe introuvable : " + classeId));
+        if (dto.libelle() != null && !dto.libelle().isBlank()) classe.setLibelle(dto.libelle());
+        if (dto.anneeScolaire() != null && !dto.anneeScolaire().isBlank()) classe.setAnneeScolaire(dto.anneeScolaire());
+        return ClasseResponseDTO.from(classeRepository.save(classe));
+    }
+
     @Traceable(action = TypeAction.DELETE, entite = "Classe")
     @Transactional
     public void supprimerClasse(Long classeId) {

@@ -3,7 +3,8 @@ import {
   Dialog, DialogTitle, DialogContent, DialogActions,
   Box, Typography, Button, Stack, TextField,
   List, ListItem, ListItemText, Divider,
-  CircularProgress, Alert, Chip, IconButton, Collapse,
+  CircularProgress, Alert, Chip, IconButton, Collapse, Tooltip,
+  InputAdornment,
 } from '@mui/material'
 import AddIcon from '@mui/icons-material/Add'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
@@ -11,9 +12,95 @@ import ExpandLessIcon from '@mui/icons-material/ExpandLess'
 import ClassIcon from '@mui/icons-material/Class'
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import DeleteIcon from '@mui/icons-material/Delete'
+import EditIcon from '@mui/icons-material/Edit'
+import CheckIcon from '@mui/icons-material/Check'
+import CloseIcon from '@mui/icons-material/Close'
 import { etablissementService } from '../../services/etablissementService'
 
-function NiveauItem({ niveau, onAddClasses, onDeleteNiveau, onDeleteClasse }) {
+// ── Ligne de classe avec édition inline ──────────────────────
+function ClasseRow({ classe, onEdit, onDelete }) {
+  const [editing, setEditing] = useState(false)
+  const [libelle, setLibelle] = useState(classe.libelle)
+  const [annee, setAnnee] = useState(classe.anneeScolaire)
+  const [saving, setSaving] = useState(false)
+
+  const handleSave = async () => {
+    if (!libelle.trim()) return
+    setSaving(true)
+    try {
+      await onEdit(classe.id, { libelle: libelle.trim(), anneeScolaire: annee })
+      setEditing(false)
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleCancel = () => {
+    setLibelle(classe.libelle)
+    setAnnee(classe.anneeScolaire)
+    setEditing(false)
+  }
+
+  if (editing) {
+    return (
+      <ListItem sx={{ py: 0.5, pl: 0, gap: 1 }}>
+        <ClassIcon sx={{ fontSize: 15, color: 'primary.light', flexShrink: 0 }} />
+        <TextField
+          size="small" value={libelle} autoFocus
+          onChange={(e) => setLibelle(e.target.value)}
+          onKeyDown={(e) => { if (e.key === 'Enter') handleSave(); if (e.key === 'Escape') handleCancel() }}
+          sx={{ flex: 1 }}
+        />
+        <TextField
+          size="small" value={annee}
+          onChange={(e) => setAnnee(e.target.value)}
+          sx={{ width: 120 }}
+        />
+        <Tooltip title="Enregistrer">
+          <IconButton size="small" color="primary" onClick={handleSave} disabled={saving}>
+            {saving ? <CircularProgress size={14} /> : <CheckIcon fontSize="small" />}
+          </IconButton>
+        </Tooltip>
+        <Tooltip title="Annuler">
+          <IconButton size="small" onClick={handleCancel}><CloseIcon fontSize="small" /></IconButton>
+        </Tooltip>
+      </ListItem>
+    )
+  }
+
+  return (
+    <ListItem
+      sx={{ py: 0.2, pl: 0 }}
+      secondaryAction={
+        <Stack direction="row" spacing={0}>
+          <Tooltip title="Modifier">
+            <IconButton size="small" onClick={() => setEditing(true)}
+              sx={{ opacity: 0.5, '&:hover': { opacity: 1 } }}>
+              <EditIcon sx={{ fontSize: 15 }} />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title="Supprimer">
+            <IconButton size="small" color="error" onClick={() => onDelete(classe)}
+              sx={{ opacity: 0.5, '&:hover': { opacity: 1 } }}>
+              <DeleteIcon sx={{ fontSize: 15 }} />
+            </IconButton>
+          </Tooltip>
+        </Stack>
+      }
+    >
+      <ClassIcon sx={{ fontSize: 15, mr: 1, color: 'primary.light' }} />
+      <ListItemText
+        primary={classe.libelle}
+        secondary={classe.anneeScolaire}
+        primaryTypographyProps={{ variant: 'body2', fontWeight: 500 }}
+        secondaryTypographyProps={{ variant: 'caption' }}
+      />
+    </ListItem>
+  )
+}
+
+// ── Bloc niveau ───────────────────────────────────────────────
+function NiveauItem({ niveau, onAddClasses, onEditClasse, onDeleteNiveau, onDeleteClasse }) {
   const [open, setOpen] = useState(true)
   const [input, setInput] = useState('')
   const [annee, setAnnee] = useState('2025-2026')
@@ -41,7 +128,6 @@ function NiveauItem({ niveau, onAddClasses, onDeleteNiveau, onDeleteClasse }) {
 
   return (
     <Box sx={{ mb: 1.5 }}>
-      {/* ── En-tête niveau ── */}
       <Stack direction="row" alignItems="center" justifyContent="space-between"
         sx={{ bgcolor: 'primary.main', color: 'white', px: 2, py: 1, borderRadius: 1 }}
       >
@@ -65,36 +151,19 @@ function NiveauItem({ niveau, onAddClasses, onDeleteNiveau, onDeleteClasse }) {
 
       <Collapse in={open}>
         <Box sx={{ pl: 2, pr: 1, pt: 1, pb: 1.5, bgcolor: 'grey.50', borderRadius: '0 0 6px 6px' }}>
-
-          {/* ── Liste des classes existantes ── */}
           {niveau.classes.length > 0 && (
             <List dense disablePadding sx={{ mb: 1 }}>
               {niveau.classes.map((c) => (
-                <ListItem
-                  key={c.id} sx={{ py: 0.2, pl: 0 }}
-                  secondaryAction={
-                    <IconButton
-                      size="small" edge="end" color="error"
-                      onClick={() => onDeleteClasse(c)}
-                      sx={{ opacity: 0.6, '&:hover': { opacity: 1 } }}
-                    >
-                      <DeleteIcon sx={{ fontSize: 16 }} />
-                    </IconButton>
-                  }
-                >
-                  <ClassIcon sx={{ fontSize: 15, mr: 1, color: 'primary.light' }} />
-                  <ListItemText
-                    primary={c.libelle}
-                    secondary={c.anneeScolaire}
-                    primaryTypographyProps={{ variant: 'body2', fontWeight: 500 }}
-                    secondaryTypographyProps={{ variant: 'caption' }}
-                  />
-                </ListItem>
+                <ClasseRow
+                  key={c.id}
+                  classe={c}
+                  onEdit={onEditClasse}
+                  onDelete={onDeleteClasse}
+                />
               ))}
             </List>
           )}
 
-          {/* ── Formulaire d'ajout rapide toujours visible ── */}
           <Stack spacing={1}>
             <TextField
               size="small"
@@ -139,6 +208,7 @@ function NiveauItem({ niveau, onAddClasses, onDeleteNiveau, onDeleteClasse }) {
   )
 }
 
+// ── Dialog principal ──────────────────────────────────────────
 export default function GestionStructureDialog({ open, onClose, etablissement }) {
   const [niveaux, setNiveaux] = useState([])
   const [loading, setLoading] = useState(false)
@@ -184,6 +254,11 @@ export default function GestionStructureDialog({ open, onClose, etablissement })
     await chargerNiveaux()
   }
 
+  const handleEditClasse = async (classeId, dto) => {
+    await etablissementService.modifierClasse(classeId, dto)
+    await chargerNiveaux()
+  }
+
   const handleDeleteNiveau = async (niveau) => {
     const msg = niveau.classes.length > 0
       ? `Supprimer le niveau "${niveau.libelle}" et ses ${niveau.classes.length} classe(s) ?`
@@ -226,12 +301,12 @@ export default function GestionStructureDialog({ open, onClose, etablissement })
               <NiveauItem
                 key={n.id} niveau={n}
                 onAddClasses={handleAddClasses}
+                onEditClasse={handleEditClasse}
                 onDeleteNiveau={handleDeleteNiveau}
                 onDeleteClasse={handleDeleteClasse}
               />
             ))}
 
-            {/* ── Ajout de niveau(x) ── */}
             <Box sx={{ mt: 2, p: 2, bgcolor: 'primary.50', border: '1px dashed', borderColor: 'primary.light', borderRadius: 1 }}>
               <Typography variant="subtitle2" mb={1} color="primary.dark">
                 Ajouter un ou plusieurs niveaux
