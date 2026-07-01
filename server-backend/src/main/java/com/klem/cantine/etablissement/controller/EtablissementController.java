@@ -80,6 +80,14 @@ public class EtablissementController {
         return ResponseEntity.ok(ApiResponse.ok("Établissement supprimé"));
     }
 
+    @PutMapping("/niveaux/{niveauId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<?>> modifierNiveau(
+            @PathVariable Long niveauId,
+            @Valid @RequestBody NiveauRequestDTO dto) {
+        return ResponseEntity.ok(ApiResponse.ok(etablissementService.modifierNiveau(niveauId, dto)));
+    }
+
     @DeleteMapping("/niveaux/{niveauId}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<?>> supprimerNiveau(@PathVariable Long niveauId) {

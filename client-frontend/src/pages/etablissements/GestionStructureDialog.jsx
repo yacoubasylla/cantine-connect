@@ -100,13 +100,32 @@ function ClasseRow({ classe, onEdit, onDelete }) {
 }
 
 // ── Bloc niveau ───────────────────────────────────────────────
-function NiveauItem({ niveau, onAddClasses, onEditClasse, onDeleteNiveau, onDeleteClasse }) {
+function NiveauItem({ niveau, onAddClasses, onEditClasse, onEditNiveau, onDeleteNiveau, onDeleteClasse }) {
   const [open, setOpen] = useState(true)
+  const [editingNiveau, setEditingNiveau] = useState(false)
+  const [niveauLabel, setNiveauLabel] = useState(niveau.libelle)
+  const [savingNiveau, setSavingNiveau] = useState(false)
   const [input, setInput] = useState('')
   const [annee, setAnnee] = useState('2025-2026')
   const [saving, setSaving] = useState(false)
   const [err, setErr] = useState(null)
   const [successCount, setSuccessCount] = useState(0)
+
+  const handleSaveNiveau = async () => {
+    if (!niveauLabel.trim()) return
+    setSavingNiveau(true)
+    try {
+      await onEditNiveau(niveau.id, { libelle: niveauLabel.trim(), ordre: niveau.ordre })
+      setEditingNiveau(false)
+    } finally {
+      setSavingNiveau(false)
+    }
+  }
+
+  const handleCancelNiveau = () => {
+    setNiveauLabel(niveau.libelle)
+    setEditingNiveau(false)
+  }
 
   const handleAdd = async () => {
     const noms = input.split(',').map((s) => s.trim()).filter(Boolean)
@@ -131,12 +150,41 @@ function NiveauItem({ niveau, onAddClasses, onEditClasse, onDeleteNiveau, onDele
       <Stack direction="row" alignItems="center" justifyContent="space-between"
         sx={{ bgcolor: 'primary.main', color: 'white', px: 2, py: 1, borderRadius: 1 }}
       >
-        <Typography fontWeight={600}>{niveau.libelle}</Typography>
+        {editingNiveau ? (
+          <Stack direction="row" spacing={0.5} alignItems="center" flexGrow={1} mr={1}>
+            <TextField
+              size="small" value={niveauLabel} autoFocus
+              onChange={(e) => setNiveauLabel(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter') handleSaveNiveau(); if (e.key === 'Escape') handleCancelNiveau() }}
+              sx={{ flex: 1, '& .MuiInputBase-input': { color: 'white', fontWeight: 600 }, '& .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(255,255,255,0.5)' } }}
+            />
+            <Tooltip title="Enregistrer">
+              <IconButton size="small" sx={{ color: 'white' }} onClick={handleSaveNiveau} disabled={savingNiveau}>
+                {savingNiveau ? <CircularProgress size={14} sx={{ color: 'white' }} /> : <CheckIcon fontSize="small" />}
+              </IconButton>
+            </Tooltip>
+            <Tooltip title="Annuler">
+              <IconButton size="small" sx={{ color: 'rgba(255,255,255,0.7)' }} onClick={handleCancelNiveau}>
+                <CloseIcon fontSize="small" />
+              </IconButton>
+            </Tooltip>
+          </Stack>
+        ) : (
+          <Typography fontWeight={600}>{niveau.libelle}</Typography>
+        )}
         <Stack direction="row" spacing={0.5} alignItems="center">
           <Chip
             label={`${niveau.classes.length} classe(s)`} size="small"
             sx={{ bgcolor: 'rgba(255,255,255,0.2)', color: 'white' }}
           />
+          {!editingNiveau && (
+            <Tooltip title="Modifier le niveau">
+              <IconButton size="small" sx={{ color: 'rgba(255,255,255,0.8)', '&:hover': { color: 'white' } }}
+                onClick={() => setEditingNiveau(true)}>
+                <EditIcon fontSize="small" />
+              </IconButton>
+            </Tooltip>
+          )}
           <IconButton size="small" sx={{ color: 'white' }} onClick={() => setOpen(!open)}>
             {open ? <ExpandLessIcon /> : <ExpandMoreIcon />}
           </IconButton>
@@ -254,6 +302,11 @@ export default function GestionStructureDialog({ open, onClose, etablissement })
     await chargerNiveaux()
   }
 
+  const handleEditNiveau = async (niveauId, dto) => {
+    await etablissementService.modifierNiveau(niveauId, dto)
+    await chargerNiveaux()
+  }
+
   const handleEditClasse = async (classeId, dto) => {
     await etablissementService.modifierClasse(classeId, dto)
     await chargerNiveaux()
@@ -301,6 +354,7 @@ export default function GestionStructureDialog({ open, onClose, etablissement })
               <NiveauItem
                 key={n.id} niveau={n}
                 onAddClasses={handleAddClasses}
+                onEditNiveau={handleEditNiveau}
                 onEditClasse={handleEditClasse}
                 onDeleteNiveau={handleDeleteNiveau}
                 onDeleteClasse={handleDeleteClasse}

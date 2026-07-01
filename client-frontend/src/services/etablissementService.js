@@ -35,4 +35,7 @@ export const etablissementService = {
 
   modifierClasse: (classeId, data) =>
     apiClient.put(`/etablissements/classes/${classeId}`, data).then((r) => r.data.data),
+
+  modifierNiveau: (niveauId, data) =>
+    apiClient.put(`/etablissements/niveaux/${niveauId}`, data).then((r) => r.data.data),
 };
