@@ -9,6 +9,7 @@ import ScanPage           from './pages/scan/ScanPage'
 import UtilisateursPage   from './pages/utilisateurs/UtilisateursPage'
 import ProtectedRoute     from './components/ProtectedRoute'
 import AdminRoute         from './components/AdminRoute'
+import ErrorBoundary      from './components/ErrorBoundary'
 
 export default function App() {
   return (
@@ -23,12 +24,12 @@ export default function App() {
         }
       >
         <Route index element={<Navigate to="/dashboard" replace />} />
-        <Route path="dashboard"      element={<DashboardPage />} />
-        <Route path="etablissements" element={<EtablissementsPage />} />
-        <Route path="eleves"         element={<ElevesPage />} />
-        <Route path="paiements"      element={<PaiementsPage />} />
-        <Route path="scan"           element={<ScanPage />} />
-        <Route path="utilisateurs"   element={<AdminRoute><UtilisateursPage /></AdminRoute>} />
+        <Route path="dashboard"      element={<ErrorBoundary><DashboardPage /></ErrorBoundary>} />
+        <Route path="etablissements" element={<ErrorBoundary><EtablissementsPage /></ErrorBoundary>} />
+        <Route path="eleves"         element={<ErrorBoundary><ElevesPage /></ErrorBoundary>} />
+        <Route path="paiements"      element={<ErrorBoundary><PaiementsPage /></ErrorBoundary>} />
+        <Route path="scan"           element={<ErrorBoundary><ScanPage /></ErrorBoundary>} />
+        <Route path="utilisateurs"   element={<ErrorBoundary><AdminRoute><UtilisateursPage /></AdminRoute></ErrorBoundary>} />
       </Route>
     </Routes>
   )

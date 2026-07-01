@@ -21,7 +21,7 @@ export function usePaiements(filtres = {}) {
         size: rowsPerPage,
         sort: 'dateCreation,desc',
       })
-      setData(result)
+      setData(result ?? { content: [], totalElements: 0 })
     } catch (e) {
       setError(e.message)
     } finally {
