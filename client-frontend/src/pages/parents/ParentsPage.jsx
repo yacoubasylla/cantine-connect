@@ -242,25 +242,27 @@ export default function ParentsPage() {
 
   return (
     <Box>
-      <Stack direction="row" justifyContent="space-between" alignItems="center" mb={3}>
+      <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems={{ xs: 'stretch', sm: 'center' }} mb={3} gap={1}>
         <Stack direction="row" spacing={1.5} alignItems="center">
           <FamilyRestroomIcon color="primary" />
           <Typography variant="h5" fontWeight={600}>Comptes Parents</Typography>
         </Stack>
-        <Button variant="contained" startIcon={<AddIcon />} onClick={handleAdd}>
+        <Button variant="contained" startIcon={<AddIcon />} onClick={handleAdd} sx={{ flex: { xs: 1, sm: '0 0 auto' } }}>
           Ajouter
         </Button>
       </Stack>
 
       {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
 
+      {/* Colonnes secondaires (#/Email) masquées sous sm — repliées en sous-titre
+          dans la cellule Parent pour éviter le défilement horizontal. */}
       <TableContainer component={Paper} sx={{ boxShadow: 1 }}>
-        <Table size="small">
+        <Table size="small" sx={{ '& .MuiTableCell-root': { px: { xs: 0.75, sm: 2 } } }}>
           <TableHead>
             <TableRow>
-              <TableCell>#</TableCell>
+              <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>#</TableCell>
               <TableCell>Parent</TableCell>
-              <TableCell>Email</TableCell>
+              <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>Email</TableCell>
               <TableCell>Enfants inscrits</TableCell>
               <TableCell align="center">Actions</TableCell>
             </TableRow>
@@ -281,11 +283,14 @@ export default function ParentsPage() {
             ) : (
               parents.map((p) => (
                 <TableRow key={p.id} hover>
-                  <TableCell sx={{ fontFamily: 'monospace', fontSize: 12 }}>{p.id}</TableCell>
+                  <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' }, fontFamily: 'monospace', fontSize: 12 }}>{p.id}</TableCell>
                   <TableCell>
                     <Typography variant="body2" fontWeight={600}>{p.prenom} {p.nom}</Typography>
+                    <Typography variant="caption" color="text.secondary" sx={{ display: { xs: 'block', sm: 'none' }, wordBreak: 'break-word' }}>
+                      #{p.id} · {p.email}
+                    </Typography>
                   </TableCell>
-                  <TableCell>
+                  <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>
                     <Typography variant="body2" color="text.secondary">{p.email}</Typography>
                   </TableCell>
                   <TableCell>

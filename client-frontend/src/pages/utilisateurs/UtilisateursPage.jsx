@@ -2,7 +2,7 @@ import { useState } from 'react'
 import {
   Box, Typography, Button, Stack, Alert, Chip, Tooltip, IconButton,
   Table, TableHead, TableBody, TableRow, TableCell, TableContainer,
-  TablePagination, Paper, Skeleton,
+  TablePagination, Paper, Skeleton, Menu,
   Dialog, DialogTitle, DialogContent, DialogActions,
   TextField, Select, MenuItem, FormControl, InputLabel,
   CircularProgress, Divider,
@@ -13,6 +13,7 @@ import DeleteForeverIcon from '@mui/icons-material/DeleteForever'
 import RefreshIcon       from '@mui/icons-material/Refresh'
 import PersonOffIcon     from '@mui/icons-material/PersonOff'
 import PersonAddIcon     from '@mui/icons-material/PersonAdd'
+import MoreVertIcon      from '@mui/icons-material/MoreVert'
 import { useUtilisateurs } from '../../hooks/useUtilisateurs'
 import { useAuth }          from '../../hooks/useAuth'
 import SuccessSnackbar      from '../../components/SuccessSnackbar'
@@ -223,7 +224,12 @@ export default function UtilisateursPage() {
   const [userToDelete,  setUserToDelete]  = useState(null)
   const [actionError,   setActionError]   = useState(null)
   const [successMsg,    setSuccessMsg]    = useState('')
+  const [menuAnchor,    setMenuAnchor]    = useState(null)
+  const [menuUser,      setMenuUser]      = useState(null)
   const { user: currentUser } = useAuth()
+
+  const openMenu  = (e, u) => { setMenuAnchor(e.currentTarget); setMenuUser(u) }
+  const closeMenu = () => { setMenuAnchor(null); setMenuUser(null) }
 
   const {
     utilisateurs, total, page, setPage, rowsPerPage, setRowsPerPage,
@@ -259,16 +265,16 @@ export default function UtilisateursPage() {
   return (
     <Box>
       {/* ── En-tête ─────────────────────────────────────── */}
-      <Stack direction="row" alignItems="center" justifyContent="space-between" mb={2} flexWrap="wrap" gap={1}>
+      <Stack direction={{ xs: 'column', sm: 'row' }} alignItems={{ xs: 'stretch', sm: 'center' }} justifyContent="space-between" mb={2} gap={1}>
         <Box>
           <Typography variant="h5" fontWeight={600}>Gestion des Utilisateurs</Typography>
           <Typography variant="caption" color="text.secondary">Accès réservé aux Administrateurs</Typography>
         </Box>
-        <Stack direction="row" spacing={1}>
+        <Stack direction="row" spacing={1} flexWrap="wrap">
           <Tooltip title="Actualiser">
             <IconButton onClick={recharger} disabled={loading} size="small"><RefreshIcon /></IconButton>
           </Tooltip>
-          <Button variant="contained" startIcon={<AddIcon />} onClick={() => setCreerOpen(true)}>
+          <Button variant="contained" startIcon={<AddIcon />} onClick={() => setCreerOpen(true)} sx={{ flex: { xs: 1, sm: '0 0 auto' } }}>
             Nouveau compte
           </Button>
         </Stack>
@@ -281,17 +287,19 @@ export default function UtilisateursPage() {
       )}
 
       {/* ── Table ───────────────────────────────────────── */}
+      {/* Colonnes secondaires (Email/Téléphone/Créé le) masquées sous sm — repliées
+          en sous-titre dans la cellule Nom/Prénom pour éviter le défilement horizontal. */}
       <Paper variant="outlined">
         <TableContainer>
-          <Table size="small">
+          <Table size="small" sx={{ '& .MuiTableCell-root': { px: { xs: 0.75, sm: 2 } } }}>
             <TableHead>
               <TableRow sx={{ bgcolor: 'action.hover' }}>
                 <TableCell>Nom / Prénom</TableCell>
-                <TableCell>Email</TableCell>
-                <TableCell>Téléphone</TableCell>
+                <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>Email</TableCell>
+                <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>Téléphone</TableCell>
                 <TableCell>Rôle</TableCell>
-                <TableCell align="center">Statut</TableCell>
-                <TableCell>Créé le</TableCell>
+                <TableCell align="center" sx={{ display: { xs: 'none', sm: 'table-cell' } }}>Statut</TableCell>
+                <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>Créé le</TableCell>
                 <TableCell align="center">Actions</TableCell>
               </TableRow>
             </TableHead>
@@ -314,7 +322,6 @@ export default function UtilisateursPage() {
                   )
                   : utilisateurs.map((u) => {
                     const isSelf = u.id === currentUser?.id
-                    const cfg = ROLE_CONFIG[u.role] ?? { label: u.role, color: 'default' }
                     return (
                       <TableRow key={u.id} hover sx={{ opacity: u.actif ? 1 : 0.55 }}>
 
@@ -322,24 +329,27 @@ export default function UtilisateursPage() {
                         <TableCell>
                           <Typography variant="body2" fontWeight={600}>{u.nom} {u.prenom}</Typography>
                           {isSelf && <Typography variant="caption" color="primary.main">(vous)</Typography>}
+                          <Typography variant="caption" color="text.secondary" sx={{ display: { xs: 'block', sm: 'none' }, wordBreak: 'break-word' }}>
+                            {u.email} · {u.telephone} · {u.actif ? 'Actif' : 'Inactif'}
+                          </Typography>
                         </TableCell>
 
                         {/* Email */}
-                        <TableCell>
+                        <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>
                           <Typography variant="body2" sx={{ fontFamily: 'monospace', fontSize: 12 }}>
                             {u.email}
                           </Typography>
                         </TableCell>
 
                         {/* Téléphone */}
-                        <TableCell>
+                        <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>
                           <Typography variant="body2" sx={{ fontFamily: 'monospace', fontSize: 12 }}>
                             {u.telephone}
                           </Typography>
                         </TableCell>
 
                         {/* Rôle inline */}
-                        <TableCell sx={{ minWidth: 160 }}>
+                        <TableCell sx={{ minWidth: { xs: 90, sm: 160 } }}>
                           <Select
                             value={u.role}
                             size="small"
@@ -347,7 +357,15 @@ export default function UtilisateursPage() {
                             disabled={isSelf || !u.actif}
                             onChange={(e) => handleChangerRole(u.id, e.target.value)}
                             renderValue={(val) => (
-                              <Chip label={ROLE_CONFIG[val]?.label ?? val} color={ROLE_CONFIG[val]?.color ?? 'default'} size="small" />
+                              <Chip
+                                label={ROLE_CONFIG[val]?.label ?? val}
+                                color={ROLE_CONFIG[val]?.color ?? 'default'}
+                                size="small"
+                                sx={{
+                                  maxWidth: { xs: 84, sm: 'none' },
+                                  '& .MuiChip-label': { overflow: 'hidden', textOverflow: 'ellipsis' },
+                                }}
+                              />
                             )}
                             sx={{ '& .MuiSelect-select': { py: 0 } }}
                           >
@@ -360,7 +378,7 @@ export default function UtilisateursPage() {
                         </TableCell>
 
                         {/* Statut */}
-                        <TableCell align="center">
+                        <TableCell align="center" sx={{ display: { xs: 'none', sm: 'table-cell' } }}>
                           <Chip
                             label={u.actif ? 'Actif' : 'Inactif'}
                             color={u.actif ? 'success' : 'default'}
@@ -370,45 +388,51 @@ export default function UtilisateursPage() {
                         </TableCell>
 
                         {/* Date création */}
-                        <TableCell>
+                        <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>
                           <Typography variant="caption" color="text.secondary">{formatDate(u.createdAt)}</Typography>
                         </TableCell>
 
                         {/* Actions */}
-                        <TableCell align="center">
+                        <TableCell align="center" sx={{ whiteSpace: 'nowrap' }}>
                           <Stack direction="row" justifyContent="center" spacing={0.5}>
 
-                            {/* Modifier */}
+                            {/* Modifier — toujours visible */}
                             <Tooltip title="Modifier les informations">
                               <IconButton size="small" color="primary" onClick={() => setUserToEdit(u)}>
                                 <EditIcon fontSize="small" />
                               </IconButton>
                             </Tooltip>
 
-                            {/* Désactiver / Réactiver */}
-                            {u.actif ? (
-                              <Tooltip title={isSelf ? 'Impossible de se désactiver soi-même' : 'Désactiver'}>
+                            {/* Désactiver/Réactiver + Supprimer — repliés en menu sous sm pour éviter le débordement */}
+                            <Box sx={{ display: { xs: 'none', sm: 'flex' } }}>
+                              {u.actif ? (
+                                <Tooltip title={isSelf ? 'Impossible de se désactiver soi-même' : 'Désactiver'}>
+                                  <span>
+                                    <IconButton size="small" color="warning" disabled={isSelf} onClick={() => handleDesactiver(u)}>
+                                      <PersonOffIcon fontSize="small" />
+                                    </IconButton>
+                                  </span>
+                                </Tooltip>
+                              ) : (
+                                <Tooltip title="Réactiver">
+                                  <IconButton size="small" color="success" onClick={() => handleReactiver(u)}>
+                                    <PersonAddIcon fontSize="small" />
+                                  </IconButton>
+                                </Tooltip>
+                              )}
+                              <Tooltip title={isSelf ? 'Impossible de se supprimer soi-même' : 'Supprimer définitivement'}>
                                 <span>
-                                  <IconButton size="small" color="warning" disabled={isSelf} onClick={() => handleDesactiver(u)}>
-                                    <PersonOffIcon fontSize="small" />
+                                  <IconButton size="small" color="error" disabled={isSelf} onClick={() => setUserToDelete(u)}>
+                                    <DeleteForeverIcon fontSize="small" />
                                   </IconButton>
                                 </span>
                               </Tooltip>
-                            ) : (
-                              <Tooltip title="Réactiver">
-                                <IconButton size="small" color="success" onClick={() => handleReactiver(u)}>
-                                  <PersonAddIcon fontSize="small" />
-                                </IconButton>
-                              </Tooltip>
-                            )}
+                            </Box>
 
-                            {/* Supprimer définitivement */}
-                            <Tooltip title={isSelf ? 'Impossible de se supprimer soi-même' : 'Supprimer définitivement'}>
-                              <span>
-                                <IconButton size="small" color="error" disabled={isSelf} onClick={() => setUserToDelete(u)}>
-                                  <DeleteForeverIcon fontSize="small" />
-                                </IconButton>
-                              </span>
+                            <Tooltip title="Plus d'actions">
+                              <IconButton size="small" onClick={(e) => openMenu(e, u)} sx={{ display: { xs: 'inline-flex', sm: 'none' } }}>
+                                <MoreVertIcon fontSize="small" />
+                              </IconButton>
                             </Tooltip>
 
                           </Stack>
@@ -456,6 +480,29 @@ export default function UtilisateursPage() {
           onConfirm={supprimer}
         />
       )}
+
+      {/* Menu compact (mobile) — Désactiver/Réactiver + Supprimer */}
+      <Menu anchorEl={menuAnchor} open={Boolean(menuAnchor)} onClose={closeMenu}>
+        {menuUser?.actif ? (
+          <MenuItem
+            disabled={menuUser?.id === currentUser?.id}
+            onClick={() => { handleDesactiver(menuUser); closeMenu() }}
+          >
+            <PersonOffIcon fontSize="small" sx={{ mr: 1 }} /> Désactiver
+          </MenuItem>
+        ) : (
+          <MenuItem onClick={() => { handleReactiver(menuUser); closeMenu() }}>
+            <PersonAddIcon fontSize="small" sx={{ mr: 1 }} /> Réactiver
+          </MenuItem>
+        )}
+        <MenuItem
+          disabled={menuUser?.id === currentUser?.id}
+          sx={{ color: 'error.main' }}
+          onClick={() => { setUserToDelete(menuUser); closeMenu() }}
+        >
+          <DeleteForeverIcon fontSize="small" sx={{ mr: 1 }} /> Supprimer définitivement
+        </MenuItem>
+      </Menu>
 
       <SuccessSnackbar open={Boolean(successMsg)} message={successMsg} onClose={() => setSuccessMsg('')} />
     </Box>
