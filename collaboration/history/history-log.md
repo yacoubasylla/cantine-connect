@@ -775,3 +775,17 @@
   - `collaboration/doc/manuel-utilisateur.md` (+ `.docx` régénéré) — sections Scan Réfectoire et Configuration mises à jour
 - **Description :** Le téléchargement manuel via le bouton ☁️⬇️ reste disponible dans tous les cas ; le nouveau réglage ne fait qu'automatiser le premier téléchargement de la session si une connexion est disponible, réduisant le risque d'oubli avant une coupure réseau.
 - **Tests validés :** `./mvnw test` (24/24) ✅ · migration V7 appliquée et vérifiée (`GET /configurations/SCAN_CACHE_AUTO_REFRESH` → `valeur: "true"`) · `npm run build` ✅ · lint sans régression · vérification Playwright bout-en-bout : cache vidé + réglage activé → téléchargement automatique confirmé (« Cache : 2 élèves · à l'instant ») ; réglage désactivé via la page Configuration + cache vidé → reste « Cache absent » (pas de téléchargement automatique), confirmant que l'interrupteur fonctionne dans les deux sens.
+
+---
+
+### [2026-07-02] - Notifications de Succès sur les Formulaires Élèves/Utilisateurs/Parents
+- **Statut :** Livré / Opérationnel
+- **Contexte :** Le formulaire Paiements affichait déjà une confirmation de succès (alerte inline avec l'URL de paiement) ; demande d'un retour équivalent sur les formulaires Élève, Utilisateur et Parent, qui se fermaient silencieusement après un ajout/modification réussi.
+- **Fichiers Créés :**
+  - `components/SuccessSnackbar.jsx` — composant partagé (`Snackbar` + `Alert` MUI, `severity="success"`, auto-masqué après 4s) réutilisé sur les 3 pages plutôt que de dupliquer le pattern à chaque endroit
+- **Fichiers Modifiés :**
+  - `pages/eleves/ElevesPage.jsx` — message « Élève créé/modifié avec succès » après `creer`/`modifier`
+  - `pages/utilisateurs/UtilisateursPage.jsx` — nouveaux handlers `handleCreerSuccess`/`handleModifierSuccess` encapsulant `creer`/`modifier` (les dialogues appelaient les fonctions du hook directement, sans point d'accroche pour le message) → « Compte utilisateur créé/modifié avec succès »
+  - `pages/parents/ParentsPage.jsx` — « Compte parent créé avec succès » / « Enfants associés mis à jour avec succès »
+- **Description :** Contrairement au formulaire Paiements (qui garde le dialogue ouvert pour afficher l'URL CinetPay), ces 3 formulaires n'ont rien de spécifique à afficher après succès — un Snackbar bref après fermeture du dialogue convient mieux qu'une alerte inline bloquante.
+- **Tests validés :** `npm run build` ✅ · lint sans régression (30 problèmes, identique à la référence) · vérification Playwright bout-en-bout sur les 3 pages (création utilisateur, modification élève, création parent) — snackbar de succès confirmé visible à chaque fois par capture d'écran ; données de test nettoyées après vérification.

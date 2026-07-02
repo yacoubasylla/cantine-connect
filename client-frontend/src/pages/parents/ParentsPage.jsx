@@ -13,6 +13,7 @@ import FamilyRestroomIcon from '@mui/icons-material/FamilyRestroom'
 import { useParents }          from '../../hooks/useParents'
 import { utilisateurService }  from '../../services/utilisateurService'
 import { eleveService }        from '../../services/eleveService'
+import SuccessSnackbar         from '../../components/SuccessSnackbar'
 
 // ── helpers ───────────────────────────────────────────────────────────────────
 
@@ -214,6 +215,7 @@ export default function ParentsPage() {
   const [formOpen, setFormOpen]         = useState(false)
   const [editTarget, setEditTarget]     = useState(null)
   const [deleteTarget, setDeleteTarget] = useState(null)
+  const [successMsg, setSuccessMsg]     = useState('')
 
   const handleAdd  = () => { setEditTarget(null); setFormOpen(true) }
   const handleEdit = (parent) => { setEditTarget(parent); setFormOpen(true) }
@@ -221,8 +223,10 @@ export default function ParentsPage() {
   const handleSuccess = async (payloadOrId, eleveIds) => {
     if (editTarget) {
       await modifierEnfants(payloadOrId, eleveIds)
+      setSuccessMsg('Enfants associés mis à jour avec succès')
     } else {
       await creer(payloadOrId)
+      setSuccessMsg('Compte parent créé avec succès')
     }
   }
 
@@ -351,6 +355,8 @@ export default function ParentsPage() {
           <Button onClick={handleConfirmDelete} color="error" variant="contained">Supprimer</Button>
         </DialogActions>
       </Dialog>
+
+      <SuccessSnackbar open={Boolean(successMsg)} message={successMsg} onClose={() => setSuccessMsg('')} />
     </Box>
   )
 }

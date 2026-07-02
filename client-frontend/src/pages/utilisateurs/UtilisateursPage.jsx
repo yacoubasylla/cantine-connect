@@ -15,6 +15,7 @@ import PersonOffIcon     from '@mui/icons-material/PersonOff'
 import PersonAddIcon     from '@mui/icons-material/PersonAdd'
 import { useUtilisateurs } from '../../hooks/useUtilisateurs'
 import { useAuth }          from '../../hooks/useAuth'
+import SuccessSnackbar      from '../../components/SuccessSnackbar'
 
 // ── Constantes ────────────────────────────────────────────────────────────────
 
@@ -221,12 +222,23 @@ export default function UtilisateursPage() {
   const [userToEdit,    setUserToEdit]    = useState(null)
   const [userToDelete,  setUserToDelete]  = useState(null)
   const [actionError,   setActionError]   = useState(null)
+  const [successMsg,    setSuccessMsg]    = useState('')
   const { user: currentUser } = useAuth()
 
   const {
     utilisateurs, total, page, setPage, rowsPerPage, setRowsPerPage,
     loading, error, creer, modifier, changerRole, desactiver, reactiver, supprimer, recharger,
   } = useUtilisateurs()
+
+  const handleCreerSuccess = async (form) => {
+    await creer(form)
+    setSuccessMsg('Compte utilisateur créé avec succès')
+  }
+
+  const handleModifierSuccess = async (id, dto) => {
+    await modifier(id, dto)
+    setSuccessMsg('Compte utilisateur modifié avec succès')
+  }
 
   const handleDesactiver = async (u) => {
     if (!window.confirm(`Désactiver le compte de ${u.prenom} ${u.nom} ?`)) return
@@ -426,14 +438,14 @@ export default function UtilisateursPage() {
       <CreerDialog
         open={creerOpen}
         onClose={() => setCreerOpen(false)}
-        onSubmit={creer}
+        onSubmit={handleCreerSuccess}
       />
 
       {userToEdit && (
         <ModifierDialog
           utilisateur={userToEdit}
           onClose={() => setUserToEdit(null)}
-          onSubmit={modifier}
+          onSubmit={handleModifierSuccess}
         />
       )}
 
@@ -444,6 +456,8 @@ export default function UtilisateursPage() {
           onConfirm={supprimer}
         />
       )}
+
+      <SuccessSnackbar open={Boolean(successMsg)} message={successMsg} onClose={() => setSuccessMsg('')} />
     </Box>
   )
 }

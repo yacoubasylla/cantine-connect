@@ -20,6 +20,7 @@ import { useEleves } from '../../hooks/useEleves'
 import { useEtablissements } from '../../hooks/useEtablissements'
 import { useAuth } from '../../hooks/useAuth'
 import StatutBadge from '../../components/StatutBadge'
+import SuccessSnackbar from '../../components/SuccessSnackbar'
 import EleveFormDialog from './EleveFormDialog'
 
 // ── Export CSV ────────────────────────────────────────────────────────────────
@@ -95,6 +96,7 @@ export default function ElevesPage() {
   const [formOpen, setFormOpen]     = useState(false)
   const [eleveToEdit, setEleveToEdit] = useState(null)
   const [qrEleve,    setQrEleve]    = useState(null)
+  const [successMsg, setSuccessMsg] = useState('')
 
   const { user } = useAuth()
   const isAdmin = user?.role === 'ADMIN'
@@ -114,8 +116,10 @@ export default function ElevesPage() {
   const handleSuccess = async (payload) => {
     if (eleveToEdit) {
       await modifier(eleveToEdit.id, payload)
+      setSuccessMsg('Élève modifié avec succès')
     } else {
       await creer(payload)
+      setSuccessMsg('Élève créé avec succès')
     }
   }
 
@@ -290,6 +294,8 @@ export default function ElevesPage() {
       />
 
       <QrCodeDialog eleve={qrEleve} onClose={() => setQrEleve(null)} />
+
+      <SuccessSnackbar open={Boolean(successMsg)} message={successMsg} onClose={() => setSuccessMsg('')} />
     </Box>
   )
 }
